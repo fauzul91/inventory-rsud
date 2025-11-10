@@ -9,20 +9,31 @@ use Illuminate\Validation\UnauthorizedException;
 
 class AuthController extends Controller
 {
-        public function index(Request $request)
-        {
-            $request->session()->put('state', $state = Str::random(40));
+    public function index(Request $request)
+    {
+        $request->session()->put('state', $state = Str::random(40));
 
-            $query = http_build_query([
-                'client_id'     => env('PASSPORT_CLIENT_ID'),
-                'redirect_uri'  => env('PASSPORT_CLIENT_CALLBACK_PATH'),
-                'response_type' => 'code',
-                'scope'         => '',
-                'state'         => $state,
-            ]);
+        $clientId = trim(env('PASSPORT_CLIENT_ID'));
+        $redirectUri = trim(env('PASSPORT_CLIENT_CALLBACK_PATH'));
+        $sso = rtrim(trim(env('SSO_URL', '')), '/');
 
-            return redirect(env('SSO_URL') . '/oauth/authorize?' . $query);
-        }
+        $query = http_build_query([
+            'client_id'     => $clientId,
+            'redirect_uri'  => $redirectUri,
+            'response_type' => 'code',
+            'scope'         => '', // sesuaikan scope jika perlu
+            'state'         => $state,
+        ]);
+
+        $url = $sso . '/oauth/authorize?' . $query;
+        \Log::debug('SSO authorize redirect', ['url' => $url]);
+
+        // Untuk cek cepat di browser saat dev, uncomment salah satu:
+        // dd($url); // hentikan eksekusi dan tampilkan URL
+        // return response()->json(['url' => $url]); // tampilkan JSON tanpa redirect
+
+        return redirect()->away($url);
+    }
 
     public function ssoCallback(Request $request)
     {
