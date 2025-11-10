@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('penerimaans', function (Blueprint $table) {
             $table->id();
+            $table->string('no_surat');
+            $table->text('deskripsi')->nullable();
             $table->timestamps();
         });
     }

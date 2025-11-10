@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('detail_penerimaans', function (Blueprint $table) {
+        Schema::create('detail_penerimaan_pegawais', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('penerimaan_id')->constrained('penerimaans')->onDelete('cascade');
+            $table->foreignId('pegawai_id')->constrained('pegawais')->onDelete('restrict'); 
+            $table->string('alamat_staker');
             $table->timestamps();
         });
     }
@@ -22,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('detail_penerimaans');
+        Schema::dropIfExists('detail_penerimaan_pegawais');
     }
 };
