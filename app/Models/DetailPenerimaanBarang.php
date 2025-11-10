@@ -13,7 +13,8 @@ class DetailPenerimaanBarang extends Model
         'satuan_id',
         'quantity',
         'harga',
-        'total_harga'
+        'total_harga',
+        'is_layak'
     ];
 
     public function penerimaan()

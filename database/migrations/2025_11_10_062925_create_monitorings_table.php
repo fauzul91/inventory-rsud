@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('monitorings', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->time('time');
+            $table->date('date');
+            $table->string('activity');
             $table->timestamps();
         });
     }

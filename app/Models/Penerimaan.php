@@ -6,14 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Penerimaan extends Model
 {
-    protected $fillable = ['no_surat', 'deskripsi'];
+    protected $fillable = ['no_surat', 'deskripsi', 'status'];
 
-    public function pegawai()
+    public function detailPegawai()
     {
         return $this->hasMany(DetailPenerimaanPegawai::class);
     }
 
-    public function barang()
+    public function detailBarang()
     {
         return $this->hasMany(DetailPenerimaanBarang::class);
     }

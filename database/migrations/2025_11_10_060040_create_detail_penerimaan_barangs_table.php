@@ -20,6 +20,7 @@ return new class extends Migration
             $table->integer('quantity')->default(1);
             $table->integer('harga');
             $table->integer('total_harga'); 
+            $table->boolean('is_layak');
             $table->timestamps();
         });
     }

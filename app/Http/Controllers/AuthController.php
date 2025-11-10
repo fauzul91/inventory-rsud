@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Monitoring;
+use App\Models\User;
+use Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\UnauthorizedException;
@@ -18,20 +22,14 @@ class AuthController extends Controller
         $sso = rtrim(trim(env('SSO_URL', '')), '/');
 
         $query = http_build_query([
-            'client_id'     => $clientId,
-            'redirect_uri'  => $redirectUri,
+            'client_id' => $clientId,
+            'redirect_uri' => $redirectUri,
             'response_type' => 'code',
-            'scope'         => '', // sesuaikan scope jika perlu
-            'state'         => $state,
+            'scope' => '', 
+            'state' => $state,
         ]);
 
         $url = $sso . '/oauth/authorize?' . $query;
-        \Log::debug('SSO authorize redirect', ['url' => $url]);
-
-        // Untuk cek cepat di browser saat dev, uncomment salah satu:
-        // dd($url); // hentikan eksekusi dan tampilkan URL
-        // return response()->json(['url' => $url]); // tampilkan JSON tanpa redirect
-
         return redirect()->away($url);
     }
 
@@ -44,11 +42,11 @@ class AuthController extends Controller
         );
 
         $response = Http::asForm()->post(env('SSO_URL') . '/oauth/token', [
-            'grant_type'    => 'authorization_code',
-            'client_id'     => env('PASSPORT_CLIENT_ID'),
+            'grant_type' => 'authorization_code',
+            'client_id' => env('PASSPORT_CLIENT_ID'),
             'client_secret' => env('PASSPORT_CLIENT_SECRET'),
-            'redirect_uri'  => env('PASSPORT_CLIENT_CALLBACK_PATH'),
-            'code'          => $request->code,
+            'redirect_uri' => env('PASSPORT_CLIENT_CALLBACK_PATH'),
+            'code' => $request->code,
         ]);
 
         $tokenData = $response->json();
@@ -59,6 +57,31 @@ class AuthController extends Controller
                 'details' => $tokenData,
             ], 400);
         }
+
+        $userResponse = Http::withToken($tokenData['access_token'])
+            ->get(env('SSO_URL') . '/api/user');
+        $ssoUser = $userResponse->json();
+
+        DB::transaction(function () use ($ssoUser) {
+            $user = User::updateOrCreate(
+                ['sso_user_id' => $ssoUser['id']],
+                [
+                    'name' => $ssoUser['name'],
+                    'email' => $ssoUser['email'],
+                ]
+            );
+
+            Auth::login($user);
+
+            Monitoring::create([
+                'user_id' => $user->id,
+                'date' => now()->toDateString(),
+                'time' => now()->toTimeString(),
+                'activity' => 'login',
+            ]);
+        });
+
+        $ssoUser = $userResponse->json();
 
         $frontendUrl = rtrim(env('FRONTEND_URL', 'http://localhost:5173'), '/');
 
