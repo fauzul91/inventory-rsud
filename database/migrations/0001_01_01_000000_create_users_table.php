@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->unsignedBigInteger('sso_user_id')->nullable()->unique();
             $table->string('email')->unique();
+            $table->string('photo');
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
             $table->rememberToken();
             $table->timestamps();
         });

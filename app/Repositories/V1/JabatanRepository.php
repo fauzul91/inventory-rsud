@@ -11,12 +11,6 @@ class JabatanRepository implements JabatanRepositoryInterface
     {
         $query = Jabatan::query();
 
-        if (!empty($filters['search'])) {
-            $query->where('name', 'like', '%' . $filters['search'] . '%');
-        }
-        if (!empty($filters['limit'])) {
-            $query->limit($filters['limit']);
-        }
         if (!empty($filters['sort_by'])) {
             if ($filters['sort_by'] === 'latest') {
                 $query->orderBy('created_at', 'desc'); 
@@ -24,12 +18,11 @@ class JabatanRepository implements JabatanRepositoryInterface
                 $query->orderBy('created_at', 'asc');  
             }
         } else {
-            $query->orderBy('created_at', 'desc');
+            $query->orderBy('name', 'asc');
         }
 
         $perPage = $filters['per_page'] ?? 10;
-
-        return $query->orderBy('created_at', 'desc')->paginate($perPage);
+        return $query->paginate($perPage);
     }
     public function create(array $data)
     {

@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('penerimaan_id')->constrained('penerimaans')->onDelete('cascade');
             $table->string('nama_barang');
-            $table->foreignId('category_id')->constrained('categories')->onDelete('restrict');
             $table->foreignId('satuan_id')->constrained('satuans')->onDelete('restrict'); 
             $table->integer('quantity')->default(1);
             $table->integer('harga');

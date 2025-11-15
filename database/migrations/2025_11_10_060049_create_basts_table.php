@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('basts', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('penerimaan_id')->constrained()->onDelete('cascade');
+            $table->string('filename');                     
+            $table->string('uploaded_signed_file')->nullable(); 
+            $table->timestamp('uploaded_at')->nullable();
             $table->timestamps();
         });
     }

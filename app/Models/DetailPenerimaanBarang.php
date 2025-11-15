@@ -9,7 +9,6 @@ class DetailPenerimaanBarang extends Model
     protected $fillable = [
         'penerimaan_id',
         'nama_barang',
-        'category_id',
         'satuan_id',
         'quantity',
         'harga',
@@ -20,12 +19,7 @@ class DetailPenerimaanBarang extends Model
     public function penerimaan()
     {
         return $this->belongsTo(Penerimaan::class);
-    }
-
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
+    }    
 
     public function satuan()
     {

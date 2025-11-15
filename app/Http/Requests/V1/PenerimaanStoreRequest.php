@@ -11,7 +11,7 @@ class PenerimaanStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,19 @@ class PenerimaanStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'no_surat' => 'required|string|max:100|unique:penerimaans,no_surat',
+            'category_id' => 'required|exists:categories,id',
+            'deskripsi' => 'nullable|string',
+
+            'detail_barangs' => 'required|array|min:1',
+            'detail_barangs.*.nama_barang' => 'required|string|max:255',
+            'detail_barangs.*.satuan_id' => 'required|exists:satuans,id',
+            'detail_barangs.*.quantity' => 'required|numeric|min:1',
+            'detail_barangs.*.harga' => 'required|numeric|min:0',
+
+            'pegawais' => 'required|array|min:1',
+            'pegawais.*.pegawai_id' => 'required|exists:pegawais,id',
+            'pegawais.*.alamat_staker' => 'nullable|string|max:255',
         ];
     }
 }

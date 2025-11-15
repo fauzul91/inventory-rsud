@@ -9,6 +9,6 @@ interface PenerimaanRepositoryInterface
     public function edit($id);
     public function update(array $data, $id);
     public function delete($id);
-    public function setLayak($detailId, $isLayak);
-    public function updateConfirmationStatus($id);
+    public function markBarangLayak($detailId, $isLayak);
+    public function confirmPenerimaan($id);
 }

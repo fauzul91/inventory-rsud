@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AccountController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\JabatanController;
 use App\Http\Controllers\Api\V1\PenerimaanController;
@@ -12,3 +13,4 @@ Route::apiResource('jabatan', JabatanController::class);
 Route::apiResource('penerimaan', PenerimaanController::class);
 Route::patch('/detail/{detailId}/layak', [PenerimaanController::class, 'setLayak']);
 Route::patch('/{id}/confirm', [PenerimaanController::class, 'confirm']);
+Route::apiResource('account', AccountController::class)->except('create', 'store', 'delete');

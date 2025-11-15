@@ -26,9 +26,7 @@ class CategoryController extends Controller
     {
         try {
             $filters = [
-                'search' => $request->query('search'),
                 'per_page' => $request->query('per_page'),
-                'limit' => $request->query('limit'),
                 'sort_by' => $request->query('sort_by'),
             ];
 

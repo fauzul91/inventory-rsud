@@ -6,6 +6,8 @@ use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\CategoryStoreRequest;
 use App\Http\Requests\V1\CategoryUpdateRequest;
+use App\Http\Requests\V1\JabatanStoreRequest;
+use App\Http\Requests\V1\JabatanUpdateRequest;
 use App\Interfaces\V1\JabatanRepositoryInterface;
 use App\Repositories\V1\JabatanRepository;
 use Exception;
@@ -26,14 +28,12 @@ class JabatanController extends Controller
     {
         try {
             $filters = [
-                'search' => $request->query('search'),
                 'per_page' => $request->query('per_page'),
-                'limit' => $request->query('limit'),
                 'sort_by' => $request->query('sort_by'),
             ];
 
-            $categories = $this->jabatanRepository->getAllJabatan($filters);
-            return ResponseHelper::jsonResponse(true, 'Data kategori berhasil diambil', $categories, 200);
+            $jabatans = $this->jabatanRepository->getAllJabatan($filters);
+            return ResponseHelper::jsonResponse(true, 'Data jabatan berhasil diambil', $jabatans, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
@@ -42,11 +42,11 @@ class JabatanController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CategoryStoreRequest $request)
+    public function store(JabatanStoreRequest $request)
     {
         try {
-            $category = $this->jabatanRepository->create($request->validated());
-            return ResponseHelper::jsonResponse(true, 'Data kategori berhasil ditambahkan', $category, 201);
+            $jabatan = $this->jabatanRepository->create($request->validated());
+            return ResponseHelper::jsonResponse(true, 'Data jabatan berhasil ditambahkan', $jabatan, 201);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
@@ -58,8 +58,8 @@ class JabatanController extends Controller
     public function show(string $id)
     {
         try {
-            $category = $this->jabatanRepository->edit($id);
-            return ResponseHelper::jsonResponse(true, 'Detail kategori berhasil diambil', $category, 200);
+            $jabatan = $this->jabatanRepository->edit($id);
+            return ResponseHelper::jsonResponse(true, 'Detail jabatan berhasil diambil', $jabatan, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
@@ -68,11 +68,11 @@ class JabatanController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(CategoryUpdateRequest $request, string $id)
+    public function update(JabatanUpdateRequest $request, string $id)
     {
         try {
             $category = $this->jabatanRepository->update($request->validated(), $id);
-            return ResponseHelper::jsonResponse(true, 'Data kategori berhasil diperbarui', $category, 200);
+            return ResponseHelper::jsonResponse(true, 'Data jabatan berhasil diperbarui', $category, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
@@ -85,7 +85,7 @@ class JabatanController extends Controller
     {
         try {
             $category = $this->jabatanRepository->delete($id);
-            return ResponseHelper::jsonResponse(true, 'Data kategori berhasil dihapus', $category, 200);
+            return ResponseHelper::jsonResponse(true, 'Data jabatan berhasil dihapus', $category, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }

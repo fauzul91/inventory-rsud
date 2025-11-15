@@ -49,42 +49,46 @@ class AuthController extends Controller
             'code' => $request->code,
         ]);
 
+        \Log::info('Token request response', ['status' => $response->status(), 'body' => $response->body()]);
+
         $tokenData = $response->json();
+        dd($tokenData);
 
-        if (!isset($tokenData['access_token'])) {
-            return response()->json([
-                'error' => 'Failed to get access token',
-                'details' => $tokenData,
-            ], 400);
-        }
 
-        $userResponse = Http::withToken($tokenData['access_token'])
-            ->get(env('SSO_URL') . '/api/user');
-        $ssoUser = $userResponse->json();
+        // if (!isset($tokenData['access_token'])) {
+        //     return response()->json([
+        //         'error' => 'Failed to get access token',
+        //         'details' => $tokenData,
+        //     ], 400);
+        // }
 
-        DB::transaction(function () use ($ssoUser) {
-            $user = User::updateOrCreate(
-                ['sso_user_id' => $ssoUser['id']],
-                [
-                    'name' => $ssoUser['name'],
-                    'email' => $ssoUser['email'],
-                ]
-            );
+        // $userResponse = Http::withToken($tokenData['access_token'])
+        //     ->get(env('SSO_URL') . '/api/user');
+        // $ssoUser = $userResponse->json();
 
-            Auth::login($user);
+        // DB::transaction(function () use ($ssoUser) {
+        //     $user = User::updateOrCreate(
+        //         ['sso_user_id' => $ssoUser['id']],
+        //         [
+        //             'name' => $ssoUser['name'],
+        //             'email' => $ssoUser['email'],
+        //         ]
+        //     );
 
-            Monitoring::create([
-                'user_id' => $user->id,
-                'date' => now()->toDateString(),
-                'time' => now()->toTimeString(),
-                'activity' => 'login',
-            ]);
-        });
+        //     Auth::login($user);
 
-        $ssoUser = $userResponse->json();
+        //     Monitoring::create([
+        //         'user_id' => $user->id,
+        //         'date' => now()->toDateString(),
+        //         'time' => now()->toTimeString(),
+        //         'activity' => 'login',
+        //     ]);
+        // });
 
-        $frontendUrl = rtrim(env('FRONTEND_URL', 'http://localhost:5173'), '/');
+        // $ssoUser = $userResponse->json();
 
-        return redirect()->away($frontendUrl . '/auth/callback?token=' . urlencode($tokenData['access_token']));
+        // $frontendUrl = rtrim(env('FRONTEND_URL', 'http://localhost:5173'), '/');
+
+        // return redirect()->away($frontendUrl . '/auth/callback?token=' . urlencode($tokenData['access_token']));
     }
 }

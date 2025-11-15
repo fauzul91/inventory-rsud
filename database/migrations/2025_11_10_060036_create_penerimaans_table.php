@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('penerimaans', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('restrict');
+            $table->foreignId('category_id')->constrained('categories')->onDelete('restrict');
             $table->string('no_surat');
             $table->text('deskripsi')->nullable();
             $table->enum('status', ['pending', 'confirmed', 'paid', 'not_paid']);

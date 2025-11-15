@@ -26,9 +26,7 @@ class SatuanController extends Controller
     {
         try {
             $filters = [
-                'search' => $request->query('search'),
                 'per_page' => $request->query('per_page'),
-                'limit' => $request->query('limit'),
                 'sort_by' => $request->query('sort_by'),
             ];
 
@@ -45,8 +43,8 @@ class SatuanController extends Controller
     public function store(SatuanStoreRequest $request)
     {
         try {
-            $category = $this->satuanRepository->create($request->validated());
-            return ResponseHelper::jsonResponse(true, 'Data satuan berhasil ditambahkan', $category, 201);
+            $satuan = $this->satuanRepository->create($request->validated());
+            return ResponseHelper::jsonResponse(true, 'Data satuan berhasil ditambahkan', $satuan, 201);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
@@ -58,8 +56,8 @@ class SatuanController extends Controller
     public function show(string $id)
     {
         try {
-            $category = $this->satuanRepository->edit($id);
-            return ResponseHelper::jsonResponse(true, 'Detail satuan berhasil diambil', $category, 200);
+            $satuan = $this->satuanRepository->edit($id);
+            return ResponseHelper::jsonResponse(true, 'Detail satuan berhasil diambil', $satuan, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
@@ -71,8 +69,8 @@ class SatuanController extends Controller
     public function update(SatuanUpdateRequest $request, string $id)
     {
         try {
-            $category = $this->satuanRepository->update($request->validated(), $id);
-            return ResponseHelper::jsonResponse(true, 'Data satuan berhasil diperbarui', $category, 200);
+            $satuan = $this->satuanRepository->update($request->validated(), $id);
+            return ResponseHelper::jsonResponse(true, 'Data satuan berhasil diperbarui', $satuan, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
@@ -84,8 +82,8 @@ class SatuanController extends Controller
     public function destroy(string $id)
     {
         try {
-            $category = $this->satuanRepository->delete($id);
-            return ResponseHelper::jsonResponse(true, 'Data satuan berhasil dihapus', $category, 200);
+            $satuan = $this->satuanRepository->delete($id);
+            return ResponseHelper::jsonResponse(true, 'Data satuan berhasil dihapus', $satuan, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }

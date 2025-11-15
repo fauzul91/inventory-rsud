@@ -2,14 +2,15 @@
 
 namespace App\Repositories\V1;
 
-use App\Interfaces\V1\SatuanRepositoryInterface;
-use App\Models\Satuan;
+use App\Interfaces\V1\AccountRepositoryInterface;
+use App\Models\Category;
+use App\Models\User;
 
-class SatuanRepository implements SatuanRepositoryInterface
+class AccountRepository implements AccountRepositoryInterface
 {
-    public function getAllSatuan(array $filters)
+    public function getAllAccount(array $filters)
     {
-        $query = Satuan::query();
+        $query = User::query();
 
         if (!empty($filters['sort_by'])) {
             if ($filters['sort_by'] === 'latest') {
@@ -24,27 +25,17 @@ class SatuanRepository implements SatuanRepositoryInterface
         $perPage = $filters['per_page'] ?? 10;
         return $query->paginate($perPage);
     }
-    public function create(array $data)
-    {
-        return Satuan::create($data);
-    }
 
     public function edit($id)
     {
-        return Satuan::findOrFail($id);
+        return User::findOrFail($id);
     }
 
     public function update(array $data, $id)
     {
-        $category = Satuan::findOrFail($id);
-        $category->update($data);
+        $account = User::findOrFail($id);
+        $account->update($data);
 
-        return $category;
-    }
-
-    public function delete($id)
-    {
-        $category = Satuan::findOrFail($id);
-        return $category->delete();
+        return $account;
     }
 }
