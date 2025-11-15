@@ -8,8 +8,7 @@ class DetailPenerimaanBarang extends Model
 {
     protected $fillable = [
         'penerimaan_id',
-        'nama_barang',
-        'satuan_id',
+        'stok_id',
         'quantity',
         'harga',
         'total_harga',
@@ -21,8 +20,8 @@ class DetailPenerimaanBarang extends Model
         return $this->belongsTo(Penerimaan::class);
     }    
 
-    public function satuan()
+    public function stok()
     {
-        return $this->belongsTo(Satuan::class);
+        return $this->belongsTo(Stok::class);
     }
 }

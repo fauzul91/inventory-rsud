@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Stok extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $fillable = ['category_id', 'stok_2024', 'minimum_stok', 'total_stok', 'price', 'satuan_id'];
+    protected $fillable = ['name', 'category_id', 'stok_2024', 'minimum_stok', 'total_stok', 'price', 'satuan_id'];
 
     public function category()
     {

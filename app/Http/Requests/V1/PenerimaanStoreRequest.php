@@ -27,10 +27,8 @@ class PenerimaanStoreRequest extends FormRequest
             'deskripsi' => 'nullable|string',
 
             'detail_barangs' => 'required|array|min:1',
-            'detail_barangs.*.nama_barang' => 'required|string|max:255',
-            'detail_barangs.*.satuan_id' => 'required|exists:satuans,id',
+            'detail_barangs.*.stok_id' => 'required|exists:stoks,id', // <- ini wajib
             'detail_barangs.*.quantity' => 'required|numeric|min:1',
-            'detail_barangs.*.harga' => 'required|numeric|min:0',
 
             'pegawais' => 'required|array|min:1',
             'pegawais.*.pegawai_id' => 'required|exists:pegawais,id',

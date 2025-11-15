@@ -13,15 +13,27 @@ class MonitoringRepository implements MonitoringRepositoryInterface
 
         if (!empty($filters['sort_by'])) {
             if ($filters['sort_by'] === 'latest') {
-                $query->orderBy('created_at', 'desc'); 
+                $query->orderBy('created_at', 'desc');
             } elseif ($filters['sort_by'] === 'oldest') {
-                $query->orderBy('created_at', 'asc');  
+                $query->orderBy('created_at', 'asc');
             }
         } else {
             $query->orderBy('date', 'asc')->orderBy('time', 'asc');
         }
 
         $perPage = $filters['per_page'] ?? 10;
-        return $query->paginate($perPage);
+        $monitorings = $query->paginate($perPage);
+
+        $monitorings->getCollection()->transform(function ($item) {
+            return [
+                'foto' => $item->user->photo ?? null,
+                'role' => $item->user ? implode(',', $item->user->getRoleNames()->toArray()) : 'user',
+                'waktu' => $item->time,
+                'tanggal' => $item->date,
+                'activity' => $item->activity,
+            ];
+        });
+
+        return $monitorings;
     }
 }

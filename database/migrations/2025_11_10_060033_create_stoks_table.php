@@ -20,6 +20,7 @@ return new class extends Migration
             $table->decimal('minimum_stok', 10, 2);
             $table->integer('price');
             $table->foreignId('satuan_id')->constrained('satuans')->onDelete('cascade');                        
+            $table->softDeletes();
             $table->timestamps();
         });
     }

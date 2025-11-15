@@ -49,8 +49,7 @@ class PenerimaanController extends Controller
                     ]),
                     'detail_barang' => $item->detailBarang->map(fn($db) => [
                         'id' => $db->id,
-                        'nama_barang' => $db->nama_barang,
-                        'satuan_id' => $db->satuan_id,
+                        'stok_id' => $db->stok->id,
                         'quantity' => $db->quantity,
                         'harga' => $db->harga,
                         'total_harga' => $db->total_harga,

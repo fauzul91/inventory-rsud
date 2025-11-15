@@ -22,6 +22,15 @@ class CategoryController extends Controller
     {
         $this->categoryRepository = $categoryRepository;
     }
+    public function getAllForSelect()
+    {
+        try {
+            $categories = $this->categoryRepository->getAllCategoriesForSelect();
+            return ResponseHelper::jsonResponse(true, 'Data kategori berhasil diambil', $categories, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
+        }
+    }
     public function index(Request $request)
     {
         try {

@@ -7,6 +7,11 @@ use App\Models\Category;
 
 class CategoryRepository implements CategoryRepositoryInterface
 {
+    public function getAllCategoriesForSelect()
+    {
+        return Category::select('id', 'name')->orderBy('name', 'asc')->get();
+    }
+
     public function getAllCategories(array $filters)
     {
         $query = Category::query();

@@ -14,12 +14,11 @@ return new class extends Migration
         Schema::create('detail_penerimaan_barangs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('penerimaan_id')->constrained('penerimaans')->onDelete('cascade');
-            $table->string('nama_barang');
-            $table->foreignId('satuan_id')->constrained('satuans')->onDelete('restrict'); 
+            $table->foreignId('stok_id')->constrained('stoks')->onDelete('restrict'); 
             $table->integer('quantity')->default(1);
             $table->integer('harga');
             $table->integer('total_harga'); 
-            $table->boolean('is_layak');
+            $table->boolean('is_layak')->nullable();
             $table->timestamps();
         });
     }

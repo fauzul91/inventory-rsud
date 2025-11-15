@@ -3,16 +3,18 @@
 namespace App\Repositories\V1;
 
 use App\Interfaces\V1\PenerimaanRepositoryInterface;
+use App\Models\Monitoring;
 use App\Models\Penerimaan;
 use App\Models\DetailPenerimaanBarang;
 use App\Models\DetailPenerimaanPegawai;
+use App\Models\Stok;
 use Illuminate\Support\Facades\DB;
 
 class PenerimaanRepository implements PenerimaanRepositoryInterface
 {
     public function getAllPenerimaan(array $filters)
     {
-        $query = Penerimaan::query();
+        $query = Penerimaan::with(['category', 'detailPegawai.pegawai']); // eager load
 
         if (!empty($filters['sort_by'])) {
             if ($filters['sort_by'] === 'latest') {
@@ -27,19 +29,6 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
         $perPage = $filters['per_page'] ?? 10;
         $penerimaan = $query->paginate($perPage);
 
-        $penerimaan->getCollection()->transform(function($item) {
-            return [
-                'no_surat' => $item->no_surat,
-                'category' => $item->category->name,
-                'pegawai' => $item->detailPegawai->map(function($dp) {
-                    return [
-                        'nama_pegawai' => $dp->pegawai->name ?? null,
-                        'role' => $dp->pegawai ? implode(',', $dp->pegawai->getRoleNames()->toArray()) : null,
-                    ];
-                }),
-            ];
-        });
-
         return $penerimaan;
     }
 
@@ -47,22 +36,23 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
     {
         return DB::transaction(function () use ($data) {
             $penerimaan = Penerimaan::create([
-                'user_id' => auth()->id(),
+                'user_id' => auth()->id() ?? 1,
                 'no_surat' => $data['no_surat'],
                 'category_id' => $data['category_id'],
                 'deskripsi' => $data['deskripsi'] ?? null,
-                'status' => 'draft',
+                'status' => 'pending',
             ]);
 
             if (!empty($data['detail_barangs'])) {
                 foreach ($data['detail_barangs'] as $barang) {
+                    $stok = Stok::findOrFail($barang['stok_id']);
+
                     DetailPenerimaanBarang::create([
                         'penerimaan_id' => $penerimaan->id,
-                        'nama_barang' => $barang['nama_barang'],
-                        'satuan_id' => $barang['satuan_id'],
+                        'stok_id' => $stok->id,
                         'quantity' => $barang['quantity'],
-                        'harga' => $barang['harga'],
-                        'total_harga' => $barang['quantity'] * $barang['harga'],
+                        'harga' => $stok->price,
+                        'total_harga' => $stok->price * $barang['quantity'],
                         'is_layak' => null,
                     ]);
                 }
@@ -78,6 +68,13 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
                 }
             }
 
+            $userId = auth()->id ?? 1;
+            Monitoring::create([
+                'user_id' => $userId,
+                'time' => now()->format('H:i:s'),
+                'date' => now()->format('Y-m-d'),
+                'activity' => "Membuat penerimaan: {$penerimaan->no_surat}",
+            ]);
             return $penerimaan->load(['detailBarang', 'detailPegawai.pegawai']);
         });
     }
@@ -102,28 +99,27 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
             $incomingBarang = collect($data['detail_barangs'] ?? []);
 
             foreach ($incomingBarang as $barang) {
+                $stok = Stok::findOrFail($barang['stok_id']);
 
                 if (!empty($barang['id']) && $existingBarang->has($barang['id'])) {
                     $existingBarang[$barang['id']]->update([
-                        'nama_barang' => $barang['nama_barang'],
-                        'satuan_id'   => $barang['satuan_id'],
-                        'quantity'    => $barang['quantity'],
-                        'harga'       => $barang['harga'],
-                        'total_harga' => $barang['quantity'] * $barang['harga'],
-                        'is_layak'    => $barang['is_layak'] ?? null,
+                        'stok_id' => $stok->id,
+                        'nama_barang' => $stok->name,
+                        'quantity' => $barang['quantity'],
+                        'harga' => $stok->price,
+                        'total_harga' => $stok->price * $barang['quantity'],
+                        'is_layak' => $barang['is_layak'] ?? null,
                     ]);
-
                     $existingBarang->forget($barang['id']);
-                } 
-                else {
+                } else {
                     DetailPenerimaanBarang::create([
                         'penerimaan_id' => $penerimaan->id,
-                        'nama_barang'   => $barang['nama_barang'],
-                        'satuan_id'     => $barang['satuan_id'],
-                        'quantity'      => $barang['quantity'],
-                        'harga'         => $barang['harga'],
-                        'total_harga'   => $barang['quantity'] * $barang['harga'],
-                        'is_layak'      => $barang['is_layak'] ?? null,
+                        'stok_id' => $stok->id,
+                        'nama_barang' => $stok->name,
+                        'quantity' => $barang['quantity'],
+                        'harga' => $stok->price,
+                        'total_harga' => $stok->price * $barang['quantity'],
+                        'is_layak' => $barang['is_layak'] ?? null,
                     ]);
                 }
             }
@@ -131,7 +127,6 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
             foreach ($existingBarang as $old) {
                 $old->delete();
             }
-
 
             if (!empty($data['pegawais'])) {
                 $penerimaan->detailPegawai()->delete();
@@ -149,7 +144,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
     }
 
     public function delete($id)
-    {   
+    {
         $penerimaan = Penerimaan::findOrFail($id);
         $penerimaan->detailBarang()->delete();
         $penerimaan->detailPegawai()->delete();

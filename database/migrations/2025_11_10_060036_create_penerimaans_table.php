@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('no_surat');
             $table->text('deskripsi')->nullable();
             $table->enum('status', ['pending', 'confirmed', 'paid', 'not_paid']);
+            $table->softDeletes();
             $table->timestamps();
         });
     }
