@@ -31,10 +31,10 @@ class BastController extends Controller
         }
     }
 
-    public function download($penerimaanId)
+    public function downloadBast($bastId)
     {
         try {
-            return $this->bastRepository->downloadBast($penerimaanId);
+            return $this->bastRepository->downloadBast($bastId);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: '.$e->getMessage(), null, 500);
         }

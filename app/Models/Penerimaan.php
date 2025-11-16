@@ -15,6 +15,10 @@ class Penerimaan extends Model
     {
         return $this->hasMany(DetailPenerimaanPegawai::class);
     }
+    public function bast()
+    {
+        return $this->hasOne(Bast::class);
+    }
     public function category()
     {
         return $this->belongsTo(Category::class);

@@ -197,7 +197,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
     }
     public function getHistoryPenerimaan(array $filters)
     {
-        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])->where('status', 'confirmed');
+        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang', 'bast'])->where('status', 'confirmed');
 
         if (!empty($filters['sort_by'])) {
             if ($filters['sort_by'] === 'latest') {

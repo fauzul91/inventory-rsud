@@ -7,6 +7,7 @@ use App\Interfaces\V1\BastRepositoryInterface;
 use App\Interfaces\V1\CategoryRepositoryInterface;
 use App\Interfaces\V1\JabatanRepositoryInterface;
 use App\Interfaces\V1\MonitoringRepositoryInterface;
+use App\Interfaces\V1\PegawaiRepositoryInterface;
 use App\Interfaces\V1\PenerimaanRepositoryInterface;
 use App\Interfaces\V1\SatuanRepositoryInterface;
 use App\Interfaces\V1\StokRepositoryInterface;
@@ -15,6 +16,7 @@ use App\Repositories\V1\BastRepository;
 use App\Repositories\V1\CategoryRepository;
 use App\Repositories\V1\JabatanRepository;
 use App\Repositories\V1\MonitoringRepository;
+use App\Repositories\V1\PegawaiRepository;
 use App\Repositories\V1\PenerimaanRepository;
 use App\Repositories\V1\SatuanRepository;
 use App\Repositories\V1\StokRepository;
@@ -35,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(BastRepositoryInterface::class, BastRepository::class);
         $this->app->bind(MonitoringRepositoryInterface::class, MonitoringRepository::class);
         $this->app->bind(StokRepositoryInterface::class, StokRepository::class);
+        $this->app->bind(PegawaiRepositoryInterface::class, PegawaiRepository::class);
     }
 
     /**

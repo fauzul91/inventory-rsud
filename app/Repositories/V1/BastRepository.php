@@ -29,22 +29,24 @@ class BastRepository implements BastRepositoryInterface
             'penerimaan_id' => $penerimaanId,
             'filename' => $filename,
         ]);
-        
+
         $bast->url = asset('storage/' . $filename);
         return $bast;
     }
 
-
-    public function downloadBast($penerimaanId)
+    public function downloadBast($id)
     {
-        $bast = Bast::where('penerimaan_id', $penerimaanId)->latest()->firstOrFail();
-        $path = $bast->filename;
+        $bast = Bast::findOrFail($id);
+        $path = storage_path('app/public/' . $bast->filename);
 
-        if (!Storage::exists($path)) {
-            abort(404, "File BAST tidak ditemukan");
+        if (!file_exists($path)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File BAST tidak ditemukan'
+            ], 404);
         }
 
-        return Storage::download($path);
+        return response()->download($path);
     }
 
     public function uploadBast($penerimaanId, $file)

@@ -43,7 +43,7 @@ class PenerimaanController extends Controller
                     'role_user' => $item->user->roles->pluck('name')->first() ?? null,
                     'category_name' => $item->category->name ?? null,
                     'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                    'status' => $item->status === 'pending' ? 'Belum Dikonfirmasi' : 'Telah Dikonfirmasi',                
+                    'status' => $item->status === 'pending' ? 'Belum Dikonfirmasi' : 'Telah Dikonfirmasi',
                 ];
             });
 
@@ -149,14 +149,14 @@ class PenerimaanController extends Controller
             }
             $bast = $this->bastRepository->generateBast($id);
             return ResponseHelper::jsonResponse(
-            true,
-            'Status penerimaan berhasil dikonfirmasi & BAST berhasil dibuat',
-            [
-                'penerimaan' => $result['data'],
-                'bast' => $bast
-            ],
-            200
-        );
+                true,
+                'Status penerimaan berhasil dikonfirmasi & BAST berhasil dibuat',
+                [
+                    'penerimaan' => $result['data'],
+                    'bast' => $bast
+                ],
+                200
+            );
 
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
@@ -179,7 +179,11 @@ class PenerimaanController extends Controller
                     'role_user' => $item->user->roles->pluck('name')->first() ?? null,
                     'category_name' => $item->category->name ?? null,
                     'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                    'status' => $item->status === 'confirmed' ? 'Telah Dikonfirmasi' : 'Belum Dikonfirmasi',                
+                    'status' => $item->status === 'confirmed' ? 'Telah Dikonfirmasi' : 'Belum Dikonfirmasi',
+                    'bast' => $item->status === 'confirmed' ? [
+                        'id' => $item->bast->id ?? null,
+                        'file_url' => $item->bast ? asset('storage/' . $item->bast->filename) : null,
+                    ] : null,
                 ];
             });
 
