@@ -4,6 +4,7 @@ namespace App\Repositories\V1;
 
 use App\Interfaces\V1\SatuanRepositoryInterface;
 use App\Models\Satuan;
+use App\Models\Stok;
 
 class SatuanRepository implements SatuanRepositoryInterface
 {
@@ -13,9 +14,9 @@ class SatuanRepository implements SatuanRepositoryInterface
 
         if (!empty($filters['sort_by'])) {
             if ($filters['sort_by'] === 'latest') {
-                $query->orderBy('created_at', 'desc'); 
+                $query->orderBy('created_at', 'desc');
             } elseif ($filters['sort_by'] === 'oldest') {
-                $query->orderBy('created_at', 'asc');  
+                $query->orderBy('created_at', 'asc');
             }
         } else {
             $query->orderBy('name', 'asc');

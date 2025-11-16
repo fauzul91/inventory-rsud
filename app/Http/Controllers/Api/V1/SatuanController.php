@@ -21,7 +21,7 @@ class SatuanController extends Controller
     public function __construct(SatuanRepositoryInterface $satuanRepository)
     {
         $this->satuanRepository = $satuanRepository;
-    }
+    }    
     public function index(Request $request)
     {
         try {

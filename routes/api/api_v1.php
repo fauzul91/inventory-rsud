@@ -6,12 +6,13 @@ use App\Http\Controllers\Api\V1\JabatanController;
 use App\Http\Controllers\Api\V1\MonitoringController;
 use App\Http\Controllers\Api\V1\PenerimaanController;
 use App\Http\Controllers\Api\V1\SatuanController;
+use App\Http\Controllers\Api\V1\StokController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:api')->group(function () {
 });
 
-Route::get('/selectCategory', [CategoryController::class, 'getAllForSelect'])->name('category.selectAll');
+Route::get('/category/select', [CategoryController::class, 'getAllForSelect'])->name('category.selectAll');
 Route::apiResource('category', CategoryController::class);
 Route::apiResource('satuan', SatuanController::class);
 Route::apiResource('jabatan', JabatanController::class);
@@ -21,3 +22,4 @@ Route::patch('penerimaan/{id}/confirm', [PenerimaanController::class, 'confirmPe
 Route::apiResource('penerimaan', PenerimaanController::class);
 Route::apiResource('account', AccountController::class)->except('create', 'store', 'delete');
 Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
+Route::get('/stok/select', [StokController::class, 'getAllForSelect'])->name('stok.selectAll');

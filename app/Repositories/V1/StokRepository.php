@@ -8,14 +8,19 @@ use App\Models\Stok;
 
 class StokRepository implements StokRepositoryInterface
 {
-    public function getAllStoksForSelect(?int $categoryId = null)
+    public function getAllStoksForSelect()
     {
-        $query = Stok::select('id', 'name')->orderBy('name', 'asc');
-
-        if ($categoryId) {
-            $query->where('category_id', $categoryId);
-        }
-
-        return $query->get();
+        return Stok::with('satuan:id,name') 
+            ->select('id', 'name', 'satuan_id')
+            ->orderBy('name', 'asc')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'name' => $item->name,
+                    'satuan_id' => $item->satuan_id,
+                    'satuan_name' => $item->satuan->name ?? null,
+                ];
+            });
     }
 }
