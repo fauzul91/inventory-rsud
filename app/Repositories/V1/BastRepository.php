@@ -6,26 +6,35 @@ use App\Interfaces\V1\BastRepositoryInterface;
 use App\Models\Bast;
 use App\Models\Penerimaan;
 use Illuminate\Support\Facades\Storage;
+use Spatie\LaravelPdf\Facades\Pdf;
 
 class BastRepository implements BastRepositoryInterface
 {
     public function generateBast($penerimaanId)
     {
-        $penerimaan = Penerimaan::with(['detailBarang', 'detailPegawai.pegawai'])->findOrFail($penerimaanId);
-        $pdf = PDF::loadView('pdf.bast', [
-            'penerimaan' => $penerimaan,
-        ]);
+        $penerimaan = Penerimaan::with(['detailBarang', 'detailPegawai.pegawai'])
+            ->findOrFail($penerimaanId);
 
-        $no = $penerimaan->no_surat;
-        $filename = "bast/generated/$no.pdf";
+        $cleanNoSurat = str_replace(['/', '\\', ' '], '-', $penerimaan->no_surat);
+        $filename = "bast/generated/{$cleanNoSurat}.pdf";
 
-        Storage::put($filename, $pdf->output());
+        Pdf::view('pdf.bast', [
+            'penerimaan' => $penerimaan
+        ])
+            ->format('a4')
+            ->disk('public')        
+            ->save($filename);      
 
-        return Bast::create([
+        $bast = Bast::create([
             'penerimaan_id' => $penerimaanId,
             'filename' => $filename,
         ]);
+        
+        $bast->url = asset('storage/' . $filename);
+        return $bast;
     }
+
+
     public function downloadBast($penerimaanId)
     {
         $bast = Bast::where('penerimaan_id', $penerimaanId)->latest()->firstOrFail();

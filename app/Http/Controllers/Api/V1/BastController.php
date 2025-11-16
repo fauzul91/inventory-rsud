@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Api\V1;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Interfaces\V1\BastRepositoryInterface;
+use App\Repositories\V1\BastRepository;
 use Exception;
 use Illuminate\Http\Request;
 
 class BastController extends Controller
 {
-    private BastRepositoryInterface $bastRepository;
+    private BastRepository $bastRepository;
 
     public function __construct(BastRepositoryInterface $bastRepository)
     {

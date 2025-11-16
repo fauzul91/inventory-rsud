@@ -29,7 +29,7 @@ class PenerimaanStoreRequest extends FormRequest
             'detail_barangs' => 'required|array|min:1',
             'detail_barangs.*.stok_id' => 'required|exists:stoks,id', // <- ini wajib
             'detail_barangs.*.quantity' => 'required|numeric|min:1',
-
+            'detail_barangs.*.price' => 'nullable|numeric|min:0',
             'pegawais' => 'required|array|min:1',
             'pegawais.*.pegawai_id' => 'required|exists:pegawais,id',
             'pegawais.*.alamat_staker' => 'nullable|string|max:255',

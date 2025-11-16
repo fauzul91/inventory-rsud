@@ -46,16 +46,16 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
             if (!empty($data['detail_barangs'])) {
                 foreach ($data['detail_barangs'] as $barang) {
                     $stok = Stok::findOrFail($barang['stok_id']);
-                    $harga = isset($barang['harga']) && $barang['harga'] !== ''
-                        ? $barang['harga']                     
+                    $harga = isset($barang['price']) && $barang['price'] !== ''
+                        ? $barang['price']
                         : $stok->price;
 
                     DetailPenerimaanBarang::create([
                         'penerimaan_id' => $penerimaan->id,
                         'stok_id' => $stok->id,
                         'quantity' => $barang['quantity'],
-                        'harga' => $harga,
-                        'total_harga' => $stok->price * $barang['quantity'],
+                        'harga' => $harga,                         
+                        'total_harga' => $harga * $barang['quantity'], 
                         'is_layak' => null,
                     ]);
                 }

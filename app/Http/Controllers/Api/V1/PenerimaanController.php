@@ -149,11 +149,14 @@ class PenerimaanController extends Controller
             }
             $bast = $this->bastRepository->generateBast($id);
             return ResponseHelper::jsonResponse(
-                true,
-                'Status penerimaan berhasil dikonfirmasi',
-                $result['data'],
-                200
-            );
+            true,
+            'Status penerimaan berhasil dikonfirmasi & BAST berhasil dibuat',
+            [
+                'penerimaan' => $result['data'],
+                'bast' => $bast
+            ],
+            200
+        );
 
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
