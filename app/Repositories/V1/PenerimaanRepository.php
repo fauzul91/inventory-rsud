@@ -54,8 +54,8 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
                         'penerimaan_id' => $penerimaan->id,
                         'stok_id' => $stok->id,
                         'quantity' => $barang['quantity'],
-                        'harga' => $harga,                         
-                        'total_harga' => $harga * $barang['quantity'], 
+                        'harga' => $harga,
+                        'total_harga' => $harga * $barang['quantity'],
                         'is_layak' => null,
                     ]);
                 }
@@ -84,12 +84,46 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
 
     public function edit($id)
     {
-        return Penerimaan::with([
+        $penerimaan = Penerimaan::with([
             'detailBarang.stok.category',
             'detailBarang.stok.satuan',
             'detailPegawai.pegawai.jabatan',
             'category'
         ])->findOrFail($id);
+
+        // Ambil field penting dari penerimaan
+        $data = [
+            'id' => $penerimaan->id,
+            'no_surat' => $penerimaan->no_surat,
+            'deskripsi' => $penerimaan->deskripsi,
+            'status' => $penerimaan->status,
+            'category' => [
+                'id' => $penerimaan->category->id,
+                'name' => $penerimaan->category->name
+            ],
+            'detail_barang' => $penerimaan->detailBarang->map(function ($item) {
+                return [
+                    'nama_stok' => $item->stok->name,
+                    'nama_category' => $item->stok->category->name,
+                    'nama_satuan' => $item->stok->satuan->name,
+                    'harga' => $item->harga,
+                    'quantity' => $item->quantity,
+                    'total_harga' => $item->total_harga
+                ];
+            }),
+            'detail_pegawai' => $penerimaan->detailPegawai->map(function ($item) {
+                return [
+                    'id' => $item->pegawai->id,
+                    'name' => $item->pegawai->name,
+                    'nip' => $item->pegawai->nip,
+                    'jabatan_id' => $item->pegawai->jabatan->id,
+                    'jabatan_name' => $item->pegawai->jabatan->name,
+                    'alamat_satker' => $item->alamat_staker
+                ];
+            })
+        ];
+
+        return $data;
     }
 
     public function update(array $data, $id)
