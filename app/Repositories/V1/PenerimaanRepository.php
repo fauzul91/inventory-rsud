@@ -84,7 +84,12 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
 
     public function edit($id)
     {
-        return Penerimaan::with(['detailBarang', 'detailPegawai.pegawai.jabatan', 'category'])->findOrFail($id);
+        return Penerimaan::with([
+            'detailBarang.stok.category',
+            'detailBarang.stok.satuan',
+            'detailPegawai.pegawai.jabatan',
+            'category'
+        ])->findOrFail($id);
     }
 
     public function update(array $data, $id)
