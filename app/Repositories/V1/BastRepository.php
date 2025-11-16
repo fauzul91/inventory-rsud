@@ -22,8 +22,8 @@ class BastRepository implements BastRepositoryInterface
             'penerimaan' => $penerimaan
         ])
             ->format('a4')
-            ->disk('public')        
-            ->save($filename);      
+            ->disk('public')
+            ->save($filename);
 
         $bast = Bast::create([
             'penerimaan_id' => $penerimaanId,
@@ -34,20 +34,19 @@ class BastRepository implements BastRepositoryInterface
         return $bast;
     }
 
-    public function downloadBast($id)
+    public function downloadBast($bastId)
     {
-        $bast = Bast::findOrFail($id);
-        $path = storage_path('app/public/' . $bast->filename);
+        $bast = Bast::findOrFail($bastId);
+        $filePath = storage_path('app/public/' . $bast->filename); // path lengkap ke file
 
-        if (!file_exists($path)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'File BAST tidak ditemukan'
-            ], 404);
+        if (!file_exists($filePath)) {
+            throw new \Exception('File tidak ditemukan');
         }
 
-        return response()->download($path);
+        $cleanFileName = basename($bast->filename);
+        return response()->download($filePath, $cleanFileName);
     }
+
 
     public function uploadBast($penerimaanId, $file)
     {
