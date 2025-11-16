@@ -109,7 +109,8 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
                     'nama_satuan' => $item->stok->satuan->name,
                     'harga' => $item->harga,
                     'quantity' => $item->quantity,
-                    'total_harga' => $item->total_harga
+                    'total_harga' => $item->total_harga,
+                    'is_layak' => $item->is_layak,
                 ];
             }),
             'detail_pegawai' => $penerimaan->detailPegawai->map(function ($item) {
