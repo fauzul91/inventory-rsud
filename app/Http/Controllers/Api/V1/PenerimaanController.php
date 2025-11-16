@@ -120,32 +120,57 @@ class PenerimaanController extends Controller
     /**
      * Update kelayakan barang.
      */
-    public function setLayak(Request $request, string $detailId)
+    public function markBarangLayak(Request $request, $penerimaanId, $detailId)
     {
         try {
             $request->validate([
                 'is_layak' => 'required|boolean',
             ]);
 
-            $data = $this->penerimaanRepository->markBarangLayak($detailId, $request->is_layak);
-            return ResponseHelper::jsonResponse(true, 'Status kelayakan barang berhasil diperbarui', $data, 200);
+            $result = $this->penerimaanRepository
+                ->markBarangLayak($penerimaanId, $detailId, $request->is_layak);
+
+            if ($result['success'] === false) {
+                return ResponseHelper::jsonResponse(false, $result['message'], null, 404);
+            }
+
+            return ResponseHelper::jsonResponse(true, 'Status kelayakan diperbarui', $result['data'], 200);
+
+        } catch (\Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
+
+
+    /**
+     * Konfirmasi penerimaan (ubah status ke confirmed).
+     */
+    public function confirmPenerimaan(string $id)
+    {
+        try {
+            $result = $this->penerimaanRepository->confirmPenerimaan($id);
+
+            if ($result['success'] === false) {
+                return ResponseHelper::jsonResponse(
+                    false,
+                    'Terjadi kesalahan: ' . $result['message'],
+                    null,
+                    422
+                );
+            }
+
+            return ResponseHelper::jsonResponse(
+                true,
+                'Status penerimaan berhasil dikonfirmasi',
+                $result['data'],
+                200
+            );
+
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
 
-    /**
-     * Konfirmasi penerimaan (ubah status ke confirmed).
-     */
-    public function updateLayak(string $id)
-    {
-        try {
-            $data = $this->penerimaanRepository->confirmPenerimaan($id);
-            return ResponseHelper::jsonResponse(true, 'Status penerimaan berhasil dikonfirmasi', $data, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
-    }
     public function history(Request $request)
     {
         try {

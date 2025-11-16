@@ -9,7 +9,7 @@ interface PenerimaanRepositoryInterface
     public function edit($id);
     public function update(array $data, $id);
     public function delete($id);
-    public function markBarangLayak($detailId, $isLayak);
+    public function markBarangLayak($penerimaanId, $detailId, $isLayak);
     public function confirmPenerimaan($id);
     public function getHistoryPenerimaan(array $filters);
 }

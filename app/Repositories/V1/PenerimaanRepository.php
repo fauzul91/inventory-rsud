@@ -149,28 +149,52 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
         return $penerimaan->delete();
     }
 
-    public function markBarangLayak($detailId, $isLayak)
+    public function markBarangLayak($penerimaanId, $detailId, $isLayak)
     {
-        $detail = DetailPenerimaanBarang::findOrFail($detailId);
+        $detail = DetailPenerimaanBarang::where('id', $detailId)
+            ->where('penerimaan_id', $penerimaanId)
+            ->first();
+
+        if (!$detail) {
+            return [
+                'success' => false,
+                'message' => 'Detail barang tidak ditemukan untuk penerimaan ini.'
+            ];
+        }
+
         $detail->update(['is_layak' => (bool) $isLayak]);
-        return $detail;
+
+        return [
+            'success' => true,
+            'data' => $detail
+        ];
     }
 
     public function confirmPenerimaan($id)
     {
         $penerimaan = Penerimaan::with('detailBarang')->findOrFail($id);
-        $semuaSudahDinilai = !$penerimaan->detailBarang()->whereNull('is_layak')->exists();
 
-        if (!$semuaSudahDinilai) {
-            return false;
+        $masihAdaBelumDinilai = $penerimaan->detailBarang()
+            ->whereNull('is_layak')
+            ->exists();
+
+        if ($masihAdaBelumDinilai) {
+            return [
+                'success' => false,
+                'message' => 'Masih ada barang yang belum dinilai kelayakannya'
+            ];
         }
 
         $penerimaan->update(['status' => 'confirmed']);
-        return $penerimaan;
+
+        return [
+            'success' => true,
+            'data' => $penerimaan->fresh()
+        ];
     }
     public function getHistoryPenerimaan(array $filters)
     {
-        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])->where('status', 'confirmed'); 
+        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])->where('status', 'confirmed');
 
         if (!empty($filters['sort_by'])) {
             if ($filters['sort_by'] === 'latest') {

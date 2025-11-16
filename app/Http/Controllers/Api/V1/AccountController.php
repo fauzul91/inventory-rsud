@@ -26,8 +26,8 @@ class AccountController extends Controller
                 'sort_by' => $request->query('sort_by'),
             ];
 
-            $categories = $this->accountRepository->getAllAccount($filters);
-            return ResponseHelper::jsonResponse(true, 'Data akun berhasil diambil', $categories, 200);
+            $accounts = $this->accountRepository->getAllAccount($filters);
+            return ResponseHelper::jsonResponse(true, 'Data akun berhasil diambil', $accounts, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
