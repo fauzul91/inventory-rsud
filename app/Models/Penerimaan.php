@@ -23,4 +23,8 @@ class Penerimaan extends Model
     {
         return $this->hasMany(DetailPenerimaanBarang::class);
     }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

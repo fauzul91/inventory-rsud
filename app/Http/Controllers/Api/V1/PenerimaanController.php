@@ -36,25 +36,12 @@ class PenerimaanController extends Controller
                 return [
                     'id' => $item->id,
                     'no_surat' => $item->no_surat,
-                    'category' => [
-                        'id' => $item->category->id ?? null,
-                        'name' => $item->category->name ?? null,
-                    ],
-                    'pegawai' => $item->detailPegawai->map(fn($dp) => [
-                        'id' => $dp->pegawai_id,
-                        'nama' => $dp->pegawai->name ?? null,
-                        'nip' => $dp->pegawai->nip ?? null,
-                        'jabatan' => $dp->pegawai->jabatan->name ?? null,
-                        'alamat_staker' => $dp->alamat_staker ?? null,
-                    ]),
-                    'detail_barang' => $item->detailBarang->map(fn($db) => [
-                        'id' => $db->id,
-                        'stok_id' => $db->stok->id,
-                        'quantity' => $db->quantity,
-                        'harga' => $db->harga,
-                        'total_harga' => $db->total_harga,
-                        'is_layak' => $db->is_layak,
-                    ]),
+                    'role_user' => $item->user->roles->pluck('name')->first() ?? null,
+                    'category_name' => $item->category->name ?? null,
+                    'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
+                    'status' => $item->status === 'pending'
+                    ? 'Belum Dikonfirmasi'
+                    : 'Telah Dikonfirmasi',
                 ];
             });
 
