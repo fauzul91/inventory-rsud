@@ -47,10 +47,10 @@ class BastController extends Controller
     {
         try {
             $request->validate([
-                'signed_file' => 'required|file|mimes:pdf|max:4096',
+                'uploaded_signed_file' => 'required|file|mimes:pdf|max:4096',
             ]);
 
-            $file = $request->file('signed_file');
+            $file = $request->file('uploaded_signed_file');
             $result = $this->bastRepository->uploadBast($penerimaanId, $file);
 
             return ResponseHelper::jsonResponse(true,'BAST bertandatangan berhasil diupload',$result,200);

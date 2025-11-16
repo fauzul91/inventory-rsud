@@ -17,11 +17,12 @@ class StokController extends Controller
     {
         $this->stokRepository = $stokRepository;
     }
-    public function getAllForSelect()
+    public function getAllForSelect(Request $request)
     {   
         try {
-            $satuan = $this->stokRepository->getAllStoksForSelect();
-            return ResponseHelper::jsonResponse(true, 'Data stok berhasil diambil', $satuan, 200);
+            $categoryId = $request->query('category_id'); // bisa null
+            $stok = $this->stokRepository->getAllStoksForSelect($categoryId);
+            return ResponseHelper::jsonResponse(true, 'Data stok berhasil diambil', $stok, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }

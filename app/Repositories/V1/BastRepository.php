@@ -50,16 +50,18 @@ class BastRepository implements BastRepositoryInterface
 
     public function uploadBast($penerimaanId, $file)
     {
-        $path = $file->store("bast/signed");
-        $bast = Bast::where('penerimaan_id', $penerimaanId)->latest()->firstOrFail();
+        $path = $file->store('bast/signed', 'public'); 
+        $relativePath = $path;
 
+        $bast = Bast::where('penerimaan_id', $penerimaanId)->latest()->firstOrFail();
         $bast->update([
-            'uploaded_signed_file' => $path,
+            'uploaded_signed_file' => $relativePath, 
             'uploaded_at' => now(),
         ]);
 
         return $bast;
     }
+
     public function historyBast()
     {
         return Bast::orderBy('uploaded_at', 'desc')->get();
