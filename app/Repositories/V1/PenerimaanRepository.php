@@ -103,6 +103,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
             ],
             'detail_barang' => $penerimaan->detailBarang->map(function ($item) {
                 return [
+                    'id'=> $item->id,
                     'nama_stok' => $item->stok->name,
                     'nama_category' => $item->stok->category->name,
                     'nama_satuan' => $item->stok->satuan->name,
