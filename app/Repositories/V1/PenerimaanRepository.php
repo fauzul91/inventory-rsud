@@ -14,7 +14,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
 {
     public function getAllPenerimaan(array $filters)
     {
-        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])->where('status', 'pending'); 
+        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])->where('status', 'pending');
 
         if (!empty($filters['sort_by'])) {
             if ($filters['sort_by'] === 'latest') {
@@ -46,12 +46,15 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
             if (!empty($data['detail_barangs'])) {
                 foreach ($data['detail_barangs'] as $barang) {
                     $stok = Stok::findOrFail($barang['stok_id']);
+                    $harga = isset($barang['harga']) && $barang['harga'] !== ''
+                        ? $barang['harga']                     
+                        : $stok->price;
 
                     DetailPenerimaanBarang::create([
                         'penerimaan_id' => $penerimaan->id,
                         'stok_id' => $stok->id,
                         'quantity' => $barang['quantity'],
-                        'harga' => $stok->price,
+                        'harga' => $harga,
                         'total_harga' => $stok->price * $barang['quantity'],
                         'is_layak' => null,
                     ]);

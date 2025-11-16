@@ -11,7 +11,7 @@ class StokRepository implements StokRepositoryInterface
     public function getAllStoksForSelect()
     {
         return Stok::with('satuan:id,name') 
-            ->select('id', 'name', 'satuan_id')
+            ->select('id', 'name', 'satuan_id', 'price')
             ->orderBy('name', 'asc')
             ->get()
             ->map(function ($item) {
@@ -20,6 +20,7 @@ class StokRepository implements StokRepositoryInterface
                     'name' => $item->name,
                     'satuan_id' => $item->satuan_id,
                     'satuan_name' => $item->satuan->name ?? null,
+                    'price' => $item->price,
                 ];
             });
     }

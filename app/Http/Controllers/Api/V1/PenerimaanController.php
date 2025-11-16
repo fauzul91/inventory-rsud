@@ -6,7 +6,9 @@ use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\PenerimaanStoreRequest;
 use App\Http\Requests\V1\PenerimaanUpdateRequest;
+use App\Interfaces\V1\BastRepositoryInterface;
 use App\Interfaces\V1\PenerimaanRepositoryInterface;
+use App\Repositories\V1\BastRepository;
 use App\Repositories\V1\PenerimaanRepository;
 use Illuminate\Http\Request;
 use Exception;
@@ -14,10 +16,12 @@ use Exception;
 class PenerimaanController extends Controller
 {
     private PenerimaanRepository $penerimaanRepository;
+    private BastRepository $bastRepository;
 
-    public function __construct(PenerimaanRepositoryInterface $penerimaanRepository)
+    public function __construct(PenerimaanRepositoryInterface $penerimaanRepository, BastRepositoryInterface $bastRepository)
     {
         $this->penerimaanRepository = $penerimaanRepository;
+        $this->bastRepository = $bastRepository;
     }
 
     /**
@@ -143,7 +147,7 @@ class PenerimaanController extends Controller
                     422
                 );
             }
-
+            $bast = $this->bastRepository->generateBast($id);
             return ResponseHelper::jsonResponse(
                 true,
                 'Status penerimaan berhasil dikonfirmasi',
