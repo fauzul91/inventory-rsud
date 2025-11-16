@@ -21,7 +21,9 @@ class DatabaseSeeder extends Seeder
             PermissionRoleSeeder::class,
             PegawaiSeeder::class,
             UserSeeder::class,
-            StokSeeder::class
+            StokSeeder::class,
+            MonitoringSeeder::class,
+            PenerimaanSeeder::class
         ]);
     }
 }

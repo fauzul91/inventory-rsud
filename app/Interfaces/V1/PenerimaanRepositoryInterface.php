@@ -11,4 +11,5 @@ interface PenerimaanRepositoryInterface
     public function delete($id);
     public function markBarangLayak($detailId, $isLayak);
     public function confirmPenerimaan($id);
+    public function getHistoryPenerimaan(array $filters);
 }

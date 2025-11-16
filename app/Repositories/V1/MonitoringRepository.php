@@ -27,7 +27,7 @@ class MonitoringRepository implements MonitoringRepositoryInterface
         $monitorings->getCollection()->transform(function ($item) {
             return [
                 'foto' => $item->user->photo ?? null,
-                'role' => $item->user ? implode(',', $item->user->getRoleNames()->toArray()) : 'user',
+                'role' => $item->user ? $item->user->getRoleNames()->join(',') : 'Super Admin',
                 'waktu' => $item->time,
                 'tanggal' => $item->date,
                 'activity' => $item->activity,

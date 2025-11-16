@@ -14,36 +14,41 @@ class UserSeeder extends Seeder
      * Run the database seeds.
      */
     public function run(): void
-    {
-        // Contoh 5 user dummy
+    {     
         $users = [
             [
-                'name' => 'Admin Gudang',
+                'name' => 'Super Admin',
                 'sso_user_id' => 1,
-                'email' => 'admin.gudang@example.com',
+                'email' => 'superadmin@example.com',
+                'photo' => null,
+            ],
+            [
+                'name' => 'Admin Gudang',
+                'sso_user_id' => 2,
+                'email' => 'admingudang@example.com',
                 'photo' => null,
             ],
             [
                 'name' => 'Tim Teknis',
-                'sso_user_id' => 2,
-                'email' => 'tim.teknis@example.com',
+                'sso_user_id' => 3,
+                'email' => 'timteknis@example.com',
                 'photo' => null,
             ],
             [
                 'name' => 'Tim PPK',
-                'sso_user_id' => 3,
-                'email' => 'tim.ppk@example.com',
+                'sso_user_id' => 4,
+                'email' => 'timppk@example.com',
                 'photo' => null,
             ],
             [
                 'name' => 'Penanggung Jawab',
-                'sso_user_id' => 4,
-                'email' => 'penanggung.jawab@example.com',
+                'sso_user_id' => 5,
+                'email' => 'penanggungjawab@example.com',
                 'photo' => null,
             ],
             [
                 'name' => 'Instalasi',
-                'sso_user_id' => 5,
+                'sso_user_id' => 6,
                 'email' => 'instalasi@example.com',
                 'photo' => null,
             ],

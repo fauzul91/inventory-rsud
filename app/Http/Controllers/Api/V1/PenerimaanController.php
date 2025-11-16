@@ -146,4 +146,18 @@ class PenerimaanController extends Controller
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
+    public function history(Request $request)
+    {
+        try {
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'sort_by' => $request->query('sort_by'),
+            ];
+
+            $history = $this->penerimaanRepository->getHistoryPenerimaan($filters);
+            return ResponseHelper::jsonResponse(true, 'History penerimaan berhasil diambil', $history, 200);
+        } catch (\Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
 }

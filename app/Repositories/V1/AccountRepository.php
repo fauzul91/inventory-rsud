@@ -10,7 +10,7 @@ class AccountRepository implements AccountRepositoryInterface
 {
     public function getAllAccount(array $filters)
     {
-        $query = User::query();
+        $query = User::with('roles');
 
         if (!empty($filters['sort_by'])) {
             if ($filters['sort_by'] === 'latest') {
@@ -23,18 +23,38 @@ class AccountRepository implements AccountRepositoryInterface
         }
 
         $perPage = $filters['per_page'] ?? 10;
-        return $query->paginate($perPage);
+        $paginated = $query->paginate($perPage);
+
+        $paginated->getCollection()->transform(function ($user) {
+            $user->roles = $user->roles->pluck('name'); 
+            return $user;
+        });
+
+        return $paginated;
     }
 
     public function edit($id)
     {
-        return User::findOrFail($id);
+        $user = User::with('roles')->findOrFail($id);
+        $user->roles = $user->roles->pluck('name'); // ambil nama role saja
+        return $user;
     }
 
     public function update(array $data, $id)
     {
         $account = User::findOrFail($id);
+        if (isset($data['photo']) && $data['photo'] instanceof \Illuminate\Http\UploadedFile) {
+            $data['photo'] = $data['photo']->store('photos', 'public');
+        }
+
         $account->update($data);
+
+        if (isset($data['role'])) {
+            $account->syncRoles($data['role']); 
+        }
+
+        $account->load('roles');
+        $account->roles = $account->roles->pluck('name');
 
         return $account;
     }

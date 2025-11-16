@@ -104,7 +104,6 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
                 if (!empty($barang['id']) && $existingBarang->has($barang['id'])) {
                     $existingBarang[$barang['id']]->update([
                         'stok_id' => $stok->id,
-                        'nama_barang' => $stok->name,
                         'quantity' => $barang['quantity'],
                         'harga' => $stok->price,
                         'total_harga' => $stok->price * $barang['quantity'],
@@ -115,7 +114,6 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
                     DetailPenerimaanBarang::create([
                         'penerimaan_id' => $penerimaan->id,
                         'stok_id' => $stok->id,
-                        'nama_barang' => $stok->name,
                         'quantity' => $barang['quantity'],
                         'harga' => $stok->price,
                         'total_harga' => $stok->price * $barang['quantity'],
@@ -169,5 +167,22 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
 
         $penerimaan->update(['status' => 'confirmed']);
         return $penerimaan;
+    }
+    public function getHistoryPenerimaan(array $filters)
+    {
+        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])->where('status', 'confirmed'); 
+
+        if (!empty($filters['sort_by'])) {
+            if ($filters['sort_by'] === 'latest') {
+                $query->orderBy('created_at', 'desc');
+            } elseif ($filters['sort_by'] === 'oldest') {
+                $query->orderBy('created_at', 'asc');
+            }
+        } else {
+            $query->orderBy('no_surat', 'asc');
+        }
+
+        $perPage = $filters['per_page'] ?? 10;
+        return $query->paginate($perPage);
     }
 }

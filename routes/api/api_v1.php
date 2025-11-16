@@ -15,8 +15,9 @@ Route::get('/selectCategory', [CategoryController::class, 'getAllForSelect'])->n
 Route::apiResource('category', CategoryController::class);
 Route::apiResource('satuan', SatuanController::class);
 Route::apiResource('jabatan', JabatanController::class);
+Route::get('penerimaan/history', [PenerimaanController::class, 'history']);
 Route::apiResource('penerimaan', PenerimaanController::class);
-Route::patch('/detail/{detailId}/layak', [PenerimaanController::class, 'markBarangLayak']);
-Route::patch('/{id}/confirm', [PenerimaanController::class, 'confirmPenerimaan']);
+Route::patch('penerimaan/barang/{detailId}/layak', [PenerimaanController::class, 'markBarangLayak']);
+Route::patch('penerimaan/{id}/confirm', [PenerimaanController::class, 'confirmPenerimaan']);
 Route::apiResource('account', AccountController::class)->except('create', 'store', 'delete');
 Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');

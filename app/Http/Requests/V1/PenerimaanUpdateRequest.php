@@ -22,9 +22,9 @@ class PenerimaanUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'no_surat' => 'nullable|string|max:100|unique:penerimaans,no_surat,' . $this->id,
-            'category_id' => 'nullable|exists:categories,id',
-            'deskripsi' => 'nullable|string',
+            'no_surat' => 'sometimes|string|max:100|unique:penerimaans,no_surat,' . $this->route('id'),
+            'category_id' => 'sometimes|exists:categories,id',
+            'deskripsi' => 'sometimes|string',
 
             'detail_barangs' => 'sometimes|array',
             'detail_barangs.*.id' => 'nullable|exists:detail_penerimaan_barangs,id',

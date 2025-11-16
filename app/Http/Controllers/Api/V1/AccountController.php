@@ -2,33 +2,35 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\V1\AccountUpdateRequest;
+use App\Interfaces\V1\AccountRepositoryInterface;
+use App\Repositories\V1\AccountRepository;
+use Exception;
 use Illuminate\Http\Request;
 
 class AccountController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
+    private AccountRepository $accountRepository;
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function __construct(AccountRepositoryInterface $accountRepository)
     {
-        //
+        $this->accountRepository = $accountRepository;
     }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function index(Request $request)
     {
-        //
+        try {
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'sort_by' => $request->query('sort_by'),
+            ];
+
+            $categories = $this->accountRepository->getAllAccount($filters);
+            return ResponseHelper::jsonResponse(true, 'Data akun berhasil diambil', $categories, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
+        }
     }
 
     /**
@@ -36,30 +38,26 @@ class AccountController extends Controller
      */
     public function show(string $id)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        try {
+            $category = $this->accountRepository->edit($id);
+            return ResponseHelper::jsonResponse(true, 'Detail akun berhasil diambil', $category, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(AccountUpdateRequest $request, string $id)
     {
-        //
-    }
+        try {
+            $data = $request->validated(); 
+            $account = $this->accountRepository->update($data, $id);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+            return ResponseHelper::jsonResponse(true, 'Data akun berhasil diperbarui', $account, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
     }
 }
