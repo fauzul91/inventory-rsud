@@ -14,7 +14,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
 {
     public function getAllPenerimaan(array $filters)
     {
-        $query = Penerimaan::with(['category', 'detailPegawai.pegawai']); // eager load
+        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])->where('status', 'pending'); 
 
         if (!empty($filters['sort_by'])) {
             if ($filters['sort_by'] === 'latest') {

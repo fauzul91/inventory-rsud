@@ -39,9 +39,7 @@ class PenerimaanController extends Controller
                     'role_user' => $item->user->roles->pluck('name')->first() ?? null,
                     'category_name' => $item->category->name ?? null,
                     'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                    'status' => $item->status === 'pending'
-                    ? 'Belum Dikonfirmasi'
-                    : 'Telah Dikonfirmasi',
+                    'status' => $item->status === 'pending' ? 'Belum Dikonfirmasi' : 'Telah Dikonfirmasi',                
                 ];
             });
 
@@ -166,9 +164,21 @@ class PenerimaanController extends Controller
                 'sort_by' => $request->query('sort_by'),
             ];
 
-            $history = $this->penerimaanRepository->getHistoryPenerimaan($filters);
-            return ResponseHelper::jsonResponse(true, 'History penerimaan berhasil diambil', $history, 200);
-        } catch (\Exception $e) {
+            $data = $this->penerimaanRepository->getHistoryPenerimaan($filters);
+            $transformed = $data->getCollection()->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'no_surat' => $item->no_surat,
+                    'role_user' => $item->user->roles->pluck('name')->first() ?? null,
+                    'category_name' => $item->category->name ?? null,
+                    'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
+                    'status' => $item->status === 'confirmed' ? 'Telah Dikonfirmasi' : 'Belum Dikonfirmasi',                
+                ];
+            });
+
+            $data->setCollection($transformed);
+            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil diambil', $data, 200);
+        } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
