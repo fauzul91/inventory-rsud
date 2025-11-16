@@ -44,7 +44,8 @@ class BastRepository implements BastRepositoryInterface
             throw new \Exception('File tidak ditemukan');
         }
 
-        $userId = auth()->id ?? rand(1, 5);
+        $userId = auth()->id() ?? rand(1, 5);
+
         Monitoring::create([
             'user_id' => $userId,
             'time' => now()->format('H:i:s'),
@@ -59,16 +60,17 @@ class BastRepository implements BastRepositoryInterface
 
     public function uploadBast($penerimaanId, $file)
     {
-        $path = $file->store('bast/signed', 'public'); 
+        $path = $file->store('bast/signed', 'public');
         $relativePath = $path;
 
         $bast = Bast::where('penerimaan_id', $penerimaanId)->latest()->firstOrFail();
         $bast->update([
-            'uploaded_signed_file' => $relativePath, 
+            'uploaded_signed_file' => $relativePath,
             'uploaded_at' => now(),
         ]);
 
-        $userId = auth()->id ?? rand(1, 5);
+        $userId = auth()->id() ?? rand(1, 5);
+
         Monitoring::create([
             'user_id' => $userId,
             'time' => now()->format('H:i:s'),

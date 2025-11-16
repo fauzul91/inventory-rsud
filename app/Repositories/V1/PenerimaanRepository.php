@@ -71,7 +71,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
                 }
             }
 
-            $userId = auth()->id ?? rand(1, 5);
+            $userId = auth()->id() ?? rand(1, 5);
             Monitoring::create([
                 'user_id' => $userId,
                 'time' => now()->format('H:i:s'),
@@ -140,7 +140,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
                 }
             }
 
-            $userId = auth()->id ?? rand(1, 5);
+            $userId = auth()->id() ?? rand(1, 5);
             Monitoring::create([
                 'user_id' => $userId,
                 'time' => now()->format('H:i:s'),
