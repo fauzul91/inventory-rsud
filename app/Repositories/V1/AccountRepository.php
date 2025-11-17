@@ -27,8 +27,16 @@ class AccountRepository implements AccountRepositoryInterface
         $paginated = $query->paginate($perPage);
 
         $paginated->getCollection()->transform(function ($user) {
-            $user->roles = $user->roles->pluck('name');
-            return $user;
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'sso_id' => $user->sso_id,
+                'email' => $user->email,
+                'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
+                'roles' => $user->roles->pluck('name'),
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+            ];
         });
 
         return $paginated;
@@ -68,7 +76,7 @@ class AccountRepository implements AccountRepositoryInterface
             if ($account->photo && Storage::disk('public')->exists($account->photo)) {
                 Storage::disk('public')->delete($account->photo);
             }
-            
+
             $updateData['photo'] = $this->handlePhotoUpload($data['photo']);
         }
 
