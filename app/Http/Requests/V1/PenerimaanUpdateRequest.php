@@ -3,45 +3,78 @@
 namespace App\Http\Requests\V1;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class PenerimaanUpdateRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
+        $penerimaanId = $this->route('id');
+        
         return [
-            'no_surat' => 'sometimes|string|max:100|unique:penerimaans,no_surat,' . $this->route('id'),
+            'no_surat' => [
+                'sometimes',
+                'string',
+                'max:100',
+                Rule::unique('penerimaans', 'no_surat')->ignore($penerimaanId),
+            ],
             'category_id' => 'sometimes|exists:categories,id',
-            'deskripsi' => 'sometimes|string',
-            'status' => 'sometimes|string|in:pending,approved,rejected', // opsional, kalau ada enum status
+            'deskripsi' => 'sometimes|nullable|string',
+            'status' => 'sometimes|string|in:pending,confirmed,approved,rejected',
 
-            // Barang
+            // Detail Barang
             'detail_barangs' => 'sometimes|array',
             'detail_barangs.*.id' => 'nullable|exists:detail_penerimaan_barangs,id',
-            'detail_barangs.*.stok_id' => 'sometimes|exists:stoks,id', // bisa optional, kalau cuma update quantity/harga
-            'detail_barangs.*.quantity' => 'sometimes|numeric|min:1',
+            'detail_barangs.*.stok_id' => 'required|exists:stoks,id',
+            'detail_barangs.*.quantity' => 'required|numeric|min:1',
             'detail_barangs.*.harga' => 'sometimes|numeric|min:0',
-            'detail_barangs.*.is_layak' => 'sometimes|boolean',
+            'detail_barangs.*.price' => 'sometimes|numeric|min:0', // alias untuk harga
+            'detail_barangs.*.is_layak' => 'sometimes|nullable|boolean',
 
             'deleted_barang_ids' => 'sometimes|array',
             'deleted_barang_ids.*' => 'exists:detail_penerimaan_barangs,id',
 
-            // Pegawai
+            // Detail Pegawai
             'pegawais' => 'sometimes|array',
-            'pegawais.*.pegawai_id' => 'required|exists:pegawais,id', // tetap wajib karena update existing
+            'pegawais.*.pegawai_id' => 'required|exists:pegawais,id',
             'pegawais.*.alamat_staker' => 'nullable|string|max:255',
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'no_surat.unique' => 'Nomor surat sudah digunakan',
+            'detail_barangs.*.stok_id.required' => 'Stok ID wajib diisi',
+            'detail_barangs.*.quantity.required' => 'Quantity wajib diisi',
+            'detail_barangs.*.quantity.min' => 'Quantity minimal 1',
+        ];
+    }
+
+    /**
+     * Prepare data for validation - normalize input
+     */
+    protected function prepareForValidation(): void
+    {
+        // Jika detail_barangs ada, normalisasi field harga
+        if ($this->has('detail_barangs')) {
+            $detailBarangs = $this->input('detail_barangs', []);
+            
+            foreach ($detailBarangs as $index => $barang) {
+                // Normalisasi: gunakan 'harga' sebagai field standar
+                if (isset($barang['price']) && !isset($barang['harga'])) {
+                    $detailBarangs[$index]['harga'] = $barang['price'];
+                }
+            }
+            
+            $this->merge([
+                'detail_barangs' => $detailBarangs
+            ]);
+        }
     }
 }

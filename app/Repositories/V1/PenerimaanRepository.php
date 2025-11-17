@@ -132,35 +132,54 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
     {
         return DB::transaction(function () use ($data, $id) {
             $penerimaan = Penerimaan::findOrFail($id);
+            $updateFields = [];
 
-            $penerimaan->update([
-                'no_surat' => $data['no_surat'] ?? $penerimaan->no_surat,
-                'category_id' => $data['category_id'] ?? $penerimaan->category_id,
-                'deskripsi' => $data['deskripsi'] ?? $penerimaan->deskripsi,
-                'status' => $data['status'] ?? $penerimaan->status,
-            ]);
+            if (isset($data['no_surat'])) {
+                $updateFields['no_surat'] = $data['no_surat'];
+            }
 
-            if (!empty($data['detail_barangs'])) {
+            if (isset($data['category_id'])) {
+                $updateFields['category_id'] = $data['category_id'];
+            }
+
+            if (isset($data['deskripsi'])) {
+                $updateFields['deskripsi'] = $data['deskripsi'];
+            }
+
+            if (isset($data['status'])) {
+                $updateFields['status'] = $data['status'];
+            }
+
+            if (!empty($updateFields)) {
+                $penerimaan->update($updateFields);
+            }
+
+            if (isset($data['detail_barangs']) && is_array($data['detail_barangs'])) {
                 $existingBarang = $penerimaan->detailBarang->keyBy('id');
+                $processedIds = [];
 
                 foreach ($data['detail_barangs'] as $barang) {
                     $stok = Stok::findOrFail($barang['stok_id']);
-                    $harga = array_key_exists('harga', $barang) ? $barang['harga'] : (array_key_exists('price', $barang) ? $barang['price'] : $stok->price);
+                    $harga = $barang['harga'] ?? $barang['price'] ?? $stok->price;
+
+                    $barangData = [
+                        'stok_id' => $stok->id,
+                        'quantity' => $barang['quantity'],
+                        'harga' => $harga,
+                        'total_harga' => $harga * $barang['quantity'],
+                    ];
+                    if (isset($barang['is_layak'])) {
+                        $barangData['is_layak'] = $barang['is_layak'];
+                    }
                     if (!empty($barang['id']) && $existingBarang->has($barang['id'])) {
-                        $existingBarang[$barang['id']]->update([
-                            'stok_id' => $stok->id,
-                            'quantity' => $barang['quantity'],
-                            'harga' => $harga,
-                            'total_harga' => $harga * $barang['quantity'],
-                        ]);
+                        $existingBarang[$barang['id']]->update($barangData);
+                        $processedIds[] = $barang['id'];
                     } else {
-                        DetailPenerimaanBarang::create([
+                        $newDetail = DetailPenerimaanBarang::create([
                             'penerimaan_id' => $penerimaan->id,
-                            'stok_id' => $stok->id,
-                            'quantity' => $barang['quantity'],
-                            'harga' => $harga,
-                            'total_harga' => $harga * $barang['quantity'],
+                            ...$barangData
                         ]);
+                        $processedIds[] = $newDetail->id;
                     }
                 }
             }
@@ -171,13 +190,26 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
                     ->delete();
             }
 
-            if (!empty($data['pegawais'])) {
+            if (isset($data['pegawais']) && is_array($data['pegawais'])) {
                 $existingPegawai = $penerimaan->detailPegawai->keyBy('pegawai_id');
 
                 foreach ($data['pegawais'] as $pegawai) {
-                    if ($existingPegawai->has($pegawai['pegawai_id'])) {
-                        $existingPegawai[$pegawai['pegawai_id']]->update([
-                            'alamat_staker' => $pegawai['alamat_staker'] ?? $existingPegawai[$pegawai['pegawai_id']]->alamat_staker,
+                    $pegawaiId = $pegawai['pegawai_id'];
+
+                    if ($existingPegawai->has($pegawaiId)) {
+                        $updateData = [];
+                        if (isset($pegawai['alamat_staker'])) {
+                            $updateData['alamat_staker'] = $pegawai['alamat_staker'];
+                        }
+
+                        if (!empty($updateData)) {
+                            $existingPegawai[$pegawaiId]->update($updateData);
+                        }
+                    } else {
+                        DetailPenerimaanPegawai::create([
+                            'penerimaan_id' => $penerimaan->id,
+                            'pegawai_id' => $pegawaiId,
+                            'alamat_staker' => $pegawai['alamat_staker'] ?? null,
                         ]);
                     }
                 }
@@ -190,7 +222,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
                 'activity' => "Mengupdate penerimaan: {$penerimaan->no_surat}",
             ]);
 
-            return $penerimaan->load(['detailBarang', 'detailPegawai.pegawai', 'category']);
+            return $penerimaan->fresh()->load(['detailBarang', 'detailPegawai.pegawai', 'category']);
         });
     }
 

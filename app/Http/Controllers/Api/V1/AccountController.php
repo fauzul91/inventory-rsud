@@ -52,7 +52,12 @@ class AccountController extends Controller
     public function update(AccountUpdateRequest $request, string $id)
     {
         try {
-            $data = $request->validated(); 
+            $data = $request->validated();
+
+            if ($request->hasFile('photo')) {
+                $data['photo'] = $request->file('photo');
+            }
+
             $account = $this->accountRepository->update($data, $id);
 
             return ResponseHelper::jsonResponse(true, 'Data akun berhasil diperbarui', $account, 200);
