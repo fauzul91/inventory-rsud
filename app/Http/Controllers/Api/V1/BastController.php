@@ -35,9 +35,9 @@ class BastController extends Controller
                     'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
                     'status' => $item->status === 'confirmed' ? 'Belum Ditandatangani' : 'Telah Ditandatangani',
                     'bast' => $item->status === 'confirmed' && $item->bast ? [
-                        'id' => optional($item->bast)->id,
-                        'file_url' => optional($item->bast) ? asset('storage/' . $item->bast->filename) : null,
-                        'download_endpoint' => optional($item->bast) ? route('bast.download', ['id' => $item->bast->id]) : null
+                        'id' => $item->bast->id,
+                        'file_url' => asset('storage/' . $item->bast->filename),
+                        'download_endpoint' => route('bast.unsigned.download', ['id' => $item->bast->id]),
                     ] : null,
                 ];
             });
@@ -64,17 +64,19 @@ class BastController extends Controller
                     'role_user' => $item->user->roles->pluck('name')->first() ?? null,
                     'category_name' => $item->category->name ?? null,
                     'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                    'status' => $item->status === 'confirmed' ? 'Telah Dikonfirmasi' : 'Belum Dikonfirmasi',
-                    'bast' => $item->status === 'confirmed' && $item->bast ? [
-                        'id' => optional($item->bast)->id,
-                        'file_url' => optional($item->bast) ? asset('storage/' . $item->bast->filename) : null,
-                        'download_endpoint' => optional($item->bast) ? route('bast.download', ['id' => $item->bast->id]) : null
+                    'status' => $item->status === 'signed' ? 'Telah Ditandatangani' : 'Belum Ditandatangani',
+                    'bast' => $item->bast ? [
+                        'id' => $item->bast->id,
+                        'signed_file_url' => $item->bast->uploaded_signed_file 
+                            ? asset('storage/' . $item->bast->uploaded_signed_file) 
+                            : null,
+                        'download_endpoint' => route('bast.signed.download', ['id' => $item->bast->id]),
                     ] : null,
                 ];
             });
 
             $data->setCollection($transformed);
-            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil diambil', $data, 200);
+            return ResponseHelper::jsonResponse(true, 'Data Signed BAST berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
@@ -85,19 +87,27 @@ class BastController extends Controller
     public function generate($penerimaanId)
     {
         try {
-            $result = $this->bastRepository->generateBast( $penerimaanId);
-            return ResponseHelper::jsonResponse(true,'Dokumen BAST berhasil dibuat',$result,200);            
+            $result = $this->bastRepository->generateBast($penerimaanId);
+            return ResponseHelper::jsonResponse(true, 'Dokumen BAST berhasil dibuat', $result, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
 
-    public function downloadBast($bastId)
+    public function downloadUnsignedBast($bastId)
     {
         try {
-            return $this->bastRepository->downloadBast($bastId);
+            return $this->bastRepository->downloadUnsignedBast($bastId);
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: '.$e->getMessage(), null, 500);
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
+    public function downloadSignedBast($bastId)
+    {
+        try {
+            return $this->bastRepository->downloadSignedBast($bastId);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
 
@@ -114,7 +124,7 @@ class BastController extends Controller
             $file = $request->file('uploaded_signed_file');
             $result = $this->bastRepository->uploadBast($penerimaanId, $file);
 
-            return ResponseHelper::jsonResponse(true,'BAST bertandatangan berhasil diupload',$result,200);
+            return ResponseHelper::jsonResponse(true, 'BAST bertandatangan berhasil diupload', $result, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
@@ -127,7 +137,7 @@ class BastController extends Controller
     {
         try {
             $history = $this->bastRepository->historyBast();
-            return ResponseHelper::jsonResponse(true,'Data riwayat BAST berhasil diambil',$history,200);
+            return ResponseHelper::jsonResponse(true, 'Data riwayat BAST berhasil diambil', $history, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }

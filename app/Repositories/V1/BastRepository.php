@@ -73,13 +73,13 @@ class BastRepository implements BastRepositoryInterface
         return $bast;
     }
 
-    public function downloadBast($bastId)
+    public function downloadUnsignedBast($bastId)
     {
         $bast = Bast::findOrFail($bastId);
         $filePath = storage_path('app/public/' . $bast->filename); // path lengkap ke file
 
         if (!file_exists($filePath)) {
-            throw new \Exception('File tidak ditemukan');
+            throw new \Exception('File unsigned tidak ditemukan');
         }
 
         $userId = auth()->id() ?? rand(1, 5);
@@ -94,6 +94,30 @@ class BastRepository implements BastRepositoryInterface
         $cleanFileName = basename($bast->filename);
         return response()->download($filePath, $cleanFileName);
     }
+    public function downloadSignedBast($bastId)
+    {
+        $bast = Bast::findOrFail($bastId);
+
+        if (!$bast->uploaded_signed_file) {
+            throw new \Exception('File signed belum tersedia');
+        }
+
+        $filePath = storage_path('app/public/' . $bast->uploaded_signed_file);
+
+        if (!file_exists($filePath)) {
+            throw new \Exception('File signed tidak ditemukan');
+        }
+
+        $userId = auth()->id() ?? rand(1, 5);
+        Monitoring::create([
+            'user_id' => $userId,
+            'time' => now()->format('H:i:s'),
+            'date' => now()->format('Y-m-d'),
+            'activity' => "Download SIGNED BAST",
+        ]);
+
+        return response()->download($filePath, basename($bast->uploaded_signed_file));
+    }
 
     public function uploadBast($penerimaanId, $file)
     {
@@ -106,8 +130,7 @@ class BastRepository implements BastRepositoryInterface
             'uploaded_at' => now(),
         ]);
 
-        $penerimaan = Penerimaan::findOrFail($penerimaanId);
-        $penerimaan->update([
+        Penerimaan::where('id', $penerimaanId)->update([
             'status' => 'signed'
         ]);
 
