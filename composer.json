@@ -28,12 +28,14 @@
             "Database\\Seeders\\": "database/seeders/"
         },
         "files": [
-            "app/Helpers/FormatNumber.php"
+            "app/Helpers/FormatNumber.php",
+            "app/Helpers/ImageUrlToBase64.php"
         ]
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\": "tests/"
+            "Tests\\": "tests/",
+            "App\\": "app/"
         }
     },
     "scripts": {

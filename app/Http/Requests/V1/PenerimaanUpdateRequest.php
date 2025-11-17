@@ -14,14 +14,17 @@ class PenerimaanUpdateRequest extends FormRequest
 
     public function rules(): array
     {
-        $penerimaanId = $this->route('id');
+        // PERBAIKAN: Gunakan route parameter yang benar
+        // Cek dulu nama parameter di routes/api.php
+        $penerimaanId = $this->route('penerimaan') ?? $this->route('id');
         
         return [
             'no_surat' => [
                 'sometimes',
                 'string',
                 'max:100',
-                Rule::unique('penerimaans', 'no_surat')->ignore($penerimaanId),
+                // PERBAIKAN: Pastikan ignore menggunakan ID yang benar
+                Rule::unique('penerimaans', 'no_surat')->ignore($penerimaanId, 'id'),
             ],
             'category_id' => 'sometimes|exists:categories,id',
             'deskripsi' => 'sometimes|nullable|string',
@@ -33,7 +36,7 @@ class PenerimaanUpdateRequest extends FormRequest
             'detail_barangs.*.stok_id' => 'required|exists:stoks,id',
             'detail_barangs.*.quantity' => 'required|numeric|min:1',
             'detail_barangs.*.harga' => 'sometimes|numeric|min:0',
-            'detail_barangs.*.price' => 'sometimes|numeric|min:0', // alias untuk harga
+            'detail_barangs.*.price' => 'sometimes|numeric|min:0',
             'detail_barangs.*.is_layak' => 'sometimes|nullable|boolean',
 
             'deleted_barang_ids' => 'sometimes|array',
@@ -49,24 +52,19 @@ class PenerimaanUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'no_surat.unique' => 'Nomor surat sudah digunakan',
+            'no_surat.unique' => 'Nomor surat sudah digunakan oleh penerimaan lain',
             'detail_barangs.*.stok_id.required' => 'Stok ID wajib diisi',
             'detail_barangs.*.quantity.required' => 'Quantity wajib diisi',
             'detail_barangs.*.quantity.min' => 'Quantity minimal 1',
         ];
     }
 
-    /**
-     * Prepare data for validation - normalize input
-     */
     protected function prepareForValidation(): void
     {
-        // Jika detail_barangs ada, normalisasi field harga
         if ($this->has('detail_barangs')) {
             $detailBarangs = $this->input('detail_barangs', []);
             
             foreach ($detailBarangs as $index => $barang) {
-                // Normalisasi: gunakan 'harga' sebagai field standar
                 if (isset($barang['price']) && !isset($barang['harga'])) {
                     $detailBarangs[$index]['harga'] = $barang['price'];
                 }

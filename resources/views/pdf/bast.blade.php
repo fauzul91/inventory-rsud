@@ -2,6 +2,17 @@
     setlocale(LC_TIME, 'id_ID.UTF-8');
     \Carbon\Carbon::setLocale('id');
 @endphp
+@php
+    $logoPath = public_path('assets/images/logo_dinas_jember.png');
+
+    if (file_exists($logoPath)) {
+        $imageData = base64_encode(file_get_contents($logoPath));
+        $mimeType = mime_content_type($logoPath);
+        $logo64 = "data:{$mimeType};base64,{$imageData}";
+    } else {
+        $logo64 = ''; // atau default image
+    }
+@endphp
 
 <!DOCTYPE html>
 <html>
@@ -14,6 +25,9 @@
     <style>
         * {
             font-family: "Times New Roman", serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         @page {
@@ -28,23 +42,25 @@
 
 <body class="text-[14px] leading-relaxed">
     <div class="text-center mb-2 flex items-center justify-center gap-4">
-        <img src="{{ public_path('http://127.0.0.1:8001/assets/images/logo_dinas_jember.png') }}"
-             class="w-[90px] h-auto" alt="Logo Dinas Jember">
+
+        @if ($logo64)
+            <img src="{{ $logo64 }}" style="height: 120px; width: auto;" alt="Logo Dinas Jember">
+        @endif
 
         <div class="text-center max-w-[80%]">
-            <div class="font-bold text-[24px] uppercase">PEMERINTAH KABUPATEN JEMBER</div>
-            <div class="font-bold text-[32px] uppercase">RUMAH SAKIT DAERAH BALUNG</div>
+            <div class="m-0 p-0 font-bold text-[20px] uppercase">PEMERINTAH KABUPATEN JEMBER</div>
+            <div class="m-0 p-0 font-bold text-[28px] uppercase">RUMAH SAKIT DAERAH BALUNG</div>
 
-            <div class="text-[12px]">
+            <div class="m-0 p-0 text-[14px]">
                 Jalan Rambipuji No.19 Balung 68161
                 Telp. 0336-621017 / 621595 / 623877 – Fax. 0336-623877
             </div>
 
-            <div class="text-[12px]">
+            <div class="m-0 p-0 text-[12px]">
                 Website: rsdbalung.jemberkab.go.id — Email: rsd.balung@jemberkab.go.id
             </div>
 
-            <div class="font-bold text-[18px] uppercase mt-1">
+            <div class="m-0 p-0 font-bold text-[18px] uppercase mt-1">
                 BALUNG – JEMBER
             </div>
         </div>
@@ -100,7 +116,10 @@
                 <th class="border p-1 bg-[#4d60dc] text-white">Satuan</th>
                 <th class="border p-1 bg-[#4d60dc] text-white">Harga</th>
                 <th class="border p-1 bg-[#4d60dc] text-white">Total Harga</th>
-                <th class="border p-1 bg-[#4d60dc] text-white">Layak</th>
+                <th class="border p-1 bg-[#4d60dc] text-white">L</th>
+                <th class="border p-1 bg-[#4d60dc] text-white">TL</th>
+                <th class="border p-1 bg-[#4d60dc] text-white">B</th>
+                <th class="border p-1 bg-[#4d60dc] text-white">TB</th>
             </tr>
         </thead>
 
@@ -114,6 +133,9 @@
                     <td class="border p-1 text-right">{{ number_format($barang->harga) }}</td>
                     <td class="border p-1 text-right">{{ number_format($barang->total_harga) }}</td>
                     <td class="border p-1 text-center">{{ $barang->is_layak ? '✔' : '✘' }}</td>
+                    <td class="border p-1 text-center">{{ $barang->is_layak ? '✘' : '✔' }}</td>
+                    <td class="border p-1 text-center">{{ $barang->is_layak ? '✔' : '✘' }}</td>
+                    <td class="border p-1 text-center">{{ $barang->is_layak ? '✘' : '✔' }}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -161,4 +183,5 @@
     </table>
 
 </body>
+
 </html>
