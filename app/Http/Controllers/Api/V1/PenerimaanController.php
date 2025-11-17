@@ -179,12 +179,12 @@ class PenerimaanController extends Controller
                     'role_user' => $item->user->roles->pluck('name')->first() ?? null,
                     'category_name' => $item->category->name ?? null,
                     'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                    'status' => $item->status === 'confirmed' ? 'Telah Dikonfirmasi' : 'Belum Dikonfirmasi',
+                    'status' => 'Telah Dikonfirmasi',
                 ];
             });
 
             $data->setCollection($transformed);
-            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil diambil', $data, 200);
+            return ResponseHelper::jsonResponse(true, 'History penerimaan berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }

@@ -33,7 +33,7 @@ class BastController extends Controller
                     'role_user' => $item->user->roles->pluck('name')->first() ?? null,
                     'category_name' => $item->category->name ?? null,
                     'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                    'status' => $item->status === 'confirmed' ? 'Belum Ditandatangani' : 'Telah Ditandatangani',
+                    'status' => 'Belum Ditandatangani',
                     'bast' => $item->status === 'confirmed' && $item->bast ? [
                         'id' => $item->bast->id,
                         'file_url' => asset('storage/' . $item->bast->filename),

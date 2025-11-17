@@ -18,38 +18,48 @@ class PenerimaanSeeder extends Seeder
     {
         for ($i = 1; $i <= 20; $i++) {
             $penerimaan = Penerimaan::create([
-                'user_id' => rand(1, 6), // bisa disesuaikan
+                'user_id' => rand(1, 6),
                 'no_surat' => 'NO-' . Str::random(6) . '/' . $i,
                 'category_id' => rand(1, 6),
                 'deskripsi' => 'Deskripsi penerimaan ke-' . $i,
                 'status' => 'pending',
             ]);
 
-            // Detail barang: random 1-5 barang
             $barangCount = rand(1, 5);
             $stokIds = range(1, 10);
             shuffle($stokIds);
+
             for ($b = 0; $b < $barangCount; $b++) {
+                $qty = rand(1, 20);
+                $harga = rand(10000, 50000);
+
                 DetailPenerimaanBarang::create([
                     'penerimaan_id' => $penerimaan->id,
                     'stok_id' => $stokIds[$b],
-                    'quantity' => rand(1, 20),
-                    'harga' => rand(10000, 50000),
-                    'total_harga' => rand(10000, 50000) * rand(1, 20),
+                    'quantity' => $qty,
+                    'harga' => $harga,
+                    'total_harga' => $qty * $harga,
                     'is_layak' => null,
                 ]);
             }
 
-            $pegawaiCount = rand(1, 3);
             $pegawaiIds = range(1, 10);
             shuffle($pegawaiIds);
-            for ($p = 0; $p < $pegawaiCount; $p++) {
-                DetailPenerimaanPegawai::create([
-                    'penerimaan_id' => $penerimaan->id,
-                    'pegawai_id' => $pegawaiIds[$p],
-                    'alamat_staker' => 'Alamat pegawai ' . $pegawaiIds[$p],
-                ]);
-            }
+
+            $pegawai1 = $pegawaiIds[0];
+            $pegawai2 = $pegawaiIds[1]; 
+
+            DetailPenerimaanPegawai::create([
+                'penerimaan_id' => $penerimaan->id,
+                'pegawai_id' => $pegawai1,
+                'alamat_staker' => 'Alamat pegawai ' . $pegawai1,
+            ]);
+
+            DetailPenerimaanPegawai::create([
+                'penerimaan_id' => $penerimaan->id,
+                'pegawai_id' => $pegawai2,
+                'alamat_staker' => 'Alamat pegawai ' . $pegawai2,
+            ]);
         }
     }
 }
