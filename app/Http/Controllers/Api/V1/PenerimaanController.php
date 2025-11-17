@@ -180,11 +180,6 @@ class PenerimaanController extends Controller
                     'category_name' => $item->category->name ?? null,
                     'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
                     'status' => $item->status === 'confirmed' ? 'Telah Dikonfirmasi' : 'Belum Dikonfirmasi',
-                    'bast' => $item->status === 'confirmed' && $item->bast ? [
-                        'id' => optional($item->bast)->id,
-                        'file_url' => optional($item->bast) ? asset('storage/' . $item->bast->filename) : null,
-                        'download_endpoint' => optional($item->bast) ? route('bast.download', ['id' => $item->bast->id]) : null
-                    ] : null,
                 ];
             });
 
