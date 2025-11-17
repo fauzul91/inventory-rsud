@@ -71,7 +71,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
                 }
             }
 
-            $userId = auth()->id() ?? rand(1, 5);
+            $userId = 4;
             Monitoring::create([
                 'user_id' => $userId,
                 'time' => now()->format('H:i:s'),
@@ -217,7 +217,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
             }
 
             Monitoring::create([
-                'user_id' => auth()->id() ?? rand(1, 5),
+                'user_id' => 4,
                 'time' => now()->format('H:i:s'),
                 'date' => now()->format('Y-m-d'),
                 'activity' => "Mengupdate penerimaan: {$penerimaan->no_surat}",
@@ -233,7 +233,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
         $penerimaan->detailBarang()->delete();
         $penerimaan->detailPegawai()->delete();
 
-        $userId = auth()->id ?? rand(1, 5);
+        $userId = 4;
         Monitoring::create([
             'user_id' => $userId,
             'time' => now()->format('H:i:s'),
@@ -280,7 +280,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
         }
 
         $penerimaan->update(['status' => 'confirmed']);
-        $userId = auth()->id ?? rand(1, 5);
+        $userId = 3;
         Monitoring::create([
             'user_id' => $userId,
             'time' => now()->format('H:i:s'),

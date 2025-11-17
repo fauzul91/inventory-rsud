@@ -18,7 +18,7 @@ class PenerimaanSeeder extends Seeder
     {
         for ($i = 1; $i <= 20; $i++) {
             $penerimaan = Penerimaan::create([
-                'user_id' => rand(1, 6),
+                'user_id' => 4,
                 'no_surat' => 'NO-' . Str::random(6) . '/' . $i,
                 'category_id' => rand(1, 6),
                 'deskripsi' => 'Deskripsi penerimaan ke-' . $i,

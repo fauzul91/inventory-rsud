@@ -83,13 +83,13 @@ class BastRepository implements BastRepositoryInterface
             throw new \Exception('File unsigned tidak ditemukan');
         }
 
-        $userId = auth()->id() ?? rand(1, 5);
+        $userId = 2;
 
         Monitoring::create([
             'user_id' => $userId,
             'time' => now()->format('H:i:s'),
             'date' => now()->format('Y-m-d'),
-            'activity' => "Download BAST",
+            'activity' => "Download Unsigned BAST",
         ]);
 
         $cleanFileName = basename($bast->filename);
@@ -109,7 +109,7 @@ class BastRepository implements BastRepositoryInterface
             throw new \Exception('File signed tidak ditemukan');
         }
 
-        $userId = auth()->id() ?? rand(1, 5);
+        $userId = 2;
         Monitoring::create([
             'user_id' => $userId,
             'time' => now()->format('H:i:s'),
@@ -135,7 +135,7 @@ class BastRepository implements BastRepositoryInterface
             'status' => 'signed'
         ]);
 
-        $userId = auth()->id() ?? rand(1, 5);
+        $userId = 2;
 
         Monitoring::create([
             'user_id' => $userId,
