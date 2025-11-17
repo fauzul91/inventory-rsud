@@ -14,17 +14,40 @@ class AccountUpdateRequest extends FormRequest
 
     public function rules(): array
     {
+        $userId = $this->route('id');
+        
         return [
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'name' => 'sometimes|string|max:255',
-            'role' => 'sometimes|string|exists:roles,name',
+            'name' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:255',
+            ],
+            'photo' => [
+                'nullable',
+                'image',
+                'mimes:jpeg,png,jpg,gif,webp',
+                'max:2048', // 2MB max
+            ],
+            'role' => [
+                'sometimes',
+                'required',
+                'string',
+                'exists:roles,name',
+            ],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'role.*.exists' => 'Role yang dipilih tidak valid.',
+            'name.required' => 'Nama wajib diisi',
+            'name.max' => 'Nama maksimal 255 karakter',
+            'photo.image' => 'File harus berupa gambar',
+            'photo.mimes' => 'Format gambar harus jpeg, png, jpg, gif, atau webp',
+            'photo.max' => 'Ukuran gambar maksimal 2MB',
+            'role.required' => 'Role wajib diisi',
+            'role.exists' => 'Role tidak ditemukan',
         ];
     }
 }

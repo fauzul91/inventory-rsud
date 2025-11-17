@@ -5,6 +5,7 @@ namespace App\Repositories\V1;
 use App\Interfaces\V1\AccountRepositoryInterface;
 use App\Models\Category;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 class AccountRepository implements AccountRepositoryInterface
 {
@@ -44,21 +45,37 @@ class AccountRepository implements AccountRepositoryInterface
     {
         $account = User::findOrFail($id);
 
-        if (!empty($data['photo']) && $data['photo'] instanceof \Illuminate\Http\UploadedFile) {
-            $data['photo'] = $this->handlePhotoUpload($data['photo']);
+        // Prepare update data
+        $updateData = [];
+
+        // Handle name update
+        if (isset($data['name'])) {
+            $updateData['name'] = $data['name'];
         }
 
-        $account->update(array_filter([
-            'name' => $data['name'] ?? null,
-            'photo' => $data['photo'] ?? null,
-        ]));
+        // Handle photo upload
+        if (isset($data['photo']) && $data['photo'] instanceof \Illuminate\Http\UploadedFile) {
+            // Delete old photo if exists
+            if ($account->photo && Storage::disk('public')->exists($account->photo)) {
+                Storage::disk('public')->delete($account->photo);
+            }
+            
+            $updateData['photo'] = $this->handlePhotoUpload($data['photo']);
+        }
 
-        if (!empty($data['role'])) {
+        // Update account data only if there's something to update
+        if (!empty($updateData)) {
+            $account->update($updateData);
+        }
+
+        // Handle role update
+        if (isset($data['role'])) {
             $roles = is_array($data['role']) ? $data['role'] : [$data['role']];
             $account->syncRoles($roles);
         }
 
-        $account->load('roles');
+        // Refresh and load relationships
+        $account->refresh()->load('roles');
         $account->roles = $account->roles->pluck('name');
 
         return $account;
@@ -69,6 +86,7 @@ class AccountRepository implements AccountRepositoryInterface
      */
     private function handlePhotoUpload($file)
     {
-        return $file->store('photos', 'public');
+        $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        return $file->storeAs('photos', $filename, 'public');
     }
 }
