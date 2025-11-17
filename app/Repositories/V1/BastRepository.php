@@ -7,6 +7,7 @@ use App\Models\Bast;
 use App\Models\Monitoring;
 use App\Models\Penerimaan;
 use Illuminate\Support\Facades\Storage;
+use Spatie\LaravelPdf\Enums\Format;
 use Spatie\LaravelPdf\Facades\Pdf;
 
 class BastRepository implements BastRepositoryInterface
@@ -60,10 +61,10 @@ class BastRepository implements BastRepositoryInterface
         Pdf::view('pdf.bast', [
             'penerimaan' => $penerimaan
         ])
-            ->format('a4')
+            ->format(Format::Legal)
+            ->margins(40, 20, 40, 20)  
             ->disk('public')
             ->save($filename);
-
         $bast = Bast::create([
             'penerimaan_id' => $penerimaanId,
             'filename' => $filename,

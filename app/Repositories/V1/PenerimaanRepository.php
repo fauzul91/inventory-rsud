@@ -103,7 +103,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
             ],
             'detail_barang' => $penerimaan->detailBarang->map(function ($item) {
                 return [
-                    'id'=> $item->id,
+                    'id' => $item->id,
                     'nama_stok' => $item->stok->name,
                     'nama_category' => $item->stok->category->name,
                     'nama_satuan' => $item->stok->satuan->name,
@@ -132,6 +132,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
     {
         return DB::transaction(function () use ($data, $id) {
             $penerimaan = Penerimaan::findOrFail($id);
+
             $penerimaan->update([
                 'no_surat' => $data['no_surat'] ?? $penerimaan->no_surat,
                 'category_id' => $data['category_id'] ?? $penerimaan->category_id,
@@ -139,51 +140,51 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
                 'status' => $data['status'] ?? $penerimaan->status,
             ]);
 
-            $existingBarang = $penerimaan->detailBarang->keyBy('id');
-            $incomingBarang = collect($data['detail_barangs'] ?? []);
+            if (!empty($data['detail_barangs'])) {
+                $existingBarang = $penerimaan->detailBarang->keyBy('id');
 
-            foreach ($incomingBarang as $barang) {
-                $stok = Stok::findOrFail($barang['stok_id']);
-
-                if (!empty($barang['id']) && $existingBarang->has($barang['id'])) {
-                    $existingBarang[$barang['id']]->update([
-                        'stok_id' => $stok->id,
-                        'quantity' => $barang['quantity'],
-                        'harga' => $stok->price,
-                        'total_harga' => $stok->price * $barang['quantity'],
-                        'is_layak' => $barang['is_layak'] ?? null,
-                    ]);
-                    $existingBarang->forget($barang['id']);
-                } else {
-                    DetailPenerimaanBarang::create([
-                        'penerimaan_id' => $penerimaan->id,
-                        'stok_id' => $stok->id,
-                        'quantity' => $barang['quantity'],
-                        'harga' => $stok->price,
-                        'total_harga' => $stok->price * $barang['quantity'],
-                        'is_layak' => $barang['is_layak'] ?? null,
-                    ]);
+                foreach ($data['detail_barangs'] as $barang) {
+                    $stok = Stok::findOrFail($barang['stok_id']);
+                    $harga = array_key_exists('harga', $barang) ? $barang['harga'] : (array_key_exists('price', $barang) ? $barang['price'] : $stok->price);
+                    if (!empty($barang['id']) && $existingBarang->has($barang['id'])) {
+                        $existingBarang[$barang['id']]->update([
+                            'stok_id' => $stok->id,
+                            'quantity' => $barang['quantity'],
+                            'harga' => $harga,
+                            'total_harga' => $harga * $barang['quantity'],
+                        ]);
+                    } else {
+                        DetailPenerimaanBarang::create([
+                            'penerimaan_id' => $penerimaan->id,
+                            'stok_id' => $stok->id,
+                            'quantity' => $barang['quantity'],
+                            'harga' => $harga,
+                            'total_harga' => $harga * $barang['quantity'],
+                        ]);
+                    }
                 }
             }
 
-            foreach ($existingBarang as $old) {
-                $old->delete();
+            if (!empty($data['deleted_barang_ids'])) {
+                $penerimaan->detailBarang()
+                    ->whereIn('id', $data['deleted_barang_ids'])
+                    ->delete();
             }
 
             if (!empty($data['pegawais'])) {
-                $penerimaan->detailPegawai()->delete();
+                $existingPegawai = $penerimaan->detailPegawai->keyBy('pegawai_id');
+
                 foreach ($data['pegawais'] as $pegawai) {
-                    DetailPenerimaanPegawai::create([
-                        'penerimaan_id' => $penerimaan->id,
-                        'pegawai_id' => $pegawai['pegawai_id'],
-                        'alamat_staker' => $pegawai['alamat_staker'] ?? null,
-                    ]);
+                    if ($existingPegawai->has($pegawai['pegawai_id'])) {
+                        $existingPegawai[$pegawai['pegawai_id']]->update([
+                            'alamat_staker' => $pegawai['alamat_staker'] ?? $existingPegawai[$pegawai['pegawai_id']]->alamat_staker,
+                        ]);
+                    }
                 }
             }
 
-            $userId = auth()->id() ?? rand(1, 5);
             Monitoring::create([
-                'user_id' => $userId,
+                'user_id' => auth()->id() ?? rand(1, 5),
                 'time' => now()->format('H:i:s'),
                 'date' => now()->format('Y-m-d'),
                 'activity' => "Mengupdate penerimaan: {$penerimaan->no_surat}",

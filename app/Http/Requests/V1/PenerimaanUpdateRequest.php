@@ -25,14 +25,22 @@ class PenerimaanUpdateRequest extends FormRequest
             'no_surat' => 'sometimes|string|max:100|unique:penerimaans,no_surat,' . $this->route('id'),
             'category_id' => 'sometimes|exists:categories,id',
             'deskripsi' => 'sometimes|string',
+            'status' => 'sometimes|string|in:pending,approved,rejected', // opsional, kalau ada enum status
 
+            // Barang
             'detail_barangs' => 'sometimes|array',
             'detail_barangs.*.id' => 'nullable|exists:detail_penerimaan_barangs,id',
-            'detail_barangs.*.stok_id' => 'required|exists:stoks,id', // <- ini wajib
-            'detail_barangs.*.quantity' => 'required|numeric|min:1',
+            'detail_barangs.*.stok_id' => 'sometimes|exists:stoks,id', // bisa optional, kalau cuma update quantity/harga
+            'detail_barangs.*.quantity' => 'sometimes|numeric|min:1',
+            'detail_barangs.*.harga' => 'sometimes|numeric|min:0',
+            'detail_barangs.*.is_layak' => 'sometimes|boolean',
 
-            'pegawais' => 'sometimes|array|min:1',
-            'pegawais.*.pegawai_id' => 'required|exists:pegawais,id',
+            'deleted_barang_ids' => 'sometimes|array',
+            'deleted_barang_ids.*' => 'exists:detail_penerimaan_barangs,id',
+
+            // Pegawai
+            'pegawais' => 'sometimes|array',
+            'pegawais.*.pegawai_id' => 'required|exists:pegawais,id', // tetap wajib karena update existing
             'pegawais.*.alamat_staker' => 'nullable|string|max:255',
         ];
     }
