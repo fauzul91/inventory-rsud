@@ -18,7 +18,7 @@ class MonitoringRepository implements MonitoringRepositoryInterface
                 $query->orderBy('created_at', 'asc');
             }
         } else {
-            $query->orderBy('date', 'asc')->orderBy('time', 'asc');
+            $query->orderBy('created_at', 'asc')->orderBy('time', 'asc');
         }
 
         $perPage = $filters['per_page'] ?? 10;
