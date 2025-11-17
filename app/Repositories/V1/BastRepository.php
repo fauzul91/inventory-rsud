@@ -62,7 +62,7 @@ class BastRepository implements BastRepositoryInterface
             'penerimaan' => $penerimaan
         ])
             ->format(Format::Legal)
-            ->margins(40, 20, 40, 20)  
+            ->margins(40, 20, 40, 20)
             ->disk('public')
             ->save($filename);
         $bast = Bast::create([
@@ -147,8 +147,32 @@ class BastRepository implements BastRepositoryInterface
         return $bast;
     }
 
-    public function historyBast()
+    public function historyBast(array $filters)
     {
-        return Bast::orderBy('uploaded_at', 'desc')->get();
+        $query = Bast::with(['penerimaan.category', 'penerimaan.detailPegawai.pegawai', 'penerimaan.detailBarang'])
+            ->orderBy('uploaded_at', 'desc');
+
+        if (!empty($filters['sort_by'])) {
+            if ($filters['sort_by'] === 'latest') {
+                $query->orderBy('uploaded_at', 'desc');
+            } elseif ($filters['sort_by'] === 'oldest') {
+                $query->orderBy('uploaded_at', 'asc');
+            }
+        }
+
+        $perPage = $filters['per_page'] ?? 10;
+        $paginated = $query->paginate($perPage);
+
+        $paginated->getCollection()->transform(function ($bast) {
+            return [
+                'id' => $bast->id,
+                'filename' => $bast->filename,
+                'signed_file' => $bast->uploaded_signed_file ? asset('storage/' . $bast->uploaded_signed_file) : null,
+                'uploaded_at' => $bast->uploaded_at,                
+                'penerimaan_no_surat' => $bast->penerimaan->no_surat,                
+            ];
+        });
+
+        return $paginated;
     }
 }

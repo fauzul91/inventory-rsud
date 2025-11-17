@@ -31,3 +31,4 @@ Route::get('/bast/signed', [BastController::class, 'getSignedBast'])->name('bast
 Route::get('/bast/unsigned/{id}/download', [BastController::class, 'downloadUnsignedBast'])->name('bast.unsigned.download');
 Route::get('/bast/signed/{id}/download', [BastController::class, 'downloadSignedBast'])->name('bast.signed.download');
 Route::post('/bast/upload/{id}', [BastController::class, 'upload'])->name('bast.upload');
+Route::get('/bast/history', [BastController::class, 'historyBast'])->name('bast.history');

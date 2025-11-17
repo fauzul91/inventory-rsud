@@ -10,5 +10,5 @@ interface BastRepositoryInterface
     public function uploadBast($id, $file);
     public function downloadUnsignedBast($id);
     public function downloadSignedBast($id);
-    public function historyBast();
+    public function historyBast(array $filters);
 }

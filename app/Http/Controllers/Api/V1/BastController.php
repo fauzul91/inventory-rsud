@@ -67,8 +67,8 @@ class BastController extends Controller
                     'status' => $item->status === 'signed' ? 'Telah Ditandatangani' : 'Belum Ditandatangani',
                     'bast' => $item->bast ? [
                         'id' => $item->bast->id,
-                        'signed_file_url' => $item->bast->uploaded_signed_file 
-                            ? asset('storage/' . $item->bast->uploaded_signed_file) 
+                        'signed_file_url' => $item->bast->uploaded_signed_file
+                            ? asset('storage/' . $item->bast->uploaded_signed_file)
                             : null,
                         'download_endpoint' => route('bast.signed.download', ['id' => $item->bast->id]),
                     ] : null,
@@ -133,13 +133,15 @@ class BastController extends Controller
     /**
      * Ambil riwayat BAST milik user yang login
      */
-    public function history(Request $request)
+    public function historyBast(Request $request)
     {
         try {
-            $history = $this->bastRepository->historyBast();
-            return ResponseHelper::jsonResponse(true, 'Data riwayat BAST berhasil diambil', $history, 200);
+            $filters = $request->only(['sort_by', 'per_page']);
+            $history = $this->bastRepository->historyBast($filters);
+
+            return ResponseHelper::jsonResponse(true,'Data riwayat BAST berhasil diambil',$history,200);
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
         }
     }
 }

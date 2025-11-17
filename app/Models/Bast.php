@@ -19,10 +19,5 @@ class Bast extends Model
     public function penerimaan()
     {
         return $this->belongsTo(Penerimaan::class);
-    }
-
-    public function uploader()
-    {
-        return $this->belongsTo(User::class, 'uploaded_by');
-    }
+    }  
 }
