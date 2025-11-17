@@ -17,7 +17,68 @@ class BastController extends Controller
     {
         $this->bastRepository = $bastRepository;
     }
+    public function getUnsignedBast(Request $request)
+    {
+        try {
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'sort_by' => $request->query('sort_by'),
+            ];
 
+            $data = $this->bastRepository->getUnsignedBast($filters);
+            $transformed = $data->getCollection()->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'no_surat' => $item->no_surat,
+                    'role_user' => $item->user->roles->pluck('name')->first() ?? null,
+                    'category_name' => $item->category->name ?? null,
+                    'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
+                    'status' => $item->status === 'confirmed' ? 'Belum Ditandatangani' : 'Telah Ditandatangani',
+                    'bast' => $item->status === 'confirmed' && $item->bast ? [
+                        'id' => optional($item->bast)->id,
+                        'file_url' => optional($item->bast) ? asset('storage/' . $item->bast->filename) : null,
+                        'download_endpoint' => optional($item->bast) ? route('bast.download', ['id' => $item->bast->id]) : null
+                    ] : null,
+                ];
+            });
+
+            $data->setCollection($transformed);
+            return ResponseHelper::jsonResponse(true, 'Data Unsigned BAST berhasil diambil', $data, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
+    public function getSignedBast(Request $request)
+    {
+        try {
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'sort_by' => $request->query('sort_by'),
+            ];
+
+            $data = $this->bastRepository->getSignedBast($filters);
+            $transformed = $data->getCollection()->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'no_surat' => $item->no_surat,
+                    'role_user' => $item->user->roles->pluck('name')->first() ?? null,
+                    'category_name' => $item->category->name ?? null,
+                    'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
+                    'status' => $item->status === 'confirmed' ? 'Telah Dikonfirmasi' : 'Belum Dikonfirmasi',
+                    'bast' => $item->status === 'confirmed' && $item->bast ? [
+                        'id' => optional($item->bast)->id,
+                        'file_url' => optional($item->bast) ? asset('storage/' . $item->bast->filename) : null,
+                        'download_endpoint' => optional($item->bast) ? route('bast.download', ['id' => $item->bast->id]) : null
+                    ] : null,
+                ];
+            });
+
+            $data->setCollection($transformed);
+            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil diambil', $data, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
     /**
      * Generate BAST PDF
      */

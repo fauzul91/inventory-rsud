@@ -26,5 +26,7 @@ Route::apiResource('account', AccountController::class)->except('create', 'store
 Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
 Route::get('/pegawai/select', [PegawaiController::class, 'getAllForSelect'])->name('pegawai.selectAll');
 Route::get('/stok/select', [StokController::class, 'getAllForSelect'])->name('stok.selectAll');
+Route::get('/bast/unsigned', [BastController::class, 'getUnsignedBast'])->name('bast.unsigned');
+Route::get('/bast/signed', [BastController::class, 'getSignedBast'])->name('bast.signed');
 Route::get('/bast/download/{id}', [BastController::class, 'downloadBast'])->name('bast.download');
 Route::post('/bast/upload/{id}', [BastController::class, 'upload'])->name('bast.upload');

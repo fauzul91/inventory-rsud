@@ -23,7 +23,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
                 $query->orderBy('created_at', 'asc');
             }
         } else {
-            $query->orderBy('no_surat', 'asc');
+            $query->orderBy('created_at', 'desc');
         }
 
         $perPage = $filters['per_page'] ?? 10;
@@ -269,7 +269,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
                 $query->orderBy('created_at', 'asc');
             }
         } else {
-            $query->orderBy('no_surat', 'asc');
+            $query->orderBy('created_at', 'desc');
         }
 
         $perPage = $filters['per_page'] ?? 10;

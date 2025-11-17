@@ -11,6 +11,44 @@ use Spatie\LaravelPdf\Facades\Pdf;
 
 class BastRepository implements BastRepositoryInterface
 {
+    public function getUnsignedBast(array $filters)
+    {
+        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang', 'bast'])->where('status', 'confirmed');
+
+        if (!empty($filters['sort_by'])) {
+            if ($filters['sort_by'] === 'latest') {
+                $query->orderBy('created_at', 'desc');
+            } elseif ($filters['sort_by'] === 'oldest') {
+                $query->orderBy('created_at', 'asc');
+            }
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $perPage = $filters['per_page'] ?? 10;
+        $penerimaan = $query->paginate($perPage);
+
+        return $penerimaan;
+    }
+    public function getSignedBast(array $filters)
+    {
+        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])->where('status', 'signed');
+
+        if (!empty($filters['sort_by'])) {
+            if ($filters['sort_by'] === 'latest') {
+                $query->orderBy('created_at', 'desc');
+            } elseif ($filters['sort_by'] === 'oldest') {
+                $query->orderBy('created_at', 'asc');
+            }
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $perPage = $filters['per_page'] ?? 10;
+        $penerimaan = $query->paginate($perPage);
+
+        return $penerimaan;
+    }
     public function generateBast($penerimaanId)
     {
         $penerimaan = Penerimaan::with(['detailBarang', 'detailPegawai.pegawai'])
@@ -57,7 +95,6 @@ class BastRepository implements BastRepositoryInterface
         return response()->download($filePath, $cleanFileName);
     }
 
-
     public function uploadBast($penerimaanId, $file)
     {
         $path = $file->store('bast/signed', 'public');
@@ -67,6 +104,11 @@ class BastRepository implements BastRepositoryInterface
         $bast->update([
             'uploaded_signed_file' => $relativePath,
             'uploaded_at' => now(),
+        ]);
+
+        $penerimaan = Penerimaan::findOrFail($penerimaanId);
+        $penerimaan->update([
+            'status' => 'signed'
         ]);
 
         $userId = auth()->id() ?? rand(1, 5);

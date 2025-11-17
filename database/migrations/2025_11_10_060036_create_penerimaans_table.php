@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('category_id')->constrained('categories')->onDelete('restrict');
             $table->string('no_surat');
             $table->text('deskripsi')->nullable();
-            $table->enum('status', ['pending', 'confirmed', 'paid', 'not_paid']);
+            $table->enum('status', ['pending', 'confirmed', 'signed', 'paid', 'not_paid']);
             $table->softDeletes();
             $table->timestamps();
         });
