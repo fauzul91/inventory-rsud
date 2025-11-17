@@ -33,7 +33,7 @@ class AccountRepository implements AccountRepositoryInterface
                 'sso_id' => $user->sso_id,
                 'email' => $user->email,
                 'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
-                'roles' => $user->roles->pluck('name'),
+                'role' => $user->roles->pluck('name')->first(),
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
             ];
@@ -52,7 +52,7 @@ class AccountRepository implements AccountRepositoryInterface
             'sso_id' => $user->sso_id,
             'email' => $user->email,
             'photo' => $user->photo ? asset('storage/' . $user->photo) : null,
-            'roles' => $user->roles->pluck('name'), // langsung array nama role
+            'role' => $user->roles->pluck('name')->first(),// langsung array nama role
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
         ];
