@@ -6,26 +6,22 @@ use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\PenerimaanStoreRequest;
 use App\Http\Requests\V1\PenerimaanUpdateRequest;
-use App\Interfaces\V1\PenerimaanRepositoryInterface;
-use App\Repositories\V1\PenerimaanRepository;
 use App\Services\V1\BastService;
+use App\Services\V1\PenerimaanService;
 use Illuminate\Http\Request;
 use Exception;
 
 class PenerimaanController extends Controller
 {
-    private PenerimaanRepository $penerimaanRepository;
+    private PenerimaanService $penerimaanService;
     private BastService $bastService;
 
-    public function __construct(PenerimaanRepositoryInterface $penerimaanRepository, BastService $bastService)
+    public function __construct(PenerimaanService $penerimaanService, BastService $bastService) 
     {
-        $this->penerimaanRepository = $penerimaanRepository;
+        $this->penerimaanService = $penerimaanService;
         $this->bastService = $bastService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         try {
@@ -34,80 +30,59 @@ class PenerimaanController extends Controller
                 'sort_by' => $request->query('sort_by'),
             ];
 
-            $data = $this->penerimaanRepository->getAllPenerimaan($filters);
-            $transformed = $data->getCollection()->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'no_surat' => $item->no_surat,
-                    'role_user' => $item->user->roles->pluck('name')->first() ?? null,
-                    'category_name' => $item->category->name ?? null,
-                    'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                    'status' => $item->status === 'pending' ? 'Belum Dikonfirmasi' : 'Telah Dikonfirmasi',
-                ];
-            });
+            $data = $this->penerimaanService->getAllPenerimaan($filters);
+            $transformed = $this->transformPenerimaanList($data);
 
-            $data->setCollection($transformed);
-            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil diambil', $data, 200);
+            return ResponseHelper::jsonResponse(true,'Data penerimaan berhasil diambil',$transformed,200);
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
         }
     }
 
-    /**
-     * Store a newly created resource.
-     */
     public function store(PenerimaanStoreRequest $request)
     {
         try {
-            $data = $this->penerimaanRepository->create($request->validated());
-            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil ditambahkan', $data, 201);
+            $data = $this->penerimaanService->create($request->validated());
+            return ResponseHelper::jsonResponse(true,'Data penerimaan berhasil ditambahkan',$data,201
+            );
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         try {
-            $data = $this->penerimaanRepository->edit($id);
-            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil diambil', $data, 200);
+            $data = $this->penerimaanService->getPenerimaanForEdit($id);
+            return ResponseHelper::jsonResponse(true,'Data penerimaan berhasil diambil',$data,200
+            );
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
         }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(PenerimaanUpdateRequest $request, string $id)
     {
         try {
-            $data = $this->penerimaanRepository->update($request->validated(), $id);
-            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil diperbarui', $data, 200);
+            $data = $this->penerimaanService->update($request->validated(), $id);
+            return ResponseHelper::jsonResponse(true,'Data penerimaan berhasil diperbarui',$data,200
+            );
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
         try {
-            $this->penerimaanRepository->delete($id);
-            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil dihapus', null, 200);
+            $this->penerimaanService->delete($id);
+            return ResponseHelper::jsonResponse(true,'Data penerimaan berhasil dihapus',null,200
+            );
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
         }
     }
 
-    /**
-     * Update kelayakan barang.
-     */
     public function markBarangLayak(Request $request, $penerimaanId, $detailId)
     {
         try {
@@ -115,40 +90,36 @@ class PenerimaanController extends Controller
                 'is_layak' => 'required|boolean',
             ]);
 
-            $result = $this->penerimaanRepository
-                ->markBarangLayak($penerimaanId, $detailId, $request->is_layak);
+            $result = $this->penerimaanService->markBarangLayak($penerimaanId,$detailId,$request->is_layak
+            );
 
             if ($result['success'] === false) {
-                return ResponseHelper::jsonResponse(false, $result['message'], null, 404);
+                return ResponseHelper::jsonResponse(false,$result['message'],null,404
+                );
             }
 
-            return ResponseHelper::jsonResponse(true, 'Status kelayakan diperbarui', $result['data'], 200);
-
-        } catch (\Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+            return ResponseHelper::jsonResponse(true,'Status kelayakan diperbarui',$result['data'],200
+            );
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
         }
     }
 
-
-    /**
-     * Konfirmasi penerimaan (ubah status ke confirmed).
-     */
     public function confirmPenerimaan(string $id)
     {
         try {
-            $result = $this->penerimaanRepository->confirmPenerimaan($id);
+            $result = $this->penerimaanService->confirmPenerimaan($id);
 
             if ($result['success'] === false) {
                 return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $result['message'],null,422
                 );
             }
-            $bast = $this->bastService->generateBast($id);
-            return ResponseHelper::jsonResponse(
-                true,'Status penerimaan berhasil dikonfirmasi & BAST berhasil dibuat',['penerimaan' => $result['data'],'bast' => $bast],200
-            );
 
+            $bast = $this->bastService->generateBast($id);
+
+            return ResponseHelper::jsonResponse(true,'Status penerimaan berhasil dikonfirmasi & BAST berhasil dibuat',['penerimaan' => $result['data'],'bast' => $bast],200);
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
         }
     }
 
@@ -160,22 +131,31 @@ class PenerimaanController extends Controller
                 'sort_by' => $request->query('sort_by'),
             ];
 
-            $data = $this->penerimaanRepository->getHistoryPenerimaan($filters);
-            $transformed = $data->getCollection()->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'no_surat' => $item->no_surat,
-                    'role_user' => $item->user->roles->pluck('name')->first() ?? null,
-                    'category_name' => $item->category->name ?? null,
-                    'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                    'status' => 'Telah Dikonfirmasi',
-                ];
-            });
+            $data = $this->penerimaanService->getHistoryPenerimaan($filters);
+            $transformed = $this->transformPenerimaanList($data, true);
 
-            $data->setCollection($transformed);
-            return ResponseHelper::jsonResponse(true, 'History penerimaan berhasil diambil', $data, 200);
+            return ResponseHelper::jsonResponse(true,'History penerimaan berhasil diambil',$transformed,200
+            );
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
         }
+    }
+
+    private function transformPenerimaanList($data, $isHistory = false)
+    {
+        $transformed = $data->getCollection()->map(function ($item) use ($isHistory) {
+            return [
+                'id' => $item->id,
+                'no_surat' => $item->no_surat,
+                'role_user' => $item->user->roles->pluck('name')->first() ?? null,
+                'category_name' => $item->category->name ?? null,
+                'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
+                'status' => $isHistory ? 'Telah Dikonfirmasi' : 
+                    ($item->status === 'pending' ? 'Belum Dikonfirmasi' : 'Telah Dikonfirmasi'),
+            ];
+        });
+
+        $data->setCollection($transformed);
+        return $data;
     }
 }
