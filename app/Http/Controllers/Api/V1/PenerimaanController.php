@@ -6,22 +6,21 @@ use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\PenerimaanStoreRequest;
 use App\Http\Requests\V1\PenerimaanUpdateRequest;
-use App\Interfaces\V1\BastRepositoryInterface;
 use App\Interfaces\V1\PenerimaanRepositoryInterface;
-use App\Repositories\V1\BastRepository;
 use App\Repositories\V1\PenerimaanRepository;
+use App\Services\V1\BastService;
 use Illuminate\Http\Request;
 use Exception;
 
 class PenerimaanController extends Controller
 {
     private PenerimaanRepository $penerimaanRepository;
-    private BastRepository $bastRepository;
+    private BastService $bastService;
 
-    public function __construct(PenerimaanRepositoryInterface $penerimaanRepository, BastRepositoryInterface $bastRepository)
+    public function __construct(PenerimaanRepositoryInterface $penerimaanRepository, BastService $bastService)
     {
         $this->penerimaanRepository = $penerimaanRepository;
-        $this->bastRepository = $bastRepository;
+        $this->bastService = $bastService;
     }
 
     /**
@@ -140,22 +139,12 @@ class PenerimaanController extends Controller
             $result = $this->penerimaanRepository->confirmPenerimaan($id);
 
             if ($result['success'] === false) {
-                return ResponseHelper::jsonResponse(
-                    false,
-                    'Terjadi kesalahan: ' . $result['message'],
-                    null,
-                    422
+                return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $result['message'],null,422
                 );
             }
-            $bast = $this->bastRepository->generateBast($id);
+            $bast = $this->bastService->generateBast($id);
             return ResponseHelper::jsonResponse(
-                true,
-                'Status penerimaan berhasil dikonfirmasi & BAST berhasil dibuat',
-                [
-                    'penerimaan' => $result['data'],
-                    'bast' => $bast
-                ],
-                200
+                true,'Status penerimaan berhasil dikonfirmasi & BAST berhasil dibuat',['penerimaan' => $result['data'],'bast' => $bast],200
             );
 
         } catch (Exception $e) {

@@ -36,7 +36,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
     {
         return DB::transaction(function () use ($data) {
             $penerimaan = Penerimaan::create([
-                'user_id' => auth()->id() ?? 1,
+                'user_id' => 4,
                 'no_surat' => $data['no_surat'],
                 'category_id' => $data['category_id'],
                 'deskripsi' => $data['deskripsi'] ?? null,

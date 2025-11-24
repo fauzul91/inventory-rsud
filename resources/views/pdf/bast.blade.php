@@ -13,7 +13,9 @@
         $logo64 = ''; // atau default image
     }
 @endphp
-
+@php
+    date_default_timezone_set('Asia/Jakarta'); // Set timezone Indonesia
+@endphp
 <!DOCTYPE html>
 <html>
 
