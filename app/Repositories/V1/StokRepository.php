@@ -4,6 +4,7 @@ namespace App\Repositories\V1;
 
 use App\Interfaces\V1\StokRepositoryInterface;
 use App\Models\Monitoring;
+use App\Models\Penerimaan;
 use App\Models\Stok;
 
 class StokRepository implements StokRepositoryInterface
@@ -28,5 +29,49 @@ class StokRepository implements StokRepositoryInterface
                     'price' => $item->price,
                 ];
             });
+    }
+    public function getAllStoks($filters)
+    {
+        $query = Stok::query()->with('satuan');
+
+        if (!empty($filters['search'])) {
+            $query->where('name', 'like', '%' . $filters['search'] . '%');
+        }
+
+        if (!empty($filters['category'])) {
+            $query->where('category_id', $filters['category']);
+        }
+
+        return $query;
+    }
+    public function getPaidBastStock($filters)
+    {
+        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
+            ->where('status', 'paid');
+
+        if (!empty($filters['category'])) {
+            $query->where('category_id', $filters['category']);
+        }
+
+        if (!empty($filters['search'])) {
+            $query->where('no_surat', 'like', '%' . $filters['search'] . '%');
+        }
+
+        return $query;
+    }
+    public function getUnpaidBastStock($filters)
+    {
+        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
+            ->where('status', 'confirmed');
+
+        if (!empty($filters['category'])) {
+            $query->where('category_id', $filters['category']);
+        }
+
+        if (!empty($filters['search'])) {
+            $query->where('no_surat', 'like', '%' . $filters['search'] . '%');
+        }
+
+        return $query;
     }
 }

@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
-            $table->decimal('stok_2024', 10, 2);
-            $table->decimal('total_stok', 10, 2);
             $table->decimal('minimum_stok', 10, 2);
             $table->integer('price');
             $table->foreignId('satuan_id')->constrained('satuans')->onDelete('cascade');                        
