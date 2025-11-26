@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Stok extends Model
 {
     use HasFactory, SoftDeletes;
-    protected $fillable = ['name', 'category_id', 'stok_2024', 'minimum_stok', 'total_stok', 'price', 'satuan_id'];
+    protected $fillable = ['name', 'category_id', 'minimum_stok', 'price', 'satuan_id'];
 
     public function category()
     {
@@ -19,4 +19,8 @@ class Stok extends Model
     {
         return $this->belongsTo(Satuan::class);
     }
+    public function histories()
+    {
+        return $this->hasMany(StokHistory::class);
+    }    
 }
