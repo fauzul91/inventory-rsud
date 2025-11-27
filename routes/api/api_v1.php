@@ -35,3 +35,5 @@ Route::get('/bast/unsigned/{id}/download', [BastController::class, 'downloadUnsi
 Route::get('/bast/signed/{id}/download', [BastController::class, 'downloadSignedBast'])->name('bast.signed.download');
 Route::post('/bast/upload/{id}', [BastController::class, 'upload'])->name('bast.upload');
 Route::get('/bast/history', [BastController::class, 'historyBast'])->name('bast.history');
+Route::apiResource('pegawai', PegawaiController::class);
+Route::patch('/pegawai/{id}/status', [PegawaiController::class, 'toggleStatus'])->name('pegawai.toggleStatus');

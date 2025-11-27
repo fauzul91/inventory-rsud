@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Monitoring;
-use App\Models\User;
 use Auth;
+use App\Models\User;
+use App\Models\Monitoring;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use Illuminate\Validation\UnauthorizedException;
 
 class AuthController extends Controller
@@ -25,7 +26,7 @@ class AuthController extends Controller
             'client_id' => $clientId,
             'redirect_uri' => $redirectUri,
             'response_type' => 'code',
-            'scope' => '', 
+            'scope' => '',
             'state' => $state,
         ]);
 
@@ -49,7 +50,7 @@ class AuthController extends Controller
             'code' => $request->code,
         ]);
 
-        \Log::info('Token request response', ['status' => $response->status(), 'body' => $response->body()]);
+        Log::info('Token request response', ['status' => $response->status(), 'body' => $response->body()]);
 
         $tokenData = $response->json();
         dd($tokenData);
