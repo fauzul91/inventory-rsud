@@ -17,7 +17,7 @@ class StokHistorySeeder extends Seeder
         $stoks = Stok::all();
 
         foreach ($stoks as $stok) {
-            for ($batch = 1; $batch <= 2; $batch++) {
+            for ($batch = 1; $batch < 2; $batch++) {
                 $quantity = rand(20, 100);
 
                 StokHistory::create([
