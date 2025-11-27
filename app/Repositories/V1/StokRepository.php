@@ -6,9 +6,10 @@ use App\Interfaces\V1\StokRepositoryInterface;
 use App\Models\Monitoring;
 use App\Models\Penerimaan;
 use App\Models\Stok;
+use App\Models\StokHistory;
 
 class StokRepository implements StokRepositoryInterface
-{
+{    
     public function getAllStoksForSelect($categoryId = null)
     {
         $query = Stok::with('satuan:id,name')
@@ -29,6 +30,10 @@ class StokRepository implements StokRepositoryInterface
                     'price' => $item->price,
                 ];
             });
+    }
+    public function getAllYearForSelect()
+    {
+        return StokHistory::select('year')->distinct()->orderBy('year', 'asc')->get();
     }
     public function getAllStoks($filters)
     {

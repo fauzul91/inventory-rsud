@@ -22,7 +22,10 @@ class StokService
         $this->detailBarangService = $detailBarangService;
         $this->detailPegawaiService = $detailPegawaiService;
     }
-
+    public function getAllYearForSelect()
+    {
+        return $this->stokRepository->getAllYearForSelect();
+    }
     public function getAllStoks(array $filters)
     {
         $perPage = $filters['per_page'] ?? 10;
