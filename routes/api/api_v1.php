@@ -27,6 +27,7 @@ Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitor
 Route::get('/pegawai/select', [PegawaiController::class, 'getAllForSelect'])->name('pegawai.selectAll');
 Route::get('/stok/select', [StokController::class, 'getAllForSelect'])->name('stok.selectAll');
 Route::get('/stok', [StokController::class, 'getAllStoks'])->name('stok.index');
+Route::get('/stok/year', [StokController::class, 'getAllYearForSelect'])->name('stok.year');
 Route::get('/stok/paid', [StokController::class, 'getPaidBastStock'])->name('bast.paid');
 Route::get('/stok/unpaid', [StokController::class, 'getUnpaidBastStock'])->name('bast.unpaid');
 Route::get('/bast/unsigned', [BastController::class, 'getUnsignedBast'])->name('bast.unsigned');

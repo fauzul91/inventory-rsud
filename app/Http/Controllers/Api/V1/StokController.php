@@ -30,6 +30,15 @@ class StokController extends Controller
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
     }
+    public function getAllYearForSelect()
+    {
+        try {
+            $year = $this->stokService->getAllYearForSelect();
+            return ResponseHelper::jsonResponse(true, 'Data year berhasil diambil', $year, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
+        }
+    }
     public function getAllStoks(Request $request)
     {
         try {
