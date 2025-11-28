@@ -1,15 +1,20 @@
 <?php
 
-use App\Http\Controllers\Api\V1\AccountController;
-use App\Http\Controllers\Api\V1\BastController;
-use App\Http\Controllers\Api\V1\CategoryController;
-use App\Http\Controllers\Api\V1\JabatanController;
-use App\Http\Controllers\Api\V1\MonitoringController;
-use App\Http\Controllers\Api\V1\PegawaiController;
-use App\Http\Controllers\Api\V1\PenerimaanController;
-use App\Http\Controllers\Api\V1\SatuanController;
-use App\Http\Controllers\Api\V1\StokController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SsoController;
+use App\Http\Controllers\Api\V1\BastController;
+use App\Http\Controllers\Api\V1\StokController;
+use App\Http\Controllers\Api\V1\SatuanController;
+use App\Http\Controllers\Api\V1\AccountController;
+use App\Http\Controllers\Api\V1\JabatanController;
+use App\Http\Controllers\Api\V1\PegawaiController;
+use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\MonitoringController;
+use App\Http\Controllers\Api\V1\PenerimaanController;
+
+Route::get('/sso/login', [SsoController::class, 'redirectToSso'])->name('sso.login');
+Route::get('/sso/callback', [SsoController::class, 'handleCallback'])->name('sso.callback');
+Route::get('/sso/logout', [SsoController::class, 'logout'])->name('sso.logout');
 
 Route::middleware('auth:api')->group(function () {
 });
@@ -37,3 +42,10 @@ Route::post('/bast/upload/{id}', [BastController::class, 'upload'])->name('bast.
 Route::get('/bast/history', [BastController::class, 'historyBast'])->name('bast.history');
 Route::apiResource('pegawai', PegawaiController::class);
 Route::patch('/pegawai/{id}/status', [PegawaiController::class, 'toggleStatus'])->name('pegawai.toggleStatus');
+
+
+// Route::middleware(['role:super-admin,tim-ppk'])->group(function () {
+//     Route::apiResource('pegawai', PegawaiController::class);
+//     Route::patch('/pegawai/{id}/status', [PegawaiController::class, 'toggleStatus'])
+//         ->name('pegawai.toggleStatus');
+// });
