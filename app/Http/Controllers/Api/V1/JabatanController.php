@@ -24,6 +24,15 @@ class JabatanController extends Controller
     {
         $this->jabatanRepository = $jabatanRepository;
     }
+    public function getAllForSelect()
+    {
+        try {
+            $pegawai = $this->jabatanRepository->getAllForSelect();
+            return ResponseHelper::jsonResponse(true, 'Data jabatan berhasil diambil', $pegawai, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
+        }
+    }
     public function index(Request $request)
     {
         try {

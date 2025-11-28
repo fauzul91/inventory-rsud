@@ -7,6 +7,12 @@ use App\Models\Jabatan;
 
 class JabatanRepository implements JabatanRepositoryInterface
 {
+    public function getAllForSelect()
+    {
+        return Jabatan::select('id', 'name')
+            ->orderBy('name', 'asc')
+            ->get();
+    }
     public function getAllJabatan(array $filters)
     {
         $query = Jabatan::query();

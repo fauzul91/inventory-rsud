@@ -22,6 +22,7 @@ Route::middleware('auth:api')->group(function () {
 Route::get('/category/select', [CategoryController::class, 'getAllForSelect'])->name('category.selectAll');
 Route::apiResource('category', CategoryController::class);
 Route::apiResource('satuan', SatuanController::class);
+Route::get('/jabatan/select', [JabatanController::class, 'getAllForSelect'])->name('jabatan.selectAll');
 Route::apiResource('jabatan', JabatanController::class);
 Route::get('penerimaan/history', [PenerimaanController::class, 'history']);
 Route::patch('penerimaan/{id}/barang/{detailId}/layak', [PenerimaanController::class, 'markBarangLayak']);
@@ -32,6 +33,7 @@ Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitor
 Route::get('/pegawai/select', [PegawaiController::class, 'getAllForSelect'])->name('pegawai.selectAll');
 Route::get('/stok/select', [StokController::class, 'getAllForSelect'])->name('stok.selectAll');
 Route::get('/stok', [StokController::class, 'getAllStoks'])->name('stok.index');
+Route::get('/stok/year', [StokController::class, 'getAllYearForSelect'])->name('stok.year');
 Route::get('/stok/paid', [StokController::class, 'getPaidBastStock'])->name('bast.paid');
 Route::get('/stok/unpaid', [StokController::class, 'getUnpaidBastStock'])->name('bast.unpaid');
 Route::get('/bast/unsigned', [BastController::class, 'getUnsignedBast'])->name('bast.unsigned');

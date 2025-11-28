@@ -17,12 +17,13 @@ class StokHistorySeeder extends Seeder
         $stoks = Stok::all();
 
         foreach ($stoks as $stok) {
-            for ($batch = 1; $batch <= 2; $batch++) {
+            for ($batch = 0; $batch < 2; $batch++) {
+                $year = 2024 + $batch;
                 $quantity = rand(20, 100);
 
                 StokHistory::create([
                     'stok_id' => $stok->id,
-                    'year' => 2024 + $batch,
+                    'year' => $year,
                     'quantity' => $quantity,
                     'used_qty' => 0,
                     'remaining_qty' => $quantity,
