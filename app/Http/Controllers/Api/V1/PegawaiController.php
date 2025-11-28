@@ -27,6 +27,8 @@ class PegawaiController extends Controller
                 'search' => $request->search,
                 'jabatan_id' => $request->jabatan_id,
                 'status' => $request->status,
+                'sort_by' => $request->sort_by,
+                'per_page' => $request->per_page,
             ];
 
             $pegawai = $this->pegawaiRepository->getAll($filters);
