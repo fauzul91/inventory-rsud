@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\V1\StokUpdateRequest;
 use App\Interfaces\V1\StokRepositoryInterface;
 use App\Repositories\V1\StokRepository;
 use App\Services\V1\StokService;
@@ -39,7 +40,7 @@ class StokController extends Controller
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
     }
-    public function getAllStoks(Request $request)
+    public function index(Request $request)
     {
         try {
             $filters = [
@@ -81,6 +82,24 @@ class StokController extends Controller
 
             $data = $this->stokService->getUnpaidBastStock($filters);
             return ResponseHelper::jsonResponse(true, 'Data bast belum dibayar berhasil diambil', $data, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
+        }
+    }
+    public function show($id)
+    {
+        try {
+            $data = $this->stokService->edit($id);
+            return ResponseHelper::jsonResponse(true, 'Detail stok berhasil diambil', $data, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
+        }
+    }
+    public function update(StokUpdateRequest $request, $id)
+    {
+        try {
+            $data = $this->stokService->update($request->validated(), $id);
+            return ResponseHelper::jsonResponse(true, 'Stok berhasil diupdate', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }

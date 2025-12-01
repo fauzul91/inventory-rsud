@@ -79,4 +79,18 @@ class StokRepository implements StokRepositoryInterface
 
         return $query;
     }
+    public function edit($id)
+    {
+        return Stok::where('id', $id)
+            ->select(['name', 'minimum_stok'])
+            ->firstOrFail();
+    }
+    public function update(array $data, $id)
+    {
+        $stok = Stok::findOrFail($id);
+        $allowedData = collect($data)->only(['name', 'minimum_stok'])->toArray();
+        $stok->update($allowedData);
+
+        return $stok;
+    }
 }
