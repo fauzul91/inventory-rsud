@@ -116,42 +116,99 @@ class PenerimaanService
     public function delete($id)
     {
         $penerimaan = $this->repository->findById($id);
-        
+
         $penerimaan->detailBarang()->delete();
         $penerimaan->detailPegawai()->delete();
 
         $this->monitoringService->log("Menghapus penerimaan: {$penerimaan->no_surat}", 4);
-        
+
         return $this->repository->delete($penerimaan);
     }
 
-    public function markBarangLayak($penerimaanId, $detailId, $isLayak)
+    public function updateKelayakanBarang($penerimaanId, $detailId, array $data)
     {
-        $detail = $this->repository->findDetailBarang($penerimaanId, $detailId);
+        return DB::transaction(function () use ($penerimaanId, $detailId, $data) {
+            $detail = $this->repository->findDetailBarang($penerimaanId, $detailId);
+            if (!$detail) {
+                return [
+                    'success' => false,
+                    'message' => 'Detail barang tidak ditemukan.'
+                ];
+            }
 
-        if (!$detail) {
+            $penerimaan = $this->repository->findById($penerimaanId);
+
+            if (!in_array($penerimaan->status, ['pending', 'checked'])) {
+                return [
+                    'success' => false,
+                    'message' => 'Kelayakan barang hanya bisa diupdate di status pending atau checked'
+                ];
+            }
+
+            $quantityLayak = $data['quantity_layak'];
+            $quantityTidakLayak = $detail->quantity - $quantityLayak;
+
+            if ($quantityLayak < 0 || $quantityLayak > $detail->quantity) {
+                return [
+                    'success' => false,
+                    'message' => "Jumlah layak harus antara 0 dan {$detail->quantity}"
+                ];
+            }
+            if ($penerimaan->status === 'pending') {
+                $this->repository->update($penerimaan, [
+                    'status' => 'checked'
+                ]);
+            }
+
+            $detail = $this->repository->updateDetailBarang($detail, [
+                'quantity_layak' => $quantityLayak,
+                'quantity_tidak_layak' => $quantityTidakLayak,
+            ]);
+
+            $this->monitoringService->log(
+                "Menilai kelayakan barang: {$detail->stok->name}",
+                4
+            );
+
             return [
-                'success' => false,
-                'message' => 'Detail barang tidak ditemukan untuk penerimaan ini.'
+                'success' => true,
+                'data' => $detail,
+                'message' => 'Kelayakan barang berhasil dinilai'
             ];
-        }
-
-        $this->repository->updateDetailBarang($detail, ['is_layak' => (bool) $isLayak]);
-
-        return [
-            'success' => true,
-            'data' => $detail
-        ];
+        });
     }
+    public function markDetailAsPaid($penerimaanId, $detailId)
+    {
+        return DB::transaction(function () use ($penerimaanId, $detailId) {
+            $detail = $this->repository->findDetailBarang($penerimaanId, $detailId);
 
+            if (!$detail) {
+                return [
+                    'success' => false,
+                    'message' => 'Detail barang tidak ditemukan di penerimaan ini.'
+                ];
+            }
+
+            $detail = $this->repository->updateDetailBarangPayment($detail);
+            return $detail;
+        });
+    }
     public function confirmPenerimaan($id)
     {
         $penerimaan = $this->repository->findWithDetails($id);
 
         if ($this->repository->hasUnassessedItems($id)) {
+            $unassessedCount = $this->repository->getUnassessedCount($id);
             return [
                 'success' => false,
-                'message' => 'Masih ada barang yang belum dinilai kelayakannya'
+                'message' => "Masih ada {$unassessedCount} barang yang belum dinilai kelayakannya"
+            ];
+        }
+
+        if ($this->repository->hasUnverifiedItems($id)) {
+            return [
+                'success' => false,
+                'message' => 'Tidak bisa dikonfirmasi. Masih ada barang yang tidak layak. Silakan update penerimaan agar semua barang layak.'
             ];
         }
 
@@ -187,10 +244,13 @@ class PenerimaanService
                 'nama_stok' => $item->stok->name,
                 'nama_category' => $item->stok->category->name,
                 'nama_satuan' => $item->stok->satuan->name,
-                'harga' => $item->harga,
+                'harga' => $item->price,
                 'quantity' => $item->quantity,
+                'quantity_layak' => $item->quantity_layak,
+                'quantity_tidak_layak' => $item->quantity_tidak_layak,
                 'total_harga' => $item->total_harga,
-                'is_layak' => $item->is_layak,
+                'is_checked' => !is_null($item->quantity_layak),
+                'is_all_layak' => $item->quantity === $item->quantity_layak,
             ];
         });
     }

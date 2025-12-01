@@ -103,5 +103,5 @@ class StokController extends Controller
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
-    }
+    }    
 }

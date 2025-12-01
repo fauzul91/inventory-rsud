@@ -4,6 +4,7 @@ namespace App\Services\V1;
 
 use App\Repositories\V1\StokRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class StokService
 {
@@ -93,5 +94,5 @@ class StokService
     public function update($data, $id)
     {
         return $this->stokRepository->update($data, $id);
-    }
+    }    
 }

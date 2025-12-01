@@ -39,7 +39,6 @@ class PenerimaanSeeder extends Seeder
                     'quantity' => $qty,
                     'harga' => $harga,
                     'total_harga' => $qty * $harga,
-                    'is_layak' => null,
                 ]);
             }
 

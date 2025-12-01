@@ -16,7 +16,7 @@ class PenerimaanController extends Controller
     private PenerimaanService $penerimaanService;
     private BastService $bastService;
 
-    public function __construct(PenerimaanService $penerimaanService, BastService $bastService) 
+    public function __construct(PenerimaanService $penerimaanService, BastService $bastService)
     {
         $this->penerimaanService = $penerimaanService;
         $this->bastService = $bastService;
@@ -33,9 +33,9 @@ class PenerimaanController extends Controller
             $data = $this->penerimaanService->getAllPenerimaan($filters);
             $transformed = $this->transformPenerimaanList($data);
 
-            return ResponseHelper::jsonResponse(true,'Data penerimaan berhasil diambil',$transformed,200);
+            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil diambil', $transformed, 200);
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
 
@@ -43,10 +43,14 @@ class PenerimaanController extends Controller
     {
         try {
             $data = $this->penerimaanService->create($request->validated());
-            return ResponseHelper::jsonResponse(true,'Data penerimaan berhasil ditambahkan',$data,201
+            return ResponseHelper::jsonResponse(
+                true,
+                'Data penerimaan berhasil ditambahkan',
+                $data,
+                201
             );
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
 
@@ -54,10 +58,14 @@ class PenerimaanController extends Controller
     {
         try {
             $data = $this->penerimaanService->getPenerimaanForEdit($id);
-            return ResponseHelper::jsonResponse(true,'Data penerimaan berhasil diambil',$data,200
+            return ResponseHelper::jsonResponse(
+                true,
+                'Data penerimaan berhasil diambil',
+                $data,
+                200
             );
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
 
@@ -65,10 +73,14 @@ class PenerimaanController extends Controller
     {
         try {
             $data = $this->penerimaanService->update($request->validated(), $id);
-            return ResponseHelper::jsonResponse(true,'Data penerimaan berhasil diperbarui',$data,200
+            return ResponseHelper::jsonResponse(
+                true,
+                'Data penerimaan berhasil diperbarui',
+                $data,
+                200
             );
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
 
@@ -76,32 +88,43 @@ class PenerimaanController extends Controller
     {
         try {
             $this->penerimaanService->delete($id);
-            return ResponseHelper::jsonResponse(true,'Data penerimaan berhasil dihapus',null,200
+            return ResponseHelper::jsonResponse(
+                true,
+                'Data penerimaan berhasil dihapus',
+                null,
+                200
             );
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
 
-    public function markBarangLayak(Request $request, $penerimaanId, $detailId)
+    public function updateKelayakanBarang(Request $request, $penerimaanId, $detailId)
     {
         try {
             $request->validate([
-                'is_layak' => 'required|boolean',
+                'quantity_layak' => 'required|integer|min:0',
             ]);
 
-            $result = $this->penerimaanService->markBarangLayak($penerimaanId,$detailId,$request->is_layak
-            );
+            $result = $this->penerimaanService->updateKelayakanBarang($penerimaanId, $detailId, $request->only('quantity_layak'));
 
             if ($result['success'] === false) {
-                return ResponseHelper::jsonResponse(false,$result['message'],null,404
+                return ResponseHelper::jsonResponse(
+                    false,
+                    $result['message'],
+                    null,
+                    404
                 );
             }
 
-            return ResponseHelper::jsonResponse(true,'Status kelayakan diperbarui',$result['data'],200
+            return ResponseHelper::jsonResponse(
+                true,
+                'Status kelayakan diperbarui',
+                $result['data'],
+                200
             );
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
 
@@ -111,15 +134,19 @@ class PenerimaanController extends Controller
             $result = $this->penerimaanService->confirmPenerimaan($id);
 
             if ($result['success'] === false) {
-                return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $result['message'],null,422
+                return ResponseHelper::jsonResponse(
+                    false,
+                    'Terjadi kesalahan: ' . $result['message'],
+                    null,
+                    422
                 );
             }
 
             $bast = $this->bastService->generateBast($id);
 
-            return ResponseHelper::jsonResponse(true,'Status penerimaan berhasil dikonfirmasi & BAST berhasil dibuat',['penerimaan' => $result['data'],'bast' => $bast],200);
+            return ResponseHelper::jsonResponse(true, 'Status penerimaan berhasil dikonfirmasi & BAST berhasil dibuat', ['penerimaan' => $result['data'], 'bast' => $bast], 200);
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
 
@@ -134,10 +161,31 @@ class PenerimaanController extends Controller
             $data = $this->penerimaanService->getHistoryPenerimaan($filters);
             $transformed = $this->transformPenerimaanList($data, true);
 
-            return ResponseHelper::jsonResponse(true,'History penerimaan berhasil diambil',$transformed,200
+            return ResponseHelper::jsonResponse(
+                true,
+                'History penerimaan berhasil diambil',
+                $transformed,
+                200
             );
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
+    public function markDetailAsPaid($penerimaanId, $detailId)
+    {
+        try {
+            $data = $this->penerimaanService->markDetailAsPaid($penerimaanId, $detailId);
+            if (is_array($data) && isset($result['success']) && $data['success'] === false) {
+                return ResponseHelper::jsonResponse(
+                    false,
+                    $data['message'],
+                    null,
+                    404
+                );
+            }
+            return ResponseHelper::jsonResponse(true, 'Barang berhasil dibayar', $data, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
     }
 
@@ -150,7 +198,7 @@ class PenerimaanController extends Controller
                 'role_user' => $item->user->roles->pluck('name')->first() ?? null,
                 'category_name' => $item->category->name ?? null,
                 'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                'status' => $isHistory ? 'Telah Dikonfirmasi' : 
+                'status' => $isHistory ? 'Telah Dikonfirmasi' :
                     ($item->status === 'pending' ? 'Belum Dikonfirmasi' : 'Telah Dikonfirmasi'),
             ];
         });

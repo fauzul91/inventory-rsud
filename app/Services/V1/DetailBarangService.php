@@ -23,16 +23,38 @@ class DetailBarangService
 
     public function createSingle($penerimaanId, array $barang)
     {
-        $stok = Stok::findOrFail($barang['stok_id']);
+        $stok = $this->findOrCreateStok($barang);
         $harga = $this->resolvePrice($barang, $stok);
 
         return $this->repository->createDetailBarang([
             'penerimaan_id' => $penerimaanId,
             'stok_id' => $stok->id,
             'quantity' => $barang['quantity'],
+            'quantity_layak' => $barang['quantity_layak'] ?? null, 
+            'quantity_tidak_layak' => $barang['quantity_tidak_layak'] ?? null,
             'harga' => $harga,
             'total_harga' => $harga * $barang['quantity'],
-            'is_layak' => null,
+            'is_paid' => $barang['is_paid'] ?? null,
+        ]);
+    }
+    private function findOrCreateStok(array $barang)
+    {
+        if (!empty($barang['stok_id'])) {
+            $stok = Stok::find($barang['stok_id']);
+            if ($stok) return $stok;
+        }
+
+        if (!empty($barang['name'])) {
+            $stok = Stok::whereRaw('LOWER(name) = ?', [strtolower($barang['name'])])->first();
+            if ($stok) return $stok;
+        }
+
+        return Stok::create([
+            'name' => $barang['name'] ?? 'Barang Tanpa Nama',
+            'category_id' => $barang['category_id'] ?? null,
+            'minimum_stok' => $barang['minimum_stok'] ?? 0,
+            'price' => $barang['harga'] ?? $barang['price'] ?? 0,
+            'satuan_id' => $barang['satuan_id'] ?? null,
         ]);
     }
 
@@ -41,21 +63,22 @@ class DetailBarangService
         $existingBarang = $penerimaan->detailBarang->keyBy('id');
 
         foreach ($barangs as $barang) {
-            $stok = Stok::findOrFail($barang['stok_id']);
+            $stok = $this->findOrCreateStok($barang);
             $harga = $this->resolvePrice($barang, $stok);
 
             $barangData = [
                 'stok_id' => $stok->id,
                 'quantity' => $barang['quantity'],
+                'quantity_layak' => $barang['quantity_layak'] ?? null,
+                'quantity_tidak_layak' => $barang['quantity_tidak_layak'] ?? null,
                 'harga' => $harga,
                 'total_harga' => $harga * $barang['quantity'],
             ];
 
-            if (isset($barang['is_layak'])) {
-                $barangData['is_layak'] = $barang['is_layak'];
+            if (isset($barang['is_paid'])) {
+                $barangData['is_paid'] = $barang['is_paid'];
             }
 
-            // Update existing atau create new
             if (!empty($barang['id']) && $existingBarang->has($barang['id'])) {
                 $this->repository->updateDetailBarang(
                     $existingBarang[$barang['id']],
