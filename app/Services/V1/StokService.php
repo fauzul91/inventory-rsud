@@ -4,6 +4,7 @@ namespace App\Services\V1;
 
 use App\Repositories\V1\StokRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class StokService
 {
@@ -37,6 +38,7 @@ class StokService
 
         $stoks->getCollection()->transform(function ($stok) use ($year) {
             return [
+                'id' => $stok->id,
                 'name' => $stok->name,
                 'category_name' => $stok->category->name,
                 'stok_lama' => $stok->histories
@@ -93,5 +95,5 @@ class StokService
     public function update($data, $id)
     {
         return $this->stokRepository->update($data, $id);
-    }
+    }    
 }

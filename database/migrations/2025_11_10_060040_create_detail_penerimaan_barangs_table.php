@@ -16,9 +16,11 @@ return new class extends Migration
             $table->foreignId('penerimaan_id')->constrained('penerimaans')->onDelete('cascade');
             $table->foreignId('stok_id')->constrained('stoks')->onDelete('restrict'); 
             $table->integer('quantity')->default(1);
-            $table->integer('harga');
-            $table->integer('total_harga'); 
-            $table->boolean('is_layak')->nullable();
+            $table->integer('quantity_layak')->nullable(); 
+            $table->integer('quantity_tidak_layak')->nullable();
+            $table->decimal('harga', 15, 2);
+            $table->decimal('total_harga', 20, 2);
+            $table->boolean('is_paid')->nullable();
             $table->timestamps();
         });
     }

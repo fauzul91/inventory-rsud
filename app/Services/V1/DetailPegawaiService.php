@@ -25,7 +25,7 @@ class DetailPegawaiService
         return $this->repository->createDetailPegawai([
             'penerimaan_id' => $penerimaanId,
             'pegawai_id' => $pegawai['pegawai_id'],
-            'alamat_staker' => $pegawai['alamat_staker'] ?? null,
+            'alamat_staker' => $pegawai['alamat_staker'] ?? '-',
         ]);
     }
 
@@ -36,14 +36,12 @@ class DetailPegawaiService
             $existing = $this->repository->findDetailPegawaiByPegawaiId($penerimaanId, $pegawaiId);
 
             if ($existing) {
-                // Update jika ada perubahan
                 if (isset($pegawai['alamat_staker'])) {
                     $this->repository->updateDetailPegawai($existing, [
                         'alamat_staker' => $pegawai['alamat_staker']
                     ]);
                 }
             } else {
-                // Create new
                 $this->createSingle($penerimaanId, $pegawai);
             }
         }

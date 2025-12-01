@@ -12,10 +12,9 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
     public function getAllPenerimaan(array $filters)
     {
         $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
-            ->where('status', 'pending');
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'desc');
 
-        $query = $this->applySorting($query, $filters);
-        
         $perPage = $filters['per_page'] ?? 10;
         return $query->paginate($perPage);
     }
@@ -23,9 +22,8 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
     public function getHistoryPenerimaan(array $filters)
     {
         $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang', 'bast'])
-            ->where('status', 'confirmed');
-
-        $query = $this->applySorting($query, $filters);
+            ->where('status', 'confirmed')
+            ->orderBy('created_at', 'desc');
         
         $perPage = $filters['per_page'] ?? 10;
         return $query->paginate($perPage);
@@ -65,11 +63,23 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
     public function hasUnassessedItems($penerimaanId)
     {
         return DetailPenerimaanBarang::where('penerimaan_id', $penerimaanId)
-            ->whereNull('is_layak')
+            ->whereNull('quantity_layak')
+            ->exists();
+    }
+    public function hasUnverifiedItems($penerimaanId)
+    {
+        return DetailPenerimaanBarang::where('penerimaan_id', $penerimaanId)
+            ->whereRaw('quantity != quantity_layak')
             ->exists();
     }
 
-    // Detail Barang Methods
+    public function getUnassessedCount($penerimaanId)
+    {
+        return DetailPenerimaanBarang::where('penerimaan_id', $penerimaanId)
+            ->whereNull('quantity_layak')
+            ->count();
+    }
+
     public function createDetailBarang(array $data)
     {
         return DetailPenerimaanBarang::create($data);
@@ -78,7 +88,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
     public function updateDetailBarang(DetailPenerimaanBarang $detail, array $data)
     {
         $detail->update($data);
-        return $detail;
+        return $detail->fresh();
     }
 
     public function deleteDetailBarang(array $ids)
@@ -93,7 +103,6 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
             ->first();
     }
 
-    // Detail Pegawai Methods
     public function createDetailPegawai(array $data)
     {
         return DetailPenerimaanPegawai::create($data);
@@ -111,20 +120,9 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
             ->where('pegawai_id', $pegawaiId)
             ->first();
     }
-
-    // Helper Methods
-    private function applySorting($query, array $filters)
+    public function updateDetailBarangPayment(DetailPenerimaanBarang $detail)
     {
-        if (!empty($filters['sort_by'])) {
-            if ($filters['sort_by'] === 'latest') {
-                $query->orderBy('created_at', 'desc');
-            } elseif ($filters['sort_by'] === 'oldest') {
-                $query->orderBy('created_at', 'asc');
-            }
-        } else {
-            $query->orderBy('created_at', 'desc');
-        }
-
-        return $query;
-    }
+        $detail->update(['is_paid' => true]);
+        return $detail->fresh(['stok', 'penerimaan']);
+    }    
 }

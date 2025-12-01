@@ -22,17 +22,19 @@ class PenerimaanStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'no_surat' => 'required|string|max:100|unique:penerimaans,no_surat',
-            'category_id' => 'required|exists:categories,id',
-            'deskripsi' => 'nullable|string',
-
-            'detail_barangs' => 'required|array|min:1',
-            'detail_barangs.*.stok_id' => 'required|exists:stoks,id', // <- ini wajib
-            'detail_barangs.*.quantity' => 'required|numeric|min:1',
-            'detail_barangs.*.price' => 'nullable|numeric|min:0',
-            'pegawais' => 'required|array|min:1',
-            'pegawais.*.pegawai_id' => 'required|exists:pegawais,id',
-            'pegawais.*.alamat_staker' => 'nullable|string|max:255',
+            'no_surat' => 'required|string',
+            'category_id' => 'required|integer',
+            'detail_barangs' => 'array|required',
+            'detail_barangs.*.stok_id' => 'required_without:detail_barangs.*.name|nullable|integer',
+            'detail_barangs.*.name' => 'required_without:detail_barangs.*.stok_id|nullable|string',
+            'detail_barangs.*.quantity' => 'required|integer|min:1',
+            'detail_barangs.*.harga' => 'nullable|numeric',
+            'detail_barangs.*.category_id' => 'nullable|integer',
+            'detail_barangs.*.satuan_id' => 'nullable|integer',
+            'detail_barangs.*.minimum_stok' => 'nullable|integer',
+            'pegawais' => 'array|nullable',
+            'pegawais.*.pegawai_id' => 'required|integer',
+            'pegawais.*.alamat_staker' => 'required|string',
         ];
     }
 }

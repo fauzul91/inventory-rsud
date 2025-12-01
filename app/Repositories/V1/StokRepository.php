@@ -3,6 +3,7 @@
 namespace App\Repositories\V1;
 
 use App\Interfaces\V1\StokRepositoryInterface;
+use App\Models\DetailPenerimaanBarang;
 use App\Models\Monitoring;
 use App\Models\Penerimaan;
 use App\Models\Stok;
@@ -78,7 +79,7 @@ class StokRepository implements StokRepositoryInterface
         }
 
         return $query;
-    }
+    }    
     public function edit($id)
     {
         return Stok::where('id', $id)

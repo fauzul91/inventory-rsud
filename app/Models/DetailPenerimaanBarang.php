@@ -10,9 +10,11 @@ class DetailPenerimaanBarang extends Model
         'penerimaan_id',
         'stok_id',
         'quantity',
+        'quantity_layak',
+        'quantity_tidak_layak',
         'harga',
-        'total_harga',
-        'is_layak'
+        'total_harga',        
+        'is_paid'
     ];
 
     public function penerimaan()

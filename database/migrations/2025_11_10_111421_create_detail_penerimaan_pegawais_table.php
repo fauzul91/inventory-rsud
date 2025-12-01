@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('penerimaan_id')->constrained('penerimaans')->onDelete('cascade');
             $table->foreignId('pegawai_id')->constrained('pegawais')->onDelete('restrict'); 
-            $table->string('alamat_staker');
+            $table->text('alamat_staker');
             $table->timestamps();
         });
     }
