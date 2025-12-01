@@ -86,4 +86,12 @@ class StokService
         $data->setCollection($transformed);
         return $data;
     }
+    public function edit($id)
+    {
+        return $this->stokRepository->edit($id);
+    }
+    public function update($data, $id)
+    {
+        return $this->stokRepository->update($data, $id);
+    }
 }
