@@ -38,6 +38,7 @@ class StokService
 
         $stoks->getCollection()->transform(function ($stok) use ($year) {
             return [
+                'id' => $stok->id,
                 'name' => $stok->name,
                 'category_name' => $stok->category->name,
                 'stok_lama' => $stok->histories
