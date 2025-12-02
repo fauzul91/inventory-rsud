@@ -71,6 +71,14 @@ class SsoController extends Controller
         $ssoUser = $userResponse->json();
 
         // Simpan atau update user di database client
+        // $user = User::updateOrCreate(
+        //     ['sso_user_id' => $ssoUser['id']],
+        //     [
+        //         'name' => $ssoUser['name'],
+        //         'email' => $ssoUser['email'],
+        //     ]
+        // );
+
         $user = User::updateOrCreate(
             ['sso_user_id' => $ssoUser['id']],
             [
@@ -86,7 +94,12 @@ class SsoController extends Controller
         session(['roles' => $ssoUser['roles'] ?? []]);
 
         // Redirect ke dashboard atau halaman utama
-        return redirect('/dashboard');
+        // return redirect('/dashboard');
+        return response()->json([
+            'message' => 'Login SSO berhasil!',
+            'user' => $user,
+            'roles' => session('roles'),
+        ]);
     }
 
     /**

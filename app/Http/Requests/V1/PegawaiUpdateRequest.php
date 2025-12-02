@@ -20,7 +20,7 @@ class PegawaiUpdateRequest extends FormRequest
 
         return [
             'name' => 'sometimes|string|max:255',
-            'nip' => 'sometimes|string|max:50|unique:pegawais,nip,' . $id,
+            'nip' => 'sometimes|string|max:50|unique:pegawais,nip,' . $this->pegawai,
             'jabatan_id' => 'sometimes|integer|exists:jabatans,id',
             'phone' => 'sometimes|string|max:20',
             'status' => 'sometimes|in:active,inactive',
