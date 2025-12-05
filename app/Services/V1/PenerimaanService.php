@@ -201,7 +201,6 @@ class PenerimaanService
     public function markDetailAsPaid($penerimaanId, $detailId)
     {
         return DB::transaction(function () use ($penerimaanId, $detailId) {
-
             $detail = $this->repository->findDetailBarang($penerimaanId, $detailId);
 
             if (!$detail) {
@@ -219,7 +218,22 @@ class PenerimaanService
             }
 
             $detail = $this->repository->updateDetailBarangPayment($detail);
-            return $detail;
+            $allDetails = $this->repository->getAllDetailBarang($penerimaanId);
+
+            $total = $allDetails->count();
+            $paid = $allDetails->where('is_paid', true)->count();
+
+            if ($total > 0 && $total === $paid) {
+                $this->repository->updatePenerimaanStatus($penerimaanId, 'paid');
+            }
+
+            $penerimaan = $this->repository->findById($penerimaanId);
+            
+            return [
+                'success' => true,
+                'message' => 'Detail berhasil ditandai sebagai paid',
+                'data' => $penerimaan
+            ];
         });
     }
     public function confirmPenerimaan($id)
