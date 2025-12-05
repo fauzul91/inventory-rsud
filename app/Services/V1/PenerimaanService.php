@@ -4,23 +4,27 @@ namespace App\Services\V1;
 
 use App\Repositories\V1\PenerimaanRepository;
 use App\Models\Stok;
+use App\Repositories\V1\StokRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class PenerimaanService
 {
     private PenerimaanRepository $repository;
+    private StokService $stokService;
     private MonitoringService $monitoringService;
     private DetailBarangService $detailBarangService;
     private DetailPegawaiService $detailPegawaiService;
 
     public function __construct(
         PenerimaanRepository $repository,
+        StokService $stokService,
         MonitoringService $monitoringService,
         DetailBarangService $detailBarangService,
         DetailPegawaiService $detailPegawaiService
     ) {
         $this->repository = $repository;
+        $this->stokService = $stokService;
         $this->monitoringService = $monitoringService;
         $this->detailBarangService = $detailBarangService;
         $this->detailPegawaiService = $detailPegawaiService;
@@ -146,7 +150,6 @@ class PenerimaanService
             }
 
             $quantityLayak = $data['quantity_layak'];
-            $quantityTidakLayak = $detail->quantity - $quantityLayak;
 
             if ($quantityLayak < 0 || $quantityLayak > $detail->quantity) {
                 return [
@@ -154,6 +157,8 @@ class PenerimaanService
                     'message' => "Jumlah layak harus antara 0 dan {$detail->quantity}"
                 ];
             }
+            $previousLayak = $detail->quantity_layak ?? 0;
+            $change = $quantityLayak - $previousLayak;
             if ($penerimaan->status === 'pending') {
                 $this->repository->update($penerimaan, [
                     'status' => 'checked'
@@ -162,8 +167,24 @@ class PenerimaanService
 
             $detail = $this->repository->updateDetailBarang($detail, [
                 'quantity_layak' => $quantityLayak,
-                'quantity_tidak_layak' => $quantityTidakLayak,
+                'quantity_tidak_layak' => $detail->quantity - $quantityLayak,
             ]);
+
+            if ($change > 0) {
+                $this->stokService->tambahStok(
+                    $detail->stok_id,
+                    $change,
+                    'penerimaan',
+                    $penerimaan->id
+                );
+            }
+
+            if ($change < 0) {
+                return [
+                    'success' => false,
+                    'message' => 'Anda tidak dapat mengurangi jumlah barang layak yang sudah ditetapkan sebelumnya. Gunakan proses Pengurangan Stok (Adjustment) jika barang harus dikeluarkan.'
+                ];
+            }
 
             $this->monitoringService->log(
                 "Menilai kelayakan barang: {$detail->stok->name}",
@@ -180,12 +201,20 @@ class PenerimaanService
     public function markDetailAsPaid($penerimaanId, $detailId)
     {
         return DB::transaction(function () use ($penerimaanId, $detailId) {
+
             $detail = $this->repository->findDetailBarang($penerimaanId, $detailId);
 
             if (!$detail) {
                 return [
                     'success' => false,
                     'message' => 'Detail barang tidak ditemukan di penerimaan ini.'
+                ];
+            }
+
+            if ($detail->is_paid) {
+                return [
+                    'success' => false,
+                    'message' => 'Detail barang ini sudah dibayar sebelumnya.'
                 ];
             }
 
@@ -244,13 +273,14 @@ class PenerimaanService
                 'nama_stok' => $item->stok->name,
                 'nama_category' => $item->stok->category->name,
                 'nama_satuan' => $item->stok->satuan->name,
-                'harga' => $item->price,
+                'harga' => $item->harga,
                 'quantity' => $item->quantity,
                 'quantity_layak' => $item->quantity_layak,
                 'quantity_tidak_layak' => $item->quantity_tidak_layak,
                 'total_harga' => $item->total_harga,
                 'is_checked' => !is_null($item->quantity_layak),
                 'is_all_layak' => $item->quantity === $item->quantity_layak,
+                'is_paid' => (bool) $item->is_paid,
             ];
         });
     }

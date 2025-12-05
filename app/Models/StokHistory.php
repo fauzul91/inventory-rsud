@@ -14,12 +14,6 @@ class StokHistory extends Model
     {
         return $this->belongsTo(Stok::class);
     }
-    public function histories()
-    {
-        return $this->hasMany(StokHistory::class)
-                    ->orderBy('year')
-                    ->orderBy('created_at');
-    }
     public function getTotalStokAttribute()
     {
         return $this->histories()->sum('remaining_qty');
