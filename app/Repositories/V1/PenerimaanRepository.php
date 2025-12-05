@@ -24,7 +24,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
         $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang', 'bast'])
             ->where('status', 'confirmed')
             ->orderBy('created_at', 'desc');
-        
+
         $perPage = $filters['per_page'] ?? 10;
         return $query->paginate($perPage);
     }
@@ -124,5 +124,15 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
     {
         $detail->update(['is_paid' => true]);
         return $detail->fresh(['stok', 'penerimaan']);
-    }    
+    }
+    public function getAllDetailBarang($penerimaanId)
+    {
+        return DetailPenerimaanBarang::where('penerimaan_id', $penerimaanId)->get();
+    }
+    public function updatePenerimaanStatus($penerimaanId, $status)
+    {
+        return Penerimaan::where('id', $penerimaanId)->update([
+            'status' => $status
+        ]);
+    }
 }
