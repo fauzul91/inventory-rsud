@@ -24,11 +24,12 @@ class PenerimaanStoreRequest extends FormRequest
         return [
             'no_surat' => 'required|string',
             'category_id' => 'required|integer',
+            'deskripsi' => 'required|string',
             'detail_barangs' => 'array|required',
             'detail_barangs.*.stok_id' => 'required_without:detail_barangs.*.name|nullable|integer',
             'detail_barangs.*.name' => 'required_without:detail_barangs.*.stok_id|nullable|string',
             'detail_barangs.*.quantity' => 'required|integer|min:1',
-            'detail_barangs.*.harga' => 'nullable|numeric',
+            'detail_barangs.*.harga' => 'required|numeric|min:0',
             'detail_barangs.*.category_id' => 'nullable|integer',
             'detail_barangs.*.satuan_id' => 'nullable|integer',
             'detail_barangs.*.minimum_stok' => 'nullable|integer',

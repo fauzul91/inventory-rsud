@@ -2,7 +2,9 @@
 
 namespace App\Services\V1;
 
+use App\Models\StokHistory;
 use App\Repositories\V1\StokRepository;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -96,4 +98,48 @@ class StokService
     {
         return $this->stokRepository->update($data, $id);
     }    
+    public function tambahStok($stokId, $jumlah, $source = 'penerimaan', $sourceId = null)
+    {
+        return DB::transaction(function () use ($stokId, $jumlah, $source, $sourceId) {
+            $year = Carbon::now()->year;
+            $history = StokHistory::firstOrCreate(
+                ['stok_id' => $stokId, 'year' => $year],
+                [
+                    'quantity' => 0,
+                    'used_qty' => 0,
+                    'remaining_qty' => 0,
+                ]
+            );
+
+            $history->quantity += $jumlah;
+            $history->remaining_qty = $history->quantity - $history->used_qty;
+            $history->source = $source;
+            $history->source_id = $sourceId;
+            $history->save();
+
+            return $history;
+        });
+    }
+
+    public function kurangStok($stokId, $qty, $source = 'adjustment', $sourceId = null)
+    {
+        $year = Carbon::now()->year;
+
+        $history = StokHistory::where('stok_id', $stokId)
+            ->where('year', $year)
+            ->first();
+        if (!$history) {
+            throw new \Exception("Stok tahun ini belum ada, tidak bisa mengurangi stok.");
+        }
+        if ($history->remaining_qty < $qty) {
+            throw new \Exception("Stok tidak mencukupi untuk dikurangi.");
+        }
+
+        $history->used_qty += $qty;
+        $history->remaining_qty -= $qty;
+        $history->source = $source;
+        $history->source_id = $sourceId;
+        $history->save();
+        return $history;
+    }
 }

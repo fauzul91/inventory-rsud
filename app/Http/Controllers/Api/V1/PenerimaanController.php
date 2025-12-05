@@ -175,7 +175,7 @@ class PenerimaanController extends Controller
     {
         try {
             $data = $this->penerimaanService->markDetailAsPaid($penerimaanId, $detailId);
-            if (is_array($data) && isset($result['success']) && $data['success'] === false) {
+            if (is_array($data) && isset($data['success']) && $data['success'] === false) {
                 return ResponseHelper::jsonResponse(
                     false,
                     $data['message'],

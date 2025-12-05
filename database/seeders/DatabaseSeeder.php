@@ -21,7 +21,6 @@ class DatabaseSeeder extends Seeder
             PegawaiSeeder::class,
             UserSeeder::class,
             StokSeeder::class,
-            StokHistorySeeder::class,
             MonitoringSeeder::class,
             PenerimaanSeeder::class,
         ]);
