@@ -21,7 +21,7 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
     public function getAllCheckedPenerimaan(array $filters)
     {
         $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
-            ->where('status', ['pending', 'checked'])
+            ->whereRaw("LOWER(TRIM(status)) IN (?, ?)", ['checked', 'pending'])
             ->orderBy('created_at', 'desc');
 
         $perPage = $filters['per_page'] ?? 10;
