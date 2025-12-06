@@ -68,7 +68,7 @@ class StokRepository implements StokRepositoryInterface
     public function getUnpaidBastStock($filters)
     {
         $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
-            ->where('status', 'confirmed');
+            ->where('status', 'signed');
 
         if (!empty($filters['category'])) {
             $query->where('category_id', $filters['category']);
