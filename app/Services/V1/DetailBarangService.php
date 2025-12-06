@@ -2,6 +2,7 @@
 
 namespace App\Services\V1;
 
+use App\Models\Category;
 use App\Repositories\V1\PenerimaanRepository;
 use App\Models\Stok;
 
@@ -43,21 +44,32 @@ class DetailBarangService
             $stok = Stok::find($barang['stok_id']);
             if ($stok) return $stok;
         }
-
         if (!empty($barang['name'])) {
             $stok = Stok::whereRaw('LOWER(name) = ?', [strtolower($barang['name'])])->first();
             if ($stok) return $stok;
         }
-
+        $category = $this->findOrCreateCategory($barang);
         return Stok::create([
             'name' => $barang['name'] ?? 'Barang Tanpa Nama',
-            'category_id' => $barang['category_id'] ?? null,
+            'category_id' => $category->id,
             'minimum_stok' => $barang['minimum_stok'] ?? 0,
             'price' => $barang['harga'] ?? $barang['price'] ?? 0,
             'satuan_id' => $barang['satuan_id'] ?? null,
         ]);
     }
-
+    private function findOrCreateCategory(array $barang)
+    {
+        if (!empty($barang['category_id'])) {
+            $category = Category::find($barang['category_id']);
+            if ($category) return $category;
+        }
+        if (!empty($barang['category_name'])) {
+            return Category::firstOrCreate([
+                'name' => $barang['category_name']
+            ]);
+        }
+        return Category::firstOrCreate(['name' => 'Lainnya']);
+    }
     public function syncDetailBarang($penerimaan, array $barangs)
     {
         $existingBarang = $penerimaan->detailBarang->keyBy('id');
