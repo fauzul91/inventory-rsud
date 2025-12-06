@@ -116,8 +116,9 @@ class StokService
                 'role_user' => $item->user->roles->pluck('name')->first() ?? null,
                 'category_name' => $item->category->name ?? null,
                 'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                'status' => $isPaid ? 'Telah Dibayar' :
-                    ($item->status === 'confirmed' ? 'Belum Dibayar' : 'Telah Dibayar'),
+                'status' => ($isPaid || $item->status === 'paid')
+                    ? 'Telah Dibayar'
+                    : 'Belum Dibayar',
             ];
         });
 
