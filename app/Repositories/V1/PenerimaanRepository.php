@@ -18,6 +18,15 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
         $perPage = $filters['per_page'] ?? 10;
         return $query->paginate($perPage);
     }
+    public function getAllCheckedPenerimaan(array $filters)
+    {
+        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
+            ->where('status', ['pending', 'checked'])
+            ->orderBy('created_at', 'desc');
+
+        $perPage = $filters['per_page'] ?? 10;
+        return $query->paginate($perPage);
+    }
 
     public function getHistoryPenerimaan(array $filters)
     {

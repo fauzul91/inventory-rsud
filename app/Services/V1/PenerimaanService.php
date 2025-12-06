@@ -35,6 +35,10 @@ class PenerimaanService
     {
         return $this->repository->getAllPenerimaan($filters);
     }
+    public function getAllCheckedPenerimaan(array $filters)
+    {
+        return $this->repository->getAllCheckedPenerimaan($filters);
+    }
 
     public function getHistoryPenerimaan(array $filters)
     {

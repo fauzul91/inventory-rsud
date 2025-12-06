@@ -24,6 +24,7 @@ Route::apiResource('category', CategoryController::class);
 Route::apiResource('satuan', SatuanController::class);
 Route::get('/jabatan/select', [JabatanController::class, 'getAllForSelect'])->name('jabatan.selectAll');
 Route::apiResource('jabatan', JabatanController::class);
+Route::get('penerimaan/check', [PenerimaanController::class, 'getAllCheckedPenerimaan']);
 Route::get('penerimaan/history', [PenerimaanController::class, 'history']);
 Route::patch('penerimaan/{id}/barang/{detailId}/layak', [PenerimaanController::class, 'updateKelayakanBarang']);
 Route::patch('penerimaan/{id}/confirm', [PenerimaanController::class, 'confirmPenerimaan']);

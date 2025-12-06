@@ -38,6 +38,22 @@ class PenerimaanController extends Controller
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
+    public function getAllCheckedPenerimaan(Request $request)
+    {
+        try {
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'sort_by' => $request->query('sort_by'),
+            ];
+
+            $data = $this->penerimaanService->getAllCheckedPenerimaan($filters);
+            $transformed = $this->transformCheckPenerimaanList($data);
+
+            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil diambil', $transformed, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
 
     public function store(PenerimaanStoreRequest $request)
     {
@@ -200,6 +216,23 @@ class PenerimaanController extends Controller
                 'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
                 'status' => $isHistory ? 'Telah Dikonfirmasi' :
                     ($item->status === 'pending' ? 'Belum Dikonfirmasi' : 'Telah Dikonfirmasi'),
+            ];
+        });
+
+        $data->setCollection($transformed);
+        return $data;
+    }
+    private function transformCheckPenerimaanList($data, $isCheck = false)
+    {
+        $transformed = $data->getCollection()->map(function ($item) use ($isCheck) {
+            return [
+                'id' => $item->id,
+                'no_surat' => $item->no_surat,
+                'role_user' => $item->user->roles->pluck('name')->first() ?? null,
+                'category_name' => $item->category->name ?? null,
+                'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
+                'status' => $isCheck ? 'Telah Dicek' :
+                    ($item->status === 'pending' ? 'Belum Dicek' : 'Telah Dicek'),
             ];
         });
 
