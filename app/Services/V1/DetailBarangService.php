@@ -3,6 +3,7 @@
 namespace App\Services\V1;
 
 use App\Models\Category;
+use App\Models\Satuan;
 use App\Repositories\V1\PenerimaanRepository;
 use App\Models\Stok;
 
@@ -15,67 +16,82 @@ class DetailBarangService
         $this->repository = $repository;
     }
 
-    public function createMultiple($penerimaanId, array $barangs)
+    public function createMultiple($penerimaanId, array $barangs, $categoryId)
     {
         foreach ($barangs as $barang) {
-            $this->createSingle($penerimaanId, $barang);
+            $this->createSingle($penerimaanId, $barang, $categoryId);
         }
     }
 
-    public function createSingle($penerimaanId, array $barang)
+    public function createSingle($penerimaanId, array $barang, $categoryId)
     {
-        $stok = $this->findOrCreateStok($barang);
+        $stok = $this->findOrCreateStok($barang, $categoryId);
         $harga = $this->resolvePrice($barang, $stok);
 
         return $this->repository->createDetailBarang([
             'penerimaan_id' => $penerimaanId,
             'stok_id' => $stok->id,
             'quantity' => $barang['quantity'],
-            'quantity_layak' => $barang['quantity_layak'] ?? null, 
+            'quantity_layak' => $barang['quantity_layak'] ?? null,
             'quantity_tidak_layak' => $barang['quantity_tidak_layak'] ?? null,
             'harga' => $harga,
             'total_harga' => $harga * $barang['quantity'],
             'is_paid' => $barang['is_paid'] ?? null,
         ]);
     }
-    private function findOrCreateStok(array $barang)
+    private function findOrCreateStok(array $barang, $categoryId)
     {
         if (!empty($barang['stok_id'])) {
             $stok = Stok::find($barang['stok_id']);
-            if ($stok) return $stok;
+            if ($stok)
+                return $stok;
         }
         if (!empty($barang['name'])) {
             $stok = Stok::whereRaw('LOWER(name) = ?', [strtolower($barang['name'])])->first();
-            if ($stok) return $stok;
+            if ($stok)
+                return $stok;
         }
-        $category = $this->findOrCreateCategory($barang);
+
+        $satuan = $this->findOrCreateSatuan($barang);
+
         return Stok::create([
             'name' => $barang['name'] ?? 'Barang Tanpa Nama',
-            'category_id' => $category->id,
+            'category_id' => $categoryId,
             'minimum_stok' => $barang['minimum_stok'] ?? 0,
             'price' => $barang['harga'] ?? $barang['price'] ?? 0,
-            'satuan_id' => $barang['satuan_id'] ?? null,
+            'satuan_id' => $satuan->id,
         ]);
     }
-    private function findOrCreateCategory(array $barang)
+    private function findOrCreateSatuan(array $barang)
     {
-        if (!empty($barang['category_id'])) {
-            $category = Category::find($barang['category_id']);
-            if ($category) return $category;
+        if (!empty($barang['satuan_id'])) {
+            $satuan = Satuan::find($barang['satuan_id']);
+            if ($satuan)
+                return $satuan;
         }
-        if (!empty($barang['category_name'])) {
-            return Category::firstOrCreate([
-                'name' => $barang['category_name']
+
+        if (!empty($barang['satuan_name'])) {
+
+            $rawName = trim($barang['satuan_name']);
+            $lower = strtolower($rawName);
+            $existing = Satuan::whereRaw('LOWER(name) = ?', [$lower])->first();
+
+            if ($existing)
+                return $existing;
+            return Satuan::create([
+                'name' => ucfirst($rawName)
             ]);
         }
-        return Category::firstOrCreate(['name' => 'Lainnya']);
+
+        return Satuan::firstOrCreate(['name' => 'Lainnya']);
     }
+
     public function syncDetailBarang($penerimaan, array $barangs)
     {
         $existingBarang = $penerimaan->detailBarang->keyBy('id');
 
         foreach ($barangs as $barang) {
-            $stok = $this->findOrCreateStok($barang);
+            $stok = $this->findOrCreateStok($barang, $penerimaan->category_id);
             $harga = $this->resolvePrice($barang, $stok);
 
             $barangData = [
