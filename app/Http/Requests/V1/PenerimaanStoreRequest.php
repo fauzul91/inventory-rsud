@@ -31,6 +31,7 @@ class PenerimaanStoreRequest extends FormRequest
             'detail_barangs.*.quantity' => 'required|integer|min:1',
             'detail_barangs.*.harga' => 'required|numeric|min:0',
             'detail_barangs.*.category_id' => 'nullable|integer',
+            'detail_barangs.*.category_name' => 'nullable|string',
             'detail_barangs.*.satuan_id' => 'nullable|integer',
             'detail_barangs.*.minimum_stok' => 'nullable|integer',
             'pegawais' => 'array|nullable',
