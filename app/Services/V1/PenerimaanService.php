@@ -2,6 +2,7 @@
 
 namespace App\Services\V1;
 
+use App\Models\Category;
 use App\Repositories\V1\PenerimaanRepository;
 use App\Models\Stok;
 use App\Repositories\V1\StokRepository;
@@ -61,16 +62,18 @@ class PenerimaanService
     public function create(array $data)
     {
         return DB::transaction(function () use ($data) {
+            $category = $this->findOrCreateCategory($data);
+
             $penerimaan = $this->repository->create([
                 'user_id' => Auth::id() ?? 4,
                 'no_surat' => $data['no_surat'],
-                'category_id' => $data['category_id'],
+                'category_id' => $category->id,
                 'deskripsi' => $data['deskripsi'] ?? null,
                 'status' => 'pending',
             ]);
 
             if (!empty($data['detail_barangs'])) {
-                $this->detailBarangService->createMultiple($penerimaan->id, $data['detail_barangs']);
+                $this->detailBarangService->createMultiple($penerimaan->id, $data['detail_barangs'], $category->id);
             }
 
             if (!empty($data['pegawais'])) {
@@ -81,6 +84,24 @@ class PenerimaanService
 
             return $penerimaan->load(['detailBarang', 'detailPegawai.pegawai']);
         });
+    }
+    private function findOrCreateCategory(array $barang)
+    {
+        if (!empty($barang['category_id'])) {
+            $category = Category::find($barang['category_id']);
+            if ($category)
+                return $category;
+        }
+        if (!empty($barang['category_name'])) {
+            $nameToSearch = ucfirst($barang['category_name']);
+            $existingCategory = Category::whereRaw('LOWER(name) = ?', [$nameToSearch])->first();
+
+            if ($existingCategory) {
+                return $existingCategory;
+            }
+            return Category::create(['name' => $nameToSearch]);
+        }
+        return Category::firstOrCreate(['name' => 'Lainnya']);
     }
 
     public function update(array $data, $id)

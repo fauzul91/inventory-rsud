@@ -29,26 +29,60 @@ class StokService
     {
         return $this->stokRepository->getAllYearForSelect();
     }
+    // public function getAllStoks(array $filters)
+    // {
+    //     $perPage = $filters['per_page'] ?? 10;
+    //     $year = $filters['year'];
+
+    //     $stoks = $this->stokRepository->getAllStoks($filters)
+    //         ->whereHas('histories', fn($q) => $q->where('year', $year))
+    //         ->paginate($perPage);
+
+    //     $stoks->getCollection()->transform(function ($stok) use ($year) {
+    //         return [
+    //             'name' => $stok->name,
+    //             'category_name' => $stok->category->name,
+    //             'stok_lama' => $stok->histories
+    //                 ->where('year', '<', $year)
+    //                 ->sum('remaining_qty'),
+    //             'total_stok' => $stok->histories
+    //                 ->where('year', $year)
+    //                 ->sum('remaining_qty'),
+    //             'minimum_stok' => $stok->minimum_stok,
+    //             'satuan' => $stok->satuan->name ?? null,
+    //             'price' => $stok->price,
+    //         ];
+    //     });
+
+    //     return $stoks;
+    // }
     public function getAllStoks(array $filters)
     {
         $perPage = $filters['per_page'] ?? 10;
         $year = $filters['year'];
 
+        // Ambil stok + history tahun ini dan sebelumnya (sekali query)
         $stoks = $this->stokRepository->getAllStoks($filters)
-            ->whereHas('histories', fn($q) => $q->where('year', $year))
+            ->with([
+                'category:id,name',
+                'satuan:id,name',
+                'histories' => fn($q) =>
+                    $q->where('year', '<=', $year)            // ambil tahun ini dan sebelumnya
+                        ->orderBy('year', 'asc'),
+            ])
             ->paginate($perPage);
 
+        // Transform output
         $stoks->getCollection()->transform(function ($stok) use ($year) {
+            $historyThisYear = $stok->histories->where('year', $year);
+            $historyBefore = $stok->histories->where('year', '<', $year);
+
             return [
                 'id' => $stok->id,
                 'name' => $stok->name,
                 'category_name' => $stok->category->name,
-                'stok_lama' => $stok->histories
-                    ->where('year', '<', $year)
-                    ->sum('remaining_qty'),
-                'total_stok' => $stok->histories
-                    ->where('year', $year)
-                    ->sum('remaining_qty'),
+                'stok_lama' => $historyBefore->sum('remaining_qty'),
+                'total_stok' => $historyThisYear->sum('remaining_qty'),
                 'minimum_stok' => $stok->minimum_stok,
                 'satuan' => $stok->satuan->name ?? null,
                 'price' => $stok->price,
@@ -97,7 +131,7 @@ class StokService
     public function update($data, $id)
     {
         return $this->stokRepository->update($data, $id);
-    }    
+    }
     public function tambahStok($stokId, $jumlah, $source = 'penerimaan', $sourceId = null)
     {
         return DB::transaction(function () use ($stokId, $jumlah, $source, $sourceId) {
