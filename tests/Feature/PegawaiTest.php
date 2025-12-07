@@ -24,7 +24,9 @@ class PegawaiTest extends TestCase
                 'success',
                 'message',
                 'data' => [
-                    '*' => ['id', 'name', 'nip', 'jabatan_id', 'status']
+                    'data' => [
+                        '*' => ['id', 'name', 'nip', 'jabatan_id', 'status']
+                    ]
                 ]
             ]);
     }
