@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\PemesananController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SsoController;
 use App\Http\Controllers\Api\V1\BastController;
@@ -46,7 +47,9 @@ Route::post('/bast/upload/{id}', [BastController::class, 'upload'])->name('bast.
 Route::get('/bast/history', [BastController::class, 'historyBast'])->name('bast.history');
 Route::apiResource('pegawai', PegawaiController::class);
 Route::patch('/pegawai/{id}/status', [PegawaiController::class, 'toggleStatus'])->name('pegawai.toggleStatus');
-
+Route::get('/pemesanan/stok', [PemesananController::class, 'getAllStockPemesanan']);
+Route::patch('/pemesanan/{pemesananId}/detail/{detailId}/quantity', [PemesananController::class, 'updateDetailQuantity']);
+Route::apiResource('pemesanan', PemesananController::class)->except('update', 'destroy');
 
 // Route::middleware(['role:super-admin,tim-ppk'])->group(function () {
 //     Route::apiResource('pegawai', PegawaiController::class);

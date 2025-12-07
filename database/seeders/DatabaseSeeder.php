@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             MonitoringSeeder::class,
             PenerimaanSeeder::class,
             StokHistorySeeder::class,
+            PemesananSeeder::class
         ]);
     }
 }

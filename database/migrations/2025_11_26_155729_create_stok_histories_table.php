@@ -16,10 +16,11 @@ return new class extends Migration
             $table->foreignId('stok_id')->constrained('stoks')->onDelete('cascade');
             $table->year('year');
             $table->decimal('quantity', 10, 2);
-            $table->decimal('used_qty', 10, 2);
-            $table->decimal('remaining_qty', 10, 2);
+            $table->decimal('used_qty', 10, 2)->default(0);
+            $table->decimal('remaining_qty', 10, 2)->default(0);
             $table->string('source')->nullable();
             $table->unsignedBigInteger('source_id')->nullable();
+            $table->index(['stok_id', 'remaining_qty']);
             $table->timestamps();
         });
     }
