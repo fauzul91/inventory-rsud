@@ -1,11 +1,14 @@
 <?php
 
 namespace App\Models;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 use Illuminate\Database\Eloquent\Model;
 
 class DetailPenerimaanPegawai extends Model
 {
+    use HasFactory;
+
     protected $fillable = ['penerimaan_id', 'pegawai_id', 'alamat_staker'];
 
     public function penerimaan()
