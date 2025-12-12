@@ -21,6 +21,8 @@ use App\Repositories\V1\PenerimaanRepository;
 use App\Repositories\V1\SatuanRepository;
 use App\Repositories\V1\StokRepository;
 use Illuminate\Support\ServiceProvider;
+use App\Interfaces\V1\PelaporanRepositoryInterface;
+use App\Repositories\V1\PelaporanRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(MonitoringRepositoryInterface::class, MonitoringRepository::class);
         $this->app->bind(StokRepositoryInterface::class, StokRepository::class);
         $this->app->bind(PegawaiRepositoryInterface::class, PegawaiRepository::class);
+        $this->app->bind(PelaporanRepositoryInterface::class,PelaporanRepository::class);
     }
 
     /**

@@ -17,6 +17,7 @@ class DetailPemesananFactory extends Factory
             'pemesanan_id' => Pemesanan::factory(),
             'stok_id' => Stok::factory(),
             'quantity' => $this->faker->numberBetween(1, 10),
+            'created_at' => fake()->dateTime(),
         ];
     }
 }
