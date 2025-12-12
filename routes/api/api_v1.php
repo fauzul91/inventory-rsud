@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\PegawaiController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\MonitoringController;
 use App\Http\Controllers\Api\V1\PenerimaanController;
+use App\Http\Controllers\Api\V1\PelaporanController;
 
 Route::get('/sso/login', [SsoController::class, 'redirectToSso'])->name('sso.login');
 Route::get('/sso/callback', [SsoController::class, 'handleCallback'])->name('sso.callback');
@@ -50,6 +51,9 @@ Route::patch('/pegawai/{id}/status', [PegawaiController::class, 'toggleStatus'])
 Route::get('/pemesanan/stok', [PemesananController::class, 'getAllStockPemesanan']);
 Route::patch('/pemesanan/{pemesananId}/detail/{detailId}/quantity', [PemesananController::class, 'updateDetailQuantity']);
 Route::apiResource('pemesanan', PemesananController::class)->except('update', 'destroy');
+Route::get('/pelaporan/dashboard', [PelaporanController::class, 'index']);
+Route::get('/pelaporan/penerimaan-per-bulan', [PelaporanController::class, 'penerimaanPerBulan']);
+Route::get('pelaporan/pengeluaran-per-bulan', [PelaporanController::class, 'pengeluaranPerBulan']);
 
 // Route::middleware(['role:super-admin,tim-ppk'])->group(function () {
 //     Route::apiResource('pegawai', PegawaiController::class);

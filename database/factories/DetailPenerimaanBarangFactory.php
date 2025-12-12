@@ -22,6 +22,8 @@ class DetailPenerimaanBarangFactory extends Factory
             'harga' => $price,
             'total_harga' => $price * $qty,
             'is_paid' => false,
+            'created_at' => fake()->dateTime(),
+            'updated_at' => fake()->dateTime(),
         ];
     }
 }
