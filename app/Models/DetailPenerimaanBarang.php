@@ -31,4 +31,12 @@ class DetailPenerimaanBarang extends Model
     {
         return $this->belongsTo(Stok::class);
     }
+    public function detailPemesanans()
+    {
+        return $this->belongsToMany(
+            DetailPemesanan::class,
+            'detail_pemesanan_penerimaan'
+        )->withPivot(['quantity', 'harga', 'subtotal'])
+            ->withTimestamps();
+    }
 }

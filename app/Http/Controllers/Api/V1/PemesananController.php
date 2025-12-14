@@ -6,6 +6,7 @@ use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\PemesananStoreRequest;
 use App\Http\Requests\V1\UpdateDetailQuantityRequest;
+use App\Http\Requests\V1\UpdateQuantityPenanggungJawabRequest;
 use App\Services\V1\PemesananService;
 use Exception;
 use Illuminate\Http\Request;
@@ -87,12 +88,11 @@ class PemesananController extends Controller
         }
     }
 
-    public function updateDetailQuantity(UpdateDetailQuantityRequest $request, int $pemesananId, int $detailId)
+    public function updateQuantityPenanggungJawab(UpdateQuantityPenanggungJawabRequest $request, int $pemesananId)
     {
         try {
-            $quantity = $request->validated()['quantity'];
-            $data = $this->pemesananService->updateDetailQuantity($pemesananId, $detailId, $quantity);
-            return ResponseHelper::jsonResponse(true, 'Quantity berhasil diperbarui', $data, 200);
+            $data = $this->pemesananService->updateQuantityPenanggungJawab($pemesananId, $request->validated()['details']);
+            return ResponseHelper::jsonResponse(true, 'Data pemesanan berhasil diupdate', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }

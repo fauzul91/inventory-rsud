@@ -2,15 +2,19 @@
 
 namespace App\Services\V1;
 
+use App\Models\DetailPemesanan;
+use App\Models\Pemesanan;
 use App\Repositories\V1\PemesananRepository;
 use App\Repositories\V1\StokRepository;
+use DB;
 
 class PemesananService
 {
     private PemesananRepository $pemesananRepository;
     private StokRepository $stokRepository;
     public function __construct(
-        StokRepository $stokRepository, PemesananRepository $pemesananRepository
+        StokRepository $stokRepository,
+        PemesananRepository $pemesananRepository
     ) {
         $this->stokRepository = $stokRepository;
         $this->pemesananRepository = $pemesananRepository;
@@ -53,8 +57,27 @@ class PemesananService
     {
         return $this->pemesananRepository->getPemesananById($id);
     }
-    public function updateDetailQuantity(int $pemesananId, int $detailId, int $amount)
+    public function updateQuantityPenanggungJawab(int $pemesananId, array $details)
     {
-        return $this->pemesananRepository->updateDetailQuantity($pemesananId, $detailId, $amount);
+        $data = DB::transaction(function () use ($pemesananId, $details) {
+            foreach ($details as $item) {
+                $this->pemesananRepository
+                    ->updateQuantityPenanggungJawab(
+                        $pemesananId,
+                        $item['detail_id'],
+                        $item['quantity_pj']
+                    );
+            }
+
+            DetailPemesanan::where('pemesanan_id', $pemesananId)
+                ->whereNull('quantity_pj')
+                ->update([
+                    'quantity_pj' => DB::raw('quantity')
+                ]);
+
+            return Pemesanan::with('detailPemesanan')->find($pemesananId);
+        });
+
+        return $data;
     }
 }

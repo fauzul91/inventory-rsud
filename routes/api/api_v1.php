@@ -52,7 +52,7 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('pegawai', PegawaiController::class);
     Route::patch('/pegawai/{id}/status', [PegawaiController::class, 'toggleStatus'])->name('pegawai.toggleStatus');
     Route::get('/pemesanan/stok', [PemesananController::class, 'getAllStockPemesanan']);
-    Route::patch('/pemesanan/{pemesananId}/detail/{detailId}/quantity', [PemesananController::class, 'updateDetailQuantity']);
+    Route::patch('/pemesanan/{pemesananId}/quantity-pj', [PemesananController::class, 'updateQuantityPenanggungJawab']);
     Route::apiResource('pemesanan', PemesananController::class)->except('update', 'destroy');
     Route::get('/pelaporan/dashboard', [PelaporanController::class, 'index']);
     Route::get('/pelaporan/penerimaan-per-bulan', [PelaporanController::class, 'penerimaanPerBulan']);

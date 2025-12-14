@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -16,7 +15,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users');
             $table->string('nama_pj_instalasi');
             $table->string('ruangan');
-            $table->enum('status', ['pending', 'checked', 'confirmed', 'done'])->default('pending');
+            $table->enum('status', ['pending', 'approved_pj', 'approved_admin_gudang'])->default('pending');
             $table->date('tanggal_pemesanan');
             $table->timestamps();
         });

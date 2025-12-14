@@ -7,5 +7,5 @@ interface PemesananRepositoryInterface
     public function getAllPemesanan(array $filters);
     public function createPemesanan(array $data);
     public function getPemesananById($id);
-    public function updateDetailQuantity(int $pemesananId, int $detailId, int $amount);
+    public function updateQuantityPenanggungJawab(int $pemesananId, int $detailId, int $amount);
 }

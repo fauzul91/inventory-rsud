@@ -41,8 +41,8 @@ class PemesananRepository implements PemesananRepositoryInterface
                 'user_name' => $item->user->name,
                 'ruangan' => $item->ruangan,
                 'tanggal_pemesanan' => $item->tanggal_pemesanan
-                ? $item->tanggal_pemesanan->format('d-m-Y')
-                : null,
+                    ? $item->tanggal_pemesanan->format('d-m-Y')
+                    : null,
                 'status' => $item->status,
             ];
         });
@@ -95,23 +95,30 @@ class PemesananRepository implements PemesananRepositoryInterface
                     'stok_name' => $item->stok->name,
                     'satuan_name' => ucfirst($item->stok->satuan->name),
                     'quantity' => $item->quantity,
+                    'quantity_pj' => $item->quantity_pj,
+                    'quantity_admin_gudang' => $item->quantity_admin_gudang,
                 ];
             }),
         ];
     }
 
-    public function updateDetailQuantity($pemesananId, $detailId, $amount)
+    public function updateQuantityPenanggungJawab(int $pemesananId, int $detailId, int $newQuantity)
     {
         $detail = DetailPemesanan::where('pemesanan_id', $pemesananId)
             ->findOrFail($detailId);
 
-        $newQty = $detail->quantity + $amount;
-
-        if ($newQty < 1) {
-            throw new \Exception("Quantity tidak boleh kurang dari 1.");
+        if ($detail->pemesanan_id !== $pemesananId) {
+            throw new \DomainException('Detail tidak sesuai dengan pemesanan.');
+        }
+        if ($newQuantity < 1) {
+            throw new \DomainException('Quantity tidak boleh kurang dari 1.');
         }
 
-        $detail->update(['quantity' => $newQty]);
+        $detail->quantity_pj = $newQuantity ?? $detail->quantity;
+        $detail->save();
+
+        $detail->pemesanan->status = 'approved_pj';
+        $detail->pemesanan->save();
         return $detail;
     }
 }
