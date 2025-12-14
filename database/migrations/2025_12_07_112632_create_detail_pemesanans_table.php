@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -16,6 +15,8 @@ return new class extends Migration
             $table->foreignId('pemesanan_id')->constrained('pemesanans')->restrictOnDelete();
             $table->foreignId('stok_id')->constrained('stoks')->restrictOnDelete();
             $table->unsignedInteger('quantity');
+            $table->unsignedInteger('quantity_pj')->nullable();
+            $table->unsignedInteger('quantity_admin_gudang')->nullable();
             $table->timestamps();
         });
     }

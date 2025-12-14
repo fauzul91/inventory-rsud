@@ -9,7 +9,7 @@ class DetailPemesanan extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['pemesanan_id', 'stok_id', 'quantity'];
+    protected $fillable = ['pemesanan_id', 'stok_id', 'quantity', 'quantity_pj', 'quantity_admin_gudang'];
 
     public function pemesanan()
     {

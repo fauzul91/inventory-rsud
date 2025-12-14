@@ -13,18 +13,20 @@ class DetailPenerimaanBarang extends Model
         'penerimaan_id',
         'stok_id',
         'quantity',
-        'quantity_layak',
-        'quantity_tidak_layak',
         'harga',
         'total_harga',
+        'is_layak',
         'is_paid'
     ];
 
+    protected $casts = [
+        'is_layak' => 'boolean',
+        'is_paid' => 'boolean',
+    ];
     public function penerimaan()
     {
         return $this->belongsTo(Penerimaan::class);
     }
-
     public function stok()
     {
         return $this->belongsTo(Stok::class);

@@ -32,10 +32,9 @@ class DetailBarangService
             'penerimaan_id' => $penerimaanId,
             'stok_id' => $stok->id,
             'quantity' => $barang['quantity'],
-            'quantity_layak' => $barang['quantity_layak'] ?? null,
-            'quantity_tidak_layak' => $barang['quantity_tidak_layak'] ?? null,
             'harga' => $harga,
             'total_harga' => $harga * $barang['quantity'],
+            'is_layak' => $barang['is_layak'] ?? null,
             'is_paid' => $barang['is_paid'] ?? null,
         ]);
     }
@@ -97,11 +96,13 @@ class DetailBarangService
             $barangData = [
                 'stok_id' => $stok->id,
                 'quantity' => $barang['quantity'],
-                'quantity_layak' => $barang['quantity_layak'] ?? null,
-                'quantity_tidak_layak' => $barang['quantity_tidak_layak'] ?? null,
                 'harga' => $harga,
                 'total_harga' => $harga * $barang['quantity'],
             ];
+
+            if (isset($barang['is_layak'])) {
+                $barangData['is_layak'] = $barang['is_layak'];
+            }
 
             if (isset($barang['is_paid'])) {
                 $barangData['is_paid'] = $barang['is_paid'];

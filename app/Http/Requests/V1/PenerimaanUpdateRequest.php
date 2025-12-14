@@ -14,23 +14,18 @@ class PenerimaanUpdateRequest extends FormRequest
 
     public function rules(): array
     {
-        // PERBAIKAN: Gunakan route parameter yang benar
-        // Cek dulu nama parameter di routes/api.php
         $penerimaanId = $this->route('penerimaan') ?? $this->route('id');
-        
+
         return [
             'no_surat' => [
                 'sometimes',
                 'string',
                 'max:100',
-                // PERBAIKAN: Pastikan ignore menggunakan ID yang benar
                 Rule::unique('penerimaans', 'no_surat')->ignore($penerimaanId, 'id'),
             ],
             'category_id' => 'sometimes|exists:categories,id',
             'deskripsi' => 'sometimes|nullable|string',
-            'status' => 'sometimes|string|in:pending,confirmed,approved,rejected',
-
-            // Detail Barang
+            'status' => 'sometimes|string',
             'detail_barangs' => 'sometimes|array',
             'detail_barangs.*.id' => 'nullable|exists:detail_penerimaan_barangs,id',
             'detail_barangs.*.stok_id' => 'required|exists:stoks,id',
@@ -38,11 +33,8 @@ class PenerimaanUpdateRequest extends FormRequest
             'detail_barangs.*.harga' => 'sometimes|numeric|min:0',
             'detail_barangs.*.price' => 'sometimes|numeric|min:0',
             'detail_barangs.*.is_layak' => 'sometimes|nullable|boolean',
-
             'deleted_barang_ids' => 'sometimes|array',
             'deleted_barang_ids.*' => 'exists:detail_penerimaan_barangs,id',
-
-            // Detail Pegawai
             'pegawais' => 'sometimes|array',
             'pegawais.*.pegawai_id' => 'required|exists:pegawais,id',
             'pegawais.*.alamat_staker' => 'nullable|string|max:255',
@@ -63,13 +55,13 @@ class PenerimaanUpdateRequest extends FormRequest
     {
         if ($this->has('detail_barangs')) {
             $detailBarangs = $this->input('detail_barangs', []);
-            
+
             foreach ($detailBarangs as $index => $barang) {
                 if (isset($barang['price']) && !isset($barang['harga'])) {
                     $detailBarangs[$index]['harga'] = $barang['price'];
                 }
             }
-            
+
             $this->merge([
                 'detail_barangs' => $detailBarangs
             ]);
