@@ -2,6 +2,7 @@
 
 namespace App\Services\V1;
 
+use App\Exceptions\BusinessException;
 use App\Models\Category;
 use App\Repositories\V1\PenerimaanRepository;
 use App\Models\Stok;
@@ -43,6 +44,10 @@ class PenerimaanService
     public function getHistoryPenerimaan(array $filters)
     {
         return $this->repository->getHistoryPenerimaan($filters);
+    }
+    public function getCheckHistoryPenerimaan(array $filters)
+    {
+        return $this->repository->getHistoryCheckPenerimaan($filters);
     }
 
     public function getPenerimaanForEdit($id)
@@ -157,70 +162,43 @@ class PenerimaanService
     public function updateKelayakanBarang($penerimaanId, $detailId, array $data)
     {
         return DB::transaction(function () use ($penerimaanId, $detailId, $data) {
+
             $detail = $this->repository->findDetailBarang($penerimaanId, $detailId);
             if (!$detail) {
-                return [
-                    'success' => false,
-                    'message' => 'Detail barang tidak ditemukan.'
-                ];
+                throw new BusinessException('Detail barang tidak ditemukan.', 404);
             }
 
             $penerimaan = $this->repository->findById($penerimaanId);
-
             if (!in_array($penerimaan->status, ['pending', 'checked'])) {
-                return [
-                    'success' => false,
-                    'message' => 'Kelayakan barang hanya bisa diupdate di status pending atau checked'
-                ];
+                throw new BusinessException(
+                    'Kelayakan hanya bisa diupdate pada status pending atau checked',
+                    422
+                );
             }
 
-            $quantityLayak = $data['quantity_layak'];
-
-            if ($quantityLayak < 0 || $quantityLayak > $detail->quantity) {
-                return [
-                    'success' => false,
-                    'message' => "Jumlah layak harus antara 0 dan {$detail->quantity}"
-                ];
+            if ($detail->is_layak === true && $data['is_layak'] === false) {
+                throw new BusinessException(
+                    'Barang yang sudah dinyatakan layak tidak dapat dibatalkan.',
+                    422
+                );
             }
-            $previousLayak = $detail->quantity_layak ?? 0;
-            $change = $quantityLayak - $previousLayak;
+
             if ($penerimaan->status === 'pending') {
                 $this->repository->update($penerimaan, [
                     'status' => 'checked'
                 ]);
             }
 
-            $detail = $this->repository->updateDetailBarang($detail, [
-                'quantity_layak' => $quantityLayak,
-                'quantity_tidak_layak' => $detail->quantity - $quantityLayak,
+            $this->repository->updateDetailBarang($detail, [
+                'is_layak' => $data['is_layak']
             ]);
-
-            if ($change > 0) {
-                $this->stokService->tambahStok(
-                    $detail->stok_id,
-                    $change,
-                    'penerimaan',
-                    $penerimaan->id
-                );
-            }
-
-            if ($change < 0) {
-                return [
-                    'success' => false,
-                    'message' => 'Anda tidak dapat mengurangi jumlah barang layak yang sudah ditetapkan sebelumnya. Gunakan proses Pengurangan Stok (Adjustment) jika barang harus dikeluarkan.'
-                ];
-            }
 
             $this->monitoringService->log(
                 "Menilai kelayakan barang: {$detail->stok->name}",
                 4
             );
 
-            return [
-                'success' => true,
-                'data' => $detail,
-                'message' => 'Kelayakan barang berhasil dinilai'
-            ];
+            return $detail->fresh();
         });
     }
     public function markDetailAsPaid($penerimaanId, $detailId)
@@ -229,17 +207,14 @@ class PenerimaanService
             $detail = $this->repository->findDetailBarang($penerimaanId, $detailId);
 
             if (!$detail) {
-                return [
-                    'success' => false,
-                    'message' => 'Detail barang tidak ditemukan di penerimaan ini.'
-                ];
+                throw new BusinessException('Detail barang tidak ditemukan.', 404);
             }
 
-            if ($detail->is_paid) {
-                return [
-                    'success' => false,
-                    'message' => 'Detail barang ini sudah dibayar sebelumnya.'
-                ];
+            if ($detail->is_paid === true) {
+                throw new BusinessException(
+                    'Detail barang ini sudah dibayar sebelumnya.',
+                    422
+                );
             }
 
             $detail = $this->repository->updateDetailBarangPayment($detail);
@@ -253,7 +228,7 @@ class PenerimaanService
             }
 
             $penerimaan = $this->repository->findById($penerimaanId);
-            
+
             return [
                 'success' => true,
                 'message' => 'Detail berhasil ditandai sebagai paid',
@@ -263,30 +238,46 @@ class PenerimaanService
     }
     public function confirmPenerimaan($id)
     {
-        $penerimaan = $this->repository->findWithDetails($id);
+        return DB::transaction(function () use ($id) {
+            $penerimaan = $this->repository->findWithDetails($id);
+            if (!$penerimaan) {
+                return [
+                    'success' => false,
+                    'message' => 'Penerimaan tidak ditemukan'
+                ];
+            }
+            if ($penerimaan->status !== 'checked') {
+                return [
+                    'success' => false,
+                    'message' => 'Penerimaan belum siap untuk dikonfirmasi'
+                ];
+            }
+            if ($this->repository->hasUnassessedItems($id)) {
+                return [
+                    'success' => false,
+                    'message' => 'Masih ada barang yang belum dinilai kelayakannya'
+                ];
+            }
+            if ($this->repository->hasUnfitItems($id)) {
+                return [
+                    'success' => false,
+                    'message' => 'Masih terdapat barang yang tidak layak'
+                ];
+            }
+            $this->repository->update($penerimaan, [
+                'status' => 'confirmed'
+            ]);
 
-        if ($this->repository->hasUnassessedItems($id)) {
-            $unassessedCount = $this->repository->getUnassessedCount($id);
+            $this->monitoringService->log(
+                "Mengkonfirmasi penerimaan: {$penerimaan->no_surat}",
+                2
+            );
+
             return [
-                'success' => false,
-                'message' => "Masih ada {$unassessedCount} barang yang belum dinilai kelayakannya"
+                'success' => true,
+                'data' => $penerimaan->fresh()
             ];
-        }
-
-        if ($this->repository->hasUnverifiedItems($id)) {
-            return [
-                'success' => false,
-                'message' => 'Tidak bisa dikonfirmasi. Masih ada barang yang tidak layak. Silakan update penerimaan agar semua barang layak.'
-            ];
-        }
-
-        $this->repository->update($penerimaan, ['status' => 'confirmed']);
-        $this->monitoringService->log("Mengkonfirmasi penerimaan: {$penerimaan->no_surat}", 2);
-
-        return [
-            'success' => true,
-            'data' => $penerimaan->fresh()
-        ];
+        });
     }
 
     private function prepareUpdateFields(array $data)
@@ -314,11 +305,8 @@ class PenerimaanService
                 'nama_satuan' => $item->stok->satuan->name,
                 'harga' => $item->harga,
                 'quantity' => $item->quantity,
-                'quantity_layak' => $item->quantity_layak,
-                'quantity_tidak_layak' => $item->quantity_tidak_layak,
                 'total_harga' => $item->total_harga,
-                'is_checked' => !is_null($item->quantity_layak),
-                'is_all_layak' => $item->quantity === $item->quantity_layak,
+                'is_layak' => (bool) $item->is_layak,
                 'is_paid' => (bool) $item->is_paid,
             ];
         });

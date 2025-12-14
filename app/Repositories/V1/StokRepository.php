@@ -10,7 +10,7 @@ use App\Models\Stok;
 use App\Models\StokHistory;
 
 class StokRepository implements StokRepositoryInterface
-{    
+{
     public function getAllStoksForSelect($categoryId = null)
     {
         $query = Stok::with('satuan:id,name')
@@ -28,7 +28,6 @@ class StokRepository implements StokRepositoryInterface
                     'name' => $item->name,
                     'satuan_id' => $item->satuan_id,
                     'satuan_name' => $item->satuan->name ?? null,
-                    'price' => $item->price,
                 ];
             });
     }
@@ -79,7 +78,7 @@ class StokRepository implements StokRepositoryInterface
         }
 
         return $query;
-    }    
+    }
     public function edit($id)
     {
         return Stok::where('id', $id)

@@ -20,22 +20,26 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
     }
     public function getAllCheckedPenerimaan(array $filters)
     {
-        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
-            ->whereRaw("LOWER(TRIM(status)) IN (?, ?)", ['checked', 'pending'])
+        return Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
+            ->whereIn('status', ['pending', 'checked'])
+            ->latest()
+            ->paginate($filters['per_page'] ?? 10);
+    }
+    public function getHistoryPenerimaan(array $filters)
+    {
+        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang', 'bast'])
+            ->where('status', '!=', 'pending')
             ->orderBy('created_at', 'desc');
 
         $perPage = $filters['per_page'] ?? 10;
         return $query->paginate($perPage);
     }
-
-    public function getHistoryPenerimaan(array $filters)
+    public function getHistoryCheckPenerimaan(array $filters)
     {
-        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang', 'bast'])
-            ->where('status', 'confirmed')
-            ->orderBy('created_at', 'desc');
-
-        $perPage = $filters['per_page'] ?? 10;
-        return $query->paginate($perPage);
+        return Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
+            ->whereIn('status', ['confirmed', 'signed', 'paid'])
+            ->latest()
+            ->paginate($filters['per_page'] ?? 10);
     }
 
     public function findById($id)
@@ -72,20 +76,19 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
     public function hasUnassessedItems($penerimaanId)
     {
         return DetailPenerimaanBarang::where('penerimaan_id', $penerimaanId)
-            ->whereNull('quantity_layak')
+            ->whereNull('is_layak')
             ->exists();
     }
-    public function hasUnverifiedItems($penerimaanId)
+    public function hasUnfitItems($penerimaanId)
     {
         return DetailPenerimaanBarang::where('penerimaan_id', $penerimaanId)
-            ->whereRaw('quantity != quantity_layak')
+            ->where('is_layak', false)
             ->exists();
     }
-
     public function getUnassessedCount($penerimaanId)
     {
         return DetailPenerimaanBarang::where('penerimaan_id', $penerimaanId)
-            ->whereNull('quantity_layak')
+            ->whereNull('is_layak')
             ->count();
     }
 

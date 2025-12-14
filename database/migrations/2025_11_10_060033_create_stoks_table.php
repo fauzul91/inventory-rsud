@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -16,8 +15,7 @@ return new class extends Migration
             $table->string('name');
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
             $table->decimal('minimum_stok', 10, 2);
-            $table->integer('price');
-            $table->foreignId('satuan_id')->constrained('satuans')->onDelete('cascade');                        
+            $table->foreignId('satuan_id')->constrained('satuans')->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
         });

@@ -118,25 +118,17 @@ class PenerimaanController extends Controller
     public function updateKelayakanBarang(Request $request, $penerimaanId, $detailId)
     {
         try {
-            $request->validate([
-                'quantity_layak' => 'required|integer|min:0',
+            $validated = $request->validate([
+                'is_layak' => ['required', 'boolean'],
             ]);
 
-            $result = $this->penerimaanService->updateKelayakanBarang($penerimaanId, $detailId, $request->only('quantity_layak'));
-
-            if ($result['success'] === false) {
-                return ResponseHelper::jsonResponse(
-                    false,
-                    $result['message'],
-                    null,
-                    404
-                );
-            }
+            $data = $this->penerimaanService
+                ->updateKelayakanBarang($penerimaanId, $detailId, $validated);
 
             return ResponseHelper::jsonResponse(
                 true,
                 'Status kelayakan diperbarui',
-                $result['data'],
+                $data,
                 200
             );
         } catch (Exception $e) {
@@ -187,6 +179,27 @@ class PenerimaanController extends Controller
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
+    public function checkHistory(Request $request)
+    {
+        try {
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'sort_by' => $request->query('sort_by'),
+            ];
+
+            $data = $this->penerimaanService->getHistoryPenerimaan($filters);
+            $transformed = $this->transformCheckPenerimaanList($data, false);
+
+            return ResponseHelper::jsonResponse(
+                true,
+                'History pengecekan penerimaan berhasil diambil',
+                $transformed,
+                200
+            );
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
     public function markDetailAsPaid($penerimaanId, $detailId)
     {
         try {
@@ -204,7 +217,17 @@ class PenerimaanController extends Controller
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
     }
-
+    private function mapPenerimaanStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'pending' => 'Belum Dikonfirmasi',
+            'checked' => 'Sedang Dicek',
+            'confirmed' => 'Telah Dikonfirmasi',
+            'signed' => 'Sudah Ditandatangani',
+            'paid' => 'Sudah Dibayar',
+            default => 'Status Tidak Diketahui',
+        };
+    }
     private function transformPenerimaanList($data, $isHistory = false)
     {
         $transformed = $data->getCollection()->map(function ($item) use ($isHistory) {
@@ -214,8 +237,8 @@ class PenerimaanController extends Controller
                 'role_user' => $item->user->roles->pluck('name')->first() ?? null,
                 'category_name' => $item->category->name ?? null,
                 'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                'status' => $isHistory ? 'Telah Dikonfirmasi' :
-                    ($item->status === 'pending' ? 'Belum Dikonfirmasi' : 'Telah Dikonfirmasi'),
+                'status' => $this->mapPenerimaanStatusLabel($item->status),
+                'status_code' => $item->status,
             ];
         });
 
@@ -225,14 +248,19 @@ class PenerimaanController extends Controller
     private function transformCheckPenerimaanList($data, $isCheck = false)
     {
         $transformed = $data->getCollection()->map(function ($item) use ($isCheck) {
+            $statusLabel = match ($item->status) {
+                'pending' => 'Belum Dicek',
+                'checked' => 'Sedang Dicek',
+                default => 'Telah Dicek',
+            };
             return [
                 'id' => $item->id,
                 'no_surat' => $item->no_surat,
                 'role_user' => $item->user->roles->pluck('name')->first() ?? null,
                 'category_name' => $item->category->name ?? null,
                 'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                'status' => $isCheck ? 'Telah Dicek' :
-                    ($item->status === 'pending' ? 'Belum Dicek' : 'Telah Dicek'),
+                'status' => $statusLabel,
+                'status_code' => $item->status,
             ];
         });
 
