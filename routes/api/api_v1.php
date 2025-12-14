@@ -36,10 +36,11 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('account', AccountController::class)->except('create', 'store', 'delete');
     Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
     Route::get('/pegawai/select', [PegawaiController::class, 'getAllForSelect'])->name('pegawai.selectAll');
+    Route::get('/stok/{id}/bast', [StokController::class, 'getDetailBastStockById'])->name('stok.detailBastStock');
     Route::get('/stok/select', [StokController::class, 'getAllForSelect'])->name('stok.selectAll');
+    Route::get('/stok/year', [StokController::class, 'getAllYearForSelect'])->name('stok.year');
     Route::patch('penerimaan/{penerimaanId}/barang/{detailId}/paid', [PenerimaanController::class, 'markDetailAsPaid']);
     Route::apiResource('stok', StokController::class)->except('create', 'destroy');
-    Route::get('/stok/year', [StokController::class, 'getAllYearForSelect'])->name('stok.year');
     Route::get('/bast/paid', [StokController::class, 'getPaidBastStock'])->name('bast.paid');
     Route::get('/bast/unpaid', [StokController::class, 'getUnpaidBastStock'])->name('bast.unpaid');
     Route::get('/bast/unsigned', [BastController::class, 'getUnsignedBast'])->name('bast.unsigned');

@@ -28,39 +28,68 @@ class StokService
     public function getAllYearForSelect()
     {
         return $this->stokRepository->getAllYearForSelect();
-    }    
+    }
     public function getAllStoks(array $filters)
     {
         $perPage = $filters['per_page'] ?? 10;
-        $year = $filters['year'];
+        $year = $filters['year'] ?? now()->year;
 
-        $stoks = $this->stokRepository->getAllStoks($filters)
-            ->with([
-                'category:id,name',
-                'satuan:id,name',
-                'histories' => fn($q) =>
-                    $q->where('year', '<=', $year)            // ambil tahun ini dan sebelumnya
-                        ->orderBy('year', 'asc'),
-            ])
-            ->paginate($perPage);
+        $query = $this->stokRepository->getAllStoks($filters);
+        $query->with([
+            'category:id,name',
+            'satuan:id,name',
+            'detailPenerimaanBarang' => fn($q) =>
+                $q->where('is_layak', true)
+                    ->whereHas(
+                        'penerimaan',
+                        fn($p) =>
+                        $p->whereIn('status', ['checked', 'confirmed', 'signed', 'paid'])
+                            ->whereYear('created_at', '<=', $year)
+                    )
+        ])->orderBy('name');
 
+        $stoks = $query->paginate($perPage);
         $stoks->getCollection()->transform(function ($stok) use ($year) {
-            $historyThisYear = $stok->histories->where('year', $year);
-            $historyBefore = $stok->histories->where('year', '<', $year);
+            $detailsThisYear = $stok->detailPenerimaanBarang
+                ->filter(fn($d) => $d->penerimaan->created_at->year == $year);
+            $detailsBefore = $stok->detailPenerimaanBarang
+                ->filter(fn($d) => $d->penerimaan->created_at->year < $year);
 
             return [
                 'id' => $stok->id,
                 'name' => $stok->name,
                 'category_name' => $stok->category->name,
-                'stok_lama' => $historyBefore->sum('remaining_qty'),
-                'total_stok' => $historyThisYear->sum('remaining_qty'),
+                'stok_lama' => $detailsBefore->sum('quantity'),
+                'total_stok' => $detailsThisYear->sum('quantity'),
                 'minimum_stok' => $stok->minimum_stok,
                 'satuan' => $stok->satuan->name ?? null,
-                'price' => $stok->price,
             ];
         });
 
         return $stoks;
+    }
+    public function getStockById($id)
+    {
+        $stok = $this->stokRepository->getStokById($id);
+
+        return [
+            'id' => $stok->id,
+            'name' => $stok->name,
+            'category_name' => $stok->category?->name,
+            'satuan' => $stok->satuan?->name,
+            'minimum_stok' => $stok->minimum_stok,
+            'riwayat_penerimaan' => $stok->detailPenerimaanBarang->map(function ($detail) {
+                return [
+                    'penerimaan_id' => $detail->penerimaan->id,
+                    'no_surat' => $detail->penerimaan->no_surat,
+                    'quantity' => $detail->quantity,
+                    'harga' => $detail->harga,
+                    'total_harga' => $detail->total_harga,
+                    'status' => $detail->penerimaan->status,
+                    'created_at' => $detail->penerimaan->created_at->toISOString(),
+                ];
+            }),
+        ];
     }
     public function getPaidBastStock(array $filters)
     {

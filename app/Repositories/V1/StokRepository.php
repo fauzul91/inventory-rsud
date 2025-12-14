@@ -49,6 +49,24 @@ class StokRepository implements StokRepositoryInterface
 
         return $query;
     }
+    public function getStokById($id)
+    {
+        $stok = Stok::with([
+            'category:id,name',
+            'satuan:id,name',
+            'detailPenerimaanBarang' => function ($query) {
+                $query->where('is_layak', true)
+                    ->whereHas('penerimaan', function ($q) {
+                        $q->whereIn('status', ['checked', 'confirmed', 'signed', 'paid']);
+                    })
+                    ->join('penerimaans', 'detail_penerimaan_barangs.penerimaan_id', '=', 'penerimaans.id')
+                    ->orderBy('penerimaans.created_at', 'asc')
+                    ->select('detail_penerimaan_barangs.*');
+            }
+        ])->findOrFail($id);
+
+        return $stok;
+    }
     public function getPaidBastStock($filters)
     {
         $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])

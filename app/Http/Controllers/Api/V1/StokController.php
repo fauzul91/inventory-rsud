@@ -103,5 +103,14 @@ class StokController extends Controller
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
-    }    
+    }
+    public function getDetailBastStockById($id)
+    {
+        try {
+            $data = $this->stokService->getStockById($id);
+            return ResponseHelper::jsonResponse(true, 'Riwayat BAST Stok berhasil diambil', $data, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
+        }
+    }
 }

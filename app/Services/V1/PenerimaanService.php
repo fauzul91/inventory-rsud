@@ -306,8 +306,8 @@ class PenerimaanService
                 'harga' => $item->harga,
                 'quantity' => $item->quantity,
                 'total_harga' => $item->total_harga,
-                'is_layak' => (bool) $item->is_layak,
-                'is_paid' => (bool) $item->is_paid,
+                'is_layak' => $item->is_layak,
+                'is_paid' => $item->is_paid,
             ];
         });
     }

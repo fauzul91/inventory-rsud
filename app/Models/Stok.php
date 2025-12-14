@@ -19,8 +19,8 @@ class Stok extends Model
     {
         return $this->belongsTo(Satuan::class);
     }
-    public function histories()
+    public function detailPenerimaanBarang()
     {
-        return $this->hasMany(StokHistory::class);
+        return $this->hasMany(DetailPenerimaanBarang::class);
     }
 }
