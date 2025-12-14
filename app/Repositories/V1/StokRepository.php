@@ -14,7 +14,7 @@ class StokRepository implements StokRepositoryInterface
     public function getAllStoksForSelect($categoryId = null)
     {
         $query = Stok::with('satuan:id,name')
-            ->select('id', 'name', 'satuan_id', 'price');
+            ->select('id', 'name', 'satuan_id');
 
         if ($categoryId) {
             $query->where('category_id', $categoryId);
@@ -33,7 +33,16 @@ class StokRepository implements StokRepositoryInterface
     }
     public function getAllYearForSelect()
     {
-        return StokHistory::select('year')->distinct()->orderBy('year', 'asc')->get();
+        return Penerimaan::query()
+            ->whereIn('status', ['checked', 'confirmed', 'signed', 'paid'])
+            ->selectRaw('YEAR(created_at) as year')
+            ->distinct()
+            ->orderBy('year')
+            ->get()
+            ->map(fn($row) => [
+                'label' => (string) $row->year,
+                'value' => $row->year,
+            ]);
     }
     public function getAllStoks($filters)
     {
@@ -48,6 +57,24 @@ class StokRepository implements StokRepositoryInterface
         }
 
         return $query;
+    }
+    public function getStokById($id)
+    {
+        $stok = Stok::with([
+            'category:id,name',
+            'satuan:id,name',
+            'detailPenerimaanBarang' => function ($query) {
+                $query->where('is_layak', true)
+                    ->whereHas('penerimaan', function ($q) {
+                        $q->whereIn('status', ['checked', 'confirmed', 'signed', 'paid']);
+                    })
+                    ->join('penerimaans', 'detail_penerimaan_barangs.penerimaan_id', '=', 'penerimaans.id')
+                    ->orderBy('penerimaans.created_at', 'asc')
+                    ->select('detail_penerimaan_barangs.*');
+            }
+        ])->findOrFail($id);
+
+        return $stok;
     }
     public function getPaidBastStock($filters)
     {

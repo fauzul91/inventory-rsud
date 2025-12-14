@@ -16,7 +16,7 @@ class StokSeeder extends Seeder
     public function run(): void
     {
         $satuans = Satuan::all();
-        $categoryMap = Category::pluck('id','name'); 
+        $categoryMap = Category::pluck('id', 'name');
 
         $stokData = [
             'ATK' => ['Pulpen', 'Pensil', 'Penghapus', 'Spidol', 'Penggaris'],
@@ -28,15 +28,14 @@ class StokSeeder extends Seeder
             'Bahan Pembersih' => ['Sabun Cuci', 'Detergen', 'Disinfektan', 'Sapu', 'Lap Serbaguna'],
         ];
 
-        foreach($stokData as $categoryName => $items){
+        foreach ($stokData as $categoryName => $items) {
             $categoryId = $categoryMap[$categoryName];
 
-            foreach($items as $name){
+            foreach ($items as $name) {
                 Stok::create([
                     'name' => $name,
                     'category_id' => $categoryId,
                     'minimum_stok' => rand(5, 20),
-                    'price' => rand(1000, 50000),
                     'satuan_id' => $satuans->random()->id,
                 ]);
             }
