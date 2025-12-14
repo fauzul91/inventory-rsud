@@ -188,7 +188,7 @@ class PenerimaanController extends Controller
             ];
 
             $data = $this->penerimaanService->getHistoryPenerimaan($filters);
-            $transformed = $this->transformCheckPenerimaanList($data, false);
+            $transformed = $this->transformCheckPenerimaanList($data, true);
 
             return ResponseHelper::jsonResponse(
                 true,
@@ -247,24 +247,32 @@ class PenerimaanController extends Controller
     }
     private function transformCheckPenerimaanList($data, $isCheck = false)
     {
-        $transformed = $data->getCollection()->map(function ($item) use ($isCheck) {
+        $collection = $data->getCollection();
+
+        if ($isCheck) {
+            $collection = $collection->whereNotIn('status', ['pending', 'checked']);
+        }
+
+        $transformed = $collection->map(function ($item) {
             $statusLabel = match ($item->status) {
                 'pending' => 'Belum Dicek',
                 'checked' => 'Sedang Dicek',
                 default => 'Telah Dicek',
             };
+
             return [
                 'id' => $item->id,
                 'no_surat' => $item->no_surat,
                 'role_user' => $item->user->roles->pluck('name')->first() ?? null,
                 'category_name' => $item->category->name ?? null,
-                'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
+                'pegawai_name' => optional($item->detailPegawai->first()?->pegawai)->name,
                 'status' => $statusLabel,
                 'status_code' => $item->status,
             ];
         });
 
         $data->setCollection($transformed);
+
         return $data;
     }
 }
