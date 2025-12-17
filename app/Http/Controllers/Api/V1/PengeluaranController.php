@@ -26,7 +26,7 @@ class PengeluaranController extends Controller
             ];
 
             $data = $this->pengeluaranService->getAllPengeluaran($filters);
-            return ResponseHelper::jsonResponse(true, 'Data pemesanan berhasil diambil', $data, 200);
+            return ResponseHelper::jsonResponse(true, 'Data pengeluaran berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
