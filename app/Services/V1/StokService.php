@@ -50,17 +50,29 @@ class StokService
 
         $stoks = $query->paginate($perPage);
         $stoks->getCollection()->transform(function ($stok) use ($year) {
-            $detailsThisYear = $stok->detailPenerimaanBarang
-                ->filter(fn($d) => $d->penerimaan->created_at->year == $year);
-            $detailsBefore = $stok->detailPenerimaanBarang
-                ->filter(fn($d) => $d->penerimaan->created_at->year < $year);
+
+            $details = $stok->detailPenerimaanBarang;
+
+            $masukThisYear = $details
+                ->filter(fn($d) => $d->penerimaan->created_at->year == $year)
+                ->sum('quantity');
+
+            $masukBefore = $details
+                ->filter(fn($d) => $d->penerimaan->created_at->year < $year)
+                ->sum('quantity');
+
+            $keluarTotal = $details
+                ->flatMap(fn($d) => $d->detailPemesanans)
+                ->sum('pivot.quantity');
 
             return [
                 'id' => $stok->id,
                 'name' => $stok->name,
                 'category_name' => $stok->category->name,
-                'stok_lama' => $detailsBefore->sum('quantity'),
-                'total_stok' => $detailsThisYear->sum('quantity'),
+                'stok_lama' => $masukBefore,
+                'stok_masuk' => $masukThisYear,
+                'stok_keluar' => $keluarTotal,
+                'total_stok' => ($masukBefore + $masukThisYear) - $keluarTotal,
                 'minimum_stok' => $stok->minimum_stok,
                 'satuan' => $stok->satuan->name ?? null,
             ];
@@ -70,28 +82,7 @@ class StokService
     }
     public function getStockById($id)
     {
-        $stok = $this->stokRepository->getStokById($id);
-
-        $stok = [
-            'id' => $stok->id,
-            'name' => $stok->name,
-            'category_name' => $stok->category?->name,
-            'satuan' => $stok->satuan?->name,
-            'minimum_stok' => $stok->minimum_stok,
-            'riwayat_penerimaan' => $stok->detailPenerimaanBarang->map(function ($detail) {
-                return [
-                    'penerimaan_id' => $detail->penerimaan->id,
-                    'no_surat' => $detail->penerimaan->no_surat,
-                    'quantity' => $detail->quantity,
-                    'harga' => $detail->harga,
-                    'total_harga' => $detail->total_harga,
-                    'status' => $detail->penerimaan->status,
-                    'created_at' => $detail->penerimaan->created_at->toISOString(),
-                ];
-            }),
-        ];
-
-        return $stok;
+        return $this->stokRepository->getStokById($id);
     }
     public function getPaidBastStock(array $filters)
     {

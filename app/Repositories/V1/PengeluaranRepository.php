@@ -14,44 +14,67 @@ class PengeluaranRepository implements PengeluaranRepositoryInterface
 {
     public function getAllPengeluaran(array $filters)
     {
-        $query = Pemesanan::with(['user:id,name'])
-            ->selectRaw("
-                id,
-                user_id,
-                ruangan,
-                DATE_FORMAT(tanggal_pemesanan, '%d-%m-%Y') as tanggal_pemesanan,
-                status  
-            ")
-            ->orderBy('created_at', 'desc');
+        $query = DB::table('detail_pemesanan_penerimaan as dpp')
+            ->join(
+                'detail_penerimaan_barangs as dpb',
+                'dpp.detail_penerimaan_id',
+                '=',
+                'dpb.id'
+            )
+            ->join(
+                'penerimaans as p',
+                'dpb.penerimaan_id',
+                '=',
+                'p.id'
+            )
+            ->join(
+                'detail_pemesanans as dps',
+                'dpp.detail_pemesanan_id',
+                '=',
+                'dps.id'
+            )
+            ->join(
+                'pemesanans as pm',
+                'dps.pemesanan_id',
+                '=',
+                'pm.id'
+            )
+            ->join(
+                'stoks as s',
+                'dpb.stok_id',
+                '=',
+                's.id'
+            )
+            ->join(
+                'categories as c',
+                's.category_id',
+                '=',
+                'c.id'
+            )
+            ->select([
+                'dpp.id',
+                'p.no_surat',
+                'pm.ruangan as instalasi',
+                'c.name as category_name',
+                'dpp.quantity',
+                'dpp.harga',
+                'dpp.subtotal',
+                'dpp.created_at as tanggal_pengeluaran'
+            ])
+            ->orderBy('dpp.created_at', 'desc');
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
-
             $query->where(function ($q) use ($search) {
-                $q->where('ruangan', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($uq) use ($search) {
-                        $uq->where('name', 'like', "%{$search}%");
-                    });
+                $q->where('p.no_surat', 'like', "%{$search}%")
+                    ->orWhere('pm.ruangan', 'like', "%{$search}%")
+                    ->orWhere('c.name', 'like', "%{$search}%");
             });
         }
 
-        $perPage = $filters['per_page'] ?? 10;
-        $data = $query->paginate($perPage);
-
-        $data->getCollection()->transform(function ($item) {
-            return [
-                'id' => $item->id,
-                'user_name' => $item->user->name,
-                'ruangan' => $item->ruangan,
-                'tanggal_pemesanan' => $item->tanggal_pemesanan
-                    ? $item->tanggal_pemesanan->format('d-m-Y')
-                    : null,
-                'status' => $item->status,
-            ];
-        });
-
-        return $data;
+        return $query->paginate($filters['per_page'] ?? 10);
     }
+
     public function saveGudangQuantity(DetailPemesanan $detail, int $quantity)
     {
         $detail->update([

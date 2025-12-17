@@ -8,6 +8,7 @@ use App\Models\Monitoring;
 use App\Models\Penerimaan;
 use App\Models\Stok;
 use App\Models\StokHistory;
+use DB;
 
 class StokRepository implements StokRepositoryInterface
 {
@@ -58,23 +59,75 @@ class StokRepository implements StokRepositoryInterface
 
         return $query;
     }
-    public function getStokById($id)
+    public function getStokById($stokId)
     {
         $stok = Stok::with([
             'category:id,name',
             'satuan:id,name',
-            'detailPenerimaanBarang' => function ($query) {
-                $query->where('is_layak', true)
-                    ->whereHas('penerimaan', function ($q) {
-                        $q->whereIn('status', ['checked', 'confirmed', 'signed', 'paid']);
-                    })
-                    ->join('penerimaans', 'detail_penerimaan_barangs.penerimaan_id', '=', 'penerimaans.id')
-                    ->orderBy('penerimaans.created_at', 'asc')
-                    ->select('detail_penerimaan_barangs.*');
-            }
-        ])->findOrFail($id);
+        ])->findOrFail($stokId);
 
-        return $stok;
+        $masuk = DB::table('detail_penerimaan_barangs as dpb')
+            ->join('penerimaans as p', 'dpb.penerimaan_id', '=', 'p.id')
+            ->where('dpb.stok_id', $stokId)
+            ->where('dpb.is_layak', true)
+            ->whereIn('p.status', ['checked', 'confirmed', 'signed', 'paid'])
+            ->select([
+                'dpb.created_at as tanggal',
+                DB::raw("'masuk' as tipe"),
+                DB::raw("CONCAT('BAST-', p.no_surat) as no_surat"),
+                'dpb.quantity',
+                'dpb.harga',
+                'dpb.total_harga',
+            ]);
+
+        $keluar = DB::table('detail_pemesanan_penerimaan as dpp')
+            ->join(
+                'detail_penerimaan_barangs as dpb',
+                'dpp.detail_penerimaan_id',
+                '=',
+                'dpb.id'
+            )
+            ->join(
+                'penerimaans as p',
+                'dpb.penerimaan_id',
+                '=',
+                'p.id'
+            )
+            ->join(
+                'detail_pemesanans as dps',
+                'dpp.detail_pemesanan_id',
+                '=',
+                'dps.id'
+            )
+            ->join(
+                'pemesanans as pm',
+                'dps.pemesanan_id',
+                '=',
+                'pm.id'
+            )
+            ->where('dpb.stok_id', $stokId)
+            ->select([
+                'dpp.created_at as tanggal',
+                DB::raw("'keluar' as tipe"),
+                DB::raw("CONCAT('BAST-', p.no_surat) as no_surat"), // 🔥 tetap BAST asal
+                'dpp.quantity',
+                'dpp.harga',
+                'dpp.subtotal'
+            ]);
+
+        $mutasi = $masuk
+            ->unionAll($keluar)
+            ->orderBy('tanggal', 'desc')
+            ->paginate(10);
+
+        return [
+            'id' => $stok->id,
+            'name' => $stok->name,
+            'category_name' => $stok->category->name,
+            'satuan' => $stok->satuan->name ?? null,
+            'minimum_stok' => $stok->minimum_stok,
+            'mutasi' => $mutasi
+        ];
     }
     public function getPaidBastStock($filters)
     {

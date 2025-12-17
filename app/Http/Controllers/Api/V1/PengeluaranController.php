@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\AlokasiStokGudangRequest;
 use Exception;
 use App\Services\V1\PengeluaranService;
+use Illuminate\Http\Request;
 
 class PengeluaranController extends Controller
 {
@@ -16,13 +17,26 @@ class PengeluaranController extends Controller
     {
         $this->pengeluaranService = $pengeluaranService;
     }
+    public function index(Request $request)
+    {
+        try {
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'search' => $request->query('search'),
+            ];
 
+            $data = $this->pengeluaranService->getAllPengeluaran($filters);
+            return ResponseHelper::jsonResponse(true, 'Data pemesanan berhasil diambil', $data, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
     public function alokasiStokGudang(AlokasiStokGudangRequest $request, int $pemesananId)
     {
         try {
             $detail = $this->pengeluaranService->processGudangFulfillmentByPemesanan(
                 $pemesananId,
-                $request->details
+                $request->detailPemesanan
             );
 
             return ResponseHelper::jsonResponse(true, 'Data pengeluaran gudang berhasil dibuat', $detail, 200);
