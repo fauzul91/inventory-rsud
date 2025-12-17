@@ -6,6 +6,7 @@ use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\PemesananStoreRequest;
 use App\Http\Requests\V1\UpdateDetailQuantityRequest;
+use App\Http\Requests\V1\UpdateQuantityPenanggungJawabRequest;
 use App\Services\V1\PemesananService;
 use Exception;
 use Illuminate\Http\Request;
@@ -29,7 +30,21 @@ class PemesananController extends Controller
                 'search' => $request->query('search'),
             ];
 
-            $data = $this->pemesananService->getAllPemesanan($filters);
+            $data = $this->pemesananService->getAllPemesanan($filters, 'pending');
+            return ResponseHelper::jsonResponse(true, 'Data pemesanan berhasil diambil', $data, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
+    public function getAllPemesananApprovedPJ(Request $request)
+    {
+        try {
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'search' => $request->query('search'),
+            ];
+
+            $data = $this->pemesananService->getAllPemesanan($filters, 'approved_pj');
             return ResponseHelper::jsonResponse(true, 'Data pemesanan berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
@@ -50,6 +65,22 @@ class PemesananController extends Controller
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
+    public function getAllStatusPemesananInstalasi(Request $request)
+    {
+        try {
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'category' => $request->query('category'),
+                'search' => $request->query('search'),
+            ];
+
+            $data = $this->pemesananService->getAllStatusPemesananInstalasi($filters);
+            return ResponseHelper::jsonResponse(true, 'Data stok berhasil diambil', $data, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -87,12 +118,11 @@ class PemesananController extends Controller
         }
     }
 
-    public function updateDetailQuantity(UpdateDetailQuantityRequest $request, int $pemesananId, int $detailId)
+    public function updateQuantityPenanggungJawab(UpdateQuantityPenanggungJawabRequest $request, int $pemesananId)
     {
         try {
-            $quantity = $request->validated()['quantity'];
-            $data = $this->pemesananService->updateDetailQuantity($pemesananId, $detailId, $quantity);
-            return ResponseHelper::jsonResponse(true, 'Quantity berhasil diperbarui', $data, 200);
+            $data = $this->pemesananService->updateQuantityPenanggungJawab($pemesananId, $request->validated()['details']);
+            return ResponseHelper::jsonResponse(true, 'Data pemesanan berhasil diupdate', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }

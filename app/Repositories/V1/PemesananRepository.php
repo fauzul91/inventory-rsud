@@ -9,7 +9,7 @@ use App\Interfaces\V1\PemesananRepositoryInterface;
 
 class PemesananRepository implements PemesananRepositoryInterface
 {
-    public function getAllPemesanan(array $filters)
+    public function getAllPemesanan(array $filters, string $status)
     {
         $query = Pemesanan::with(['user:id,name'])
             ->selectRaw("
@@ -17,8 +17,9 @@ class PemesananRepository implements PemesananRepositoryInterface
                 user_id,
                 ruangan,
                 DATE_FORMAT(tanggal_pemesanan, '%d-%m-%Y') as tanggal_pemesanan,
-                status
+                status  
             ")
+            ->where('status', '=', $status)
             ->orderBy('created_at', 'desc');
 
         if (!empty($filters['search'])) {
@@ -41,8 +42,49 @@ class PemesananRepository implements PemesananRepositoryInterface
                 'user_name' => $item->user->name,
                 'ruangan' => $item->ruangan,
                 'tanggal_pemesanan' => $item->tanggal_pemesanan
-                ? $item->tanggal_pemesanan->format('d-m-Y')
-                : null,
+                    ? $item->tanggal_pemesanan->format('d-m-Y')
+                    : null,
+                'status' => $item->status,
+            ];
+        });
+
+        return $data;
+    }
+    public function getAllStatusPemesananInstalasi(array $filters)
+    {
+        $query = Pemesanan::with(['user:id,name'])
+            ->selectRaw("
+                id,
+                user_id,
+                ruangan,
+                DATE_FORMAT(tanggal_pemesanan, '%d-%m-%Y') as tanggal_pemesanan,
+                status  
+            ")
+            ->where('status', '!=', 'pending')
+            ->orderBy('created_at', 'desc');
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+
+            $query->where(function ($q) use ($search) {
+                $q->where('ruangan', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $perPage = $filters['per_page'] ?? 10;
+        $data = $query->paginate($perPage);
+
+        $data->getCollection()->transform(function ($item) {
+            return [
+                'id' => $item->id,
+                'user_name' => $item->user->name,
+                'ruangan' => $item->ruangan,
+                'tanggal_pemesanan' => $item->tanggal_pemesanan
+                    ? $item->tanggal_pemesanan->format('d-m-Y')
+                    : null,
                 'status' => $item->status,
             ];
         });
@@ -95,23 +137,30 @@ class PemesananRepository implements PemesananRepositoryInterface
                     'stok_name' => $item->stok->name,
                     'satuan_name' => ucfirst($item->stok->satuan->name),
                     'quantity' => $item->quantity,
+                    'quantity_pj' => $item->quantity_pj,
+                    'quantity_admin_gudang' => $item->quantity_admin_gudang,
                 ];
             }),
         ];
     }
 
-    public function updateDetailQuantity($pemesananId, $detailId, $amount)
+    public function updateQuantityPenanggungJawab(int $pemesananId, int $detailId, int $newQuantity)
     {
         $detail = DetailPemesanan::where('pemesanan_id', $pemesananId)
             ->findOrFail($detailId);
 
-        $newQty = $detail->quantity + $amount;
-
-        if ($newQty < 1) {
-            throw new \Exception("Quantity tidak boleh kurang dari 1.");
+        if ($detail->pemesanan_id !== $pemesananId) {
+            throw new \DomainException('Detail tidak sesuai dengan pemesanan.');
+        }
+        if ($newQuantity < 1) {
+            throw new \DomainException('Quantity tidak boleh kurang dari 1.');
         }
 
-        $detail->update(['quantity' => $newQty]);
+        $detail->quantity_pj = $newQuantity ?? $detail->quantity;
+        $detail->save();
+
+        $detail->pemesanan->status = 'approved_pj';
+        $detail->pemesanan->save();
         return $detail;
     }
 }

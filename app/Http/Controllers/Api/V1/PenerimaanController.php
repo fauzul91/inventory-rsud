@@ -220,7 +220,7 @@ class PenerimaanController extends Controller
     private function mapPenerimaanStatusLabel(string $status): string
     {
         return match ($status) {
-            'pending' => 'Belum Dikonfirmasi',
+            'pending' => 'Belum Dicek',
             'checked' => 'Sedang Dicek',
             'confirmed' => 'Telah Dikonfirmasi',
             'signed' => 'Sudah Ditandatangani',

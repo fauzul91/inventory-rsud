@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\PemesananController;
+use App\Http\Controllers\Api\V1\PengeluaranController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SsoController;
 use App\Http\Controllers\Api\V1\BastController;
@@ -36,6 +37,7 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('account', AccountController::class)->except('create', 'store', 'delete');
     Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
     Route::get('/pegawai/select', [PegawaiController::class, 'getAllForSelect'])->name('pegawai.selectAll');
+    Route::get('/stok/{id}/bast-available', [PengeluaranController::class, 'getAvailableBastStokById']);
     Route::get('/stok/{id}/bast', [StokController::class, 'getDetailBastStockById'])->name('stok.detailBastStock');
     Route::get('/stok/select', [StokController::class, 'getAllForSelect'])->name('stok.selectAll');
     Route::get('/stok/year', [StokController::class, 'getAllYearForSelect'])->name('stok.year');
@@ -51,8 +53,11 @@ Route::prefix('v1')->group(function () {
     Route::get('/bast/history', [BastController::class, 'historyBast'])->name('bast.history');
     Route::apiResource('pegawai', PegawaiController::class);
     Route::patch('/pegawai/{id}/status', [PegawaiController::class, 'toggleStatus'])->name('pegawai.toggleStatus');
+    Route::post('/pemesanan/{pemesananId}/alokasi-stok', [PengeluaranController::class, 'alokasiStokGudang']);
+    Route::get('/pemesanan/approved-pj', [PemesananController::class, 'getAllPemesananApprovedPJ']);
+    Route::get('/pemesanan/status', [PemesananController::class, 'getAllStatusPemesananInstalasi']);
     Route::get('/pemesanan/stok', [PemesananController::class, 'getAllStockPemesanan']);
-    Route::patch('/pemesanan/{pemesananId}/detail/{detailId}/quantity', [PemesananController::class, 'updateDetailQuantity']);
+    Route::patch('/pemesanan/{pemesananId}/quantity-pj', [PemesananController::class, 'updateQuantityPenanggungJawab']);
     Route::apiResource('pemesanan', PemesananController::class)->except('update', 'destroy');
     Route::get('/pelaporan/dashboard', [PelaporanController::class, 'index']);
     Route::get('/pelaporan/penerimaan-per-bulan', [PelaporanController::class, 'penerimaanPerBulan']);
