@@ -59,6 +59,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/pemesanan/stok', [PemesananController::class, 'getAllStockPemesanan']);
     Route::patch('/pemesanan/{pemesananId}/quantity-pj', [PemesananController::class, 'updateQuantityPenanggungJawab']);
     Route::apiResource('pemesanan', PemesananController::class)->except('update', 'destroy');
+    Route::get('/pengeluaran', [PengeluaranController::class, 'index']);
     Route::get('/pelaporan/dashboard', [PelaporanController::class, 'index']);
     Route::get('/pelaporan/penerimaan-per-bulan', [PelaporanController::class, 'penerimaanPerBulan']);
     Route::get('pelaporan/pengeluaran-per-bulan', [PelaporanController::class, 'pengeluaranPerBulan']);

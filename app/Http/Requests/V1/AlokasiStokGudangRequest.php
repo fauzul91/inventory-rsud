@@ -14,33 +14,33 @@ class AlokasiStokGudangRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'details' => ['required', 'array', 'min:1'],
+            'detailPemesanan' => ['required', 'array', 'min:1'],
 
-            'details.*.detail_id' => [
+            'detailPemesanan.*.detail_id' => [
                 'required',
                 'integer',
-                'exists:detail_pemesanan,id'
+                'exists:detail_pemesanans,id'
             ],
 
-            'details.*.quantity_admin' => [
+            'detailPemesanan.*.quantity_admin' => [
                 'required',
                 'integer',
                 'min:1'
             ],
 
-            'details.*.allocations' => [
+            'detailPemesanan.*.allocations' => [
                 'required',
                 'array',
                 'min:1'
             ],
 
-            'details.*.allocations.*.detail_penerimaan_id' => [
+            'detailPemesanan.*.allocations.*.detail_penerimaan_id' => [
                 'required',
                 'integer',
-                'exists:detail_penerimaan_barang,id'
+                'exists:detail_penerimaan_barangs,id'
             ],
 
-            'details.*.allocations.*.quantity' => [
+            'detailPemesanan.*.allocations.*.quantity' => [
                 'required',
                 'integer',
                 'min:1'
@@ -51,22 +51,22 @@ class AlokasiStokGudangRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'details.required' => 'Detail pemesanan wajib diisi',
-            'details.array' => 'Format detail tidak valid',
+            'detailPemesanan.required' => 'Detail pemesanan wajib diisi',
+            'detailPemesanan.array' => 'Format detail tidak valid',
 
-            'details.*.detail_id.required' => 'Detail pemesanan wajib dipilih',
-            'details.*.detail_id.exists' => 'Detail pemesanan tidak ditemukan',
+            'detailPemesanan.*.detail_id.required' => 'Detail pemesanan wajib dipilih',
+            'detailPemesanan.*.detail_id.exists' => 'Detail pemesanan tidak ditemukan',
 
-            'details.*.quantity_admin.required' => 'Quantity admin gudang wajib diisi',
-            'details.*.quantity_admin.min' => 'Quantity admin gudang minimal 1',
+            'detailPemesanan.*.quantity_admin.required' => 'Quantity admin gudang wajib diisi',
+            'detailPemesanan.*.quantity_admin.min' => 'Quantity admin gudang minimal 1',
 
-            'details.*.allocations.required' => 'Alokasi stok wajib diisi',
-            'details.*.allocations.array' => 'Format alokasi tidak valid',
+            'detailPemesanan.*.allocations.required' => 'Alokasi stok wajib diisi',
+            'detailPemesanan.*.allocations.array' => 'Format alokasi tidak valid',
 
-            'details.*.allocations.*.detail_penerimaan_id.exists'
+            'detailPemesanan.*.allocations.*.detail_penerimaan_id.exists'
             => 'Data BAST tidak ditemukan',
 
-            'details.*.allocations.*.quantity.min'
+            'detailPemesanan.*.allocations.*.quantity.min'
             => 'Quantity alokasi minimal 1',
         ];
     }

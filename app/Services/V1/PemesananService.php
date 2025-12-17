@@ -22,6 +22,8 @@ class PemesananService
     public function getAllStoks(array $filters)
     {
         $perPage = $filters['per_page'] ?? 10;
+        $year = $filters['year'] ?? now()->year;
+
         $query = $this->stokRepository->getAllStoks($filters);
         $query->with([
             'category:id,name',
@@ -32,17 +34,32 @@ class PemesananService
                         'penerimaan',
                         fn($p) =>
                         $p->whereIn('status', ['checked', 'confirmed', 'signed', 'paid'])
+                            ->whereYear('created_at', '<=', $year)
                     )
         ])->orderBy('name');
 
         $stoks = $query->paginate($perPage);
-        $stoks->getCollection()->transform(function ($stok) {
-            $detailPenerimaan = $stok->detailPenerimaanBarang;
+        $stoks->getCollection()->transform(function ($stok) use ($year) {
+
+            $details = $stok->detailPenerimaanBarang;
+
+            $masukThisYear = $details
+                ->filter(fn($d) => $d->penerimaan->created_at->year == $year)
+                ->sum('quantity');
+
+            $masukBefore = $details
+                ->filter(fn($d) => $d->penerimaan->created_at->year < $year)
+                ->sum('quantity');
+
+            $keluarTotal = $details
+                ->flatMap(fn($d) => $d->detailPemesanans)
+                ->sum('pivot.quantity');
+
             return [
                 'id' => $stok->id,
                 'name' => $stok->name,
                 'category_name' => $stok->category->name,
-                'total_stok' => $detailPenerimaan->sum('quantity'),
+                'total_stok' => ($masukBefore + $masukThisYear) - $keluarTotal,
                 'satuan' => $stok->satuan->name ?? null,
             ];
         });

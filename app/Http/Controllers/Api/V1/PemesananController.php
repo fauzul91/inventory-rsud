@@ -60,7 +60,7 @@ class PemesananController extends Controller
             ];
 
             $data = $this->pemesananService->getAllStoks($filters);
-            return ResponseHelper::jsonResponse(true, 'Data stok berhasil diambil', $data, 200);
+            return ResponseHelper::jsonResponse(true, 'Data stok pemesanan berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
@@ -75,7 +75,7 @@ class PemesananController extends Controller
             ];
 
             $data = $this->pemesananService->getAllStatusPemesananInstalasi($filters);
-            return ResponseHelper::jsonResponse(true, 'Data stok berhasil diambil', $data, 200);
+            return ResponseHelper::jsonResponse(true, 'Data status pemesanan berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }

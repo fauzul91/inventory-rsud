@@ -16,13 +16,17 @@ class PengeluaranService
     ) {
         $this->pengeluaranRepository = $pengeluaranRepository;
     }
+    public function getAllPengeluaran($filters)
+    {
+        return $this->pengeluaranRepository->getAllPengeluaran($filters);
+    }
     public function processGudangFulfillmentByPemesanan(
         int $pemesananId,
         array $detailsPayload
     ) {
         return DB::transaction(function () use ($pemesananId, $detailsPayload) {
 
-            $pemesanan = Pemesanan::with('details')
+            $pemesanan = Pemesanan::with('detailPemesanan')
                 ->findOrFail($pemesananId);
 
             foreach ($detailsPayload as $item) {
@@ -79,7 +83,7 @@ class PengeluaranService
                 'status' => 'approved_admin_gudang'
             ]);
 
-            return $pemesanan->load('details.penerimaanBarangs');
+            return $pemesanan->load('detailPemesanan.penerimaanBarangs');
         });
     }
 
