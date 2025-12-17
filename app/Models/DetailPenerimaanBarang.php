@@ -35,7 +35,9 @@ class DetailPenerimaanBarang extends Model
     {
         return $this->belongsToMany(
             DetailPemesanan::class,
-            'detail_pemesanan_penerimaan'
+            'detail_pemesanan_penerimaan',
+            'detail_penerimaan_id', // foreign key pivot ke model ini
+            'detail_pemesanan_id'   // foreign key pivot ke model lawan
         )->withPivot(['quantity', 'harga', 'subtotal'])
             ->withTimestamps();
     }

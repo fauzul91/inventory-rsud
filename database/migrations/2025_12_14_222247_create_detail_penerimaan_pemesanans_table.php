@@ -12,8 +12,8 @@ return new class extends Migration {
     {
         Schema::create('detail_pemesanan_penerimaan', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('detail_pemesanan_id')->constrained('detail_pemesanan')->cascadeOnDelete();
-            $table->foreignId('detail_penerimaan_id')->constrained('detail_penerimaan_barang')->restrictOnDelete();
+            $table->foreignId('detail_pemesanan_id')->constrained('detail_pemesanans')->cascadeOnDelete();
+            $table->foreignId('detail_penerimaan_id')->constrained('detail_penerimaan_barangs')->restrictOnDelete();
             $table->unsignedInteger('quantity');
             $table->unsignedBigInteger('harga');
             $table->unsignedBigInteger('subtotal');

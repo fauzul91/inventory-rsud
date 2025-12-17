@@ -22,32 +22,40 @@ class PemesananService
     public function getAllStoks(array $filters)
     {
         $perPage = $filters['per_page'] ?? 10;
+        $query = $this->stokRepository->getAllStoks($filters);
+        $query->with([
+            'category:id,name',
+            'satuan:id,name',
+            'detailPenerimaanBarang' => fn($q) =>
+                $q->where('is_layak', true)
+                    ->whereHas(
+                        'penerimaan',
+                        fn($p) =>
+                        $p->whereIn('status', ['checked', 'confirmed', 'signed', 'paid'])
+                    )
+        ])->orderBy('name');
 
-        $stoks = $this->stokRepository->getAllStoks($filters)
-            ->with([
-                'category:id,name',
-                'satuan:id,name',
-                'histories'
-            ])
-            ->paginate($perPage);
-
+        $stoks = $query->paginate($perPage);
         $stoks->getCollection()->transform(function ($stok) {
-            $totalStok = $stok->histories->sum('remaining_qty');
-
+            $detailPenerimaan = $stok->detailPenerimaanBarang;
             return [
                 'id' => $stok->id,
                 'name' => $stok->name,
                 'category_name' => $stok->category->name,
-                'total_stok' => $totalStok,
+                'total_stok' => $detailPenerimaan->sum('quantity'),
                 'satuan' => $stok->satuan->name ?? null,
             ];
         });
 
         return $stoks;
     }
-    public function getAllPemesanan(array $filters)
+    public function getAllPemesanan(array $filters, string $status)
     {
-        return $this->pemesananRepository->getAllPemesanan($filters);
+        return $this->pemesananRepository->getAllPemesanan($filters, $status);
+    }
+    public function getAllStatusPemesananInstalasi(array $filters)
+    {
+        return $this->pemesananRepository->getAllStatusPemesananInstalasi($filters);
     }
     public function create(array $data)
     {
