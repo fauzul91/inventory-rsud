@@ -96,12 +96,12 @@ class PengeluaranRepository implements PengeluaranRepositoryInterface
     public function getLayakByStok(int $stokId)
     {
         return DetailPenerimaanBarang::with([
-            'penerimaan:id,created_at',
+            'penerimaan:id,created_at,no_surat',
             'detailPemesanans'
         ])
             ->where('stok_id', $stokId)
             ->where('is_layak', true)
             ->orderBy('created_at', 'asc')
-            ->paginate(10);
+            ->paginate(perPage: 5);
     }
 }

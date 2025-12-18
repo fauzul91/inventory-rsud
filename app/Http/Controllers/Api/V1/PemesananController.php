@@ -8,6 +8,7 @@ use App\Http\Requests\V1\PemesananStoreRequest;
 use App\Http\Requests\V1\UpdateDetailQuantityRequest;
 use App\Http\Requests\V1\UpdateQuantityPenanggungJawabRequest;
 use App\Services\V1\PemesananService;
+use DomainException;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -95,8 +96,10 @@ class PemesananController extends Controller
                 $data,
                 201
             );
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        } catch (DomainException $e) {
+            return ResponseHelper::jsonResponse(false, $e->getMessage(), null, 422);
+        } catch (\Throwable $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan sistem', null, 500);
         }
     }
 

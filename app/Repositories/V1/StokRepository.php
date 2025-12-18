@@ -173,4 +173,24 @@ class StokRepository implements StokRepositoryInterface
 
         return $stok;
     }
+    public function getAvailableStock(int $stokId): int
+    {
+        $stok = Stok::with([
+            'detailPenerimaanBarang' => fn($q) =>
+                $q->where('is_layak', true)
+                    ->whereHas(
+                        'penerimaan',
+                        fn($p) =>
+                        $p->whereIn('status', ['checked', 'confirmed', 'signed', 'paid'])
+                    )
+        ])->findOrFail($stokId);
+
+        $masuk = $stok->detailPenerimaanBarang->sum('quantity');
+
+        $keluar = $stok->detailPenerimaanBarang
+            ->flatMap(fn($d) => $d->detailPemesanans)
+            ->sum('pivot.quantity');
+
+        return $masuk - $keluar;
+    }
 }
