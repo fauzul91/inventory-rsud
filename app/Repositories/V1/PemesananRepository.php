@@ -9,6 +9,12 @@ use App\Interfaces\V1\PemesananRepositoryInterface;
 
 class PemesananRepository implements PemesananRepositoryInterface
 {
+    private StokRepository $stokRepository;
+    public function __construct(
+        StokRepository $stokRepository,
+    ) {
+        $this->stokRepository = $stokRepository;
+    }
     public function getAllPemesanan(array $filters, string $status)
     {
         $query = Pemesanan::with(['user:id,name'])
@@ -94,6 +100,16 @@ class PemesananRepository implements PemesananRepositoryInterface
     public function createPemesanan(array $data)
     {
         return DB::transaction(function () use ($data) {
+            foreach ($data['items'] as $item) {
+                $availableStock = $this->stokRepository
+                    ->getAvailableStock($item['stok_id']);
+
+                if ($availableStock < $item['quantity']) {
+                    throw new \DomainException(
+                        "Stok tidak mencukupi. Tersedia: {$availableStock}, diminta: {$item['quantity']}"
+                    );
+                }
+            }
 
             $pemesanan = Pemesanan::create([
                 'user_id' => auth()->id() ?? 6,

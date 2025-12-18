@@ -102,7 +102,7 @@ class PengeluaranService
                 }
                 return [
                     'detail_penerimaan_id' => $item->id,
-                    'bast_id' => $item->penerimaan_id,
+                    'bast_id' => $item->penerimaan->no_surat,
                     'tanggal_bast' => Carbon::parse($item->penerimaan->created_at)->format('d-m-Y'),
                     'quantity_total' => $item->quantity,
                     'quantity_used' => $usedQty,
