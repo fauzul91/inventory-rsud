@@ -3,7 +3,6 @@
 namespace App\Repositories\V1;
 
 use App\Models\Penerimaan;
-use App\Models\StokHistory;
 use Illuminate\Support\Facades\DB;
 use App\Models\DetailPenerimaanBarang;
 use App\Interfaces\V1\PelaporanRepositoryInterface;
@@ -12,7 +11,13 @@ class PelaporanRepository implements PelaporanRepositoryInterface
 {
     public function getTotalStokBarang()
     {
-        return StokHistory::sum('remaining_qty');
+        $totalMasuk = DB::table('detail_penerimaan_barangs')
+            ->sum('quantity');
+
+        $totalKeluar = DB::table('detail_pemesanan_penerimaan')
+            ->sum('quantity');
+
+        return $totalMasuk - $totalKeluar;
     }
 
     public function getTotalBastSigned()
@@ -45,7 +50,7 @@ class PelaporanRepository implements PelaporanRepositoryInterface
 
     public function getPengeluaranPerBulan($year)
     {
-        return DB::table('detail_pemesanans')
+        return DB::table('detail_pemesanan_penerimaan')
             ->selectRaw('MONTH(created_at) as month, SUM(quantity) as total')
             ->whereYear('created_at', $year)
             ->groupByRaw('MONTH(created_at)')
