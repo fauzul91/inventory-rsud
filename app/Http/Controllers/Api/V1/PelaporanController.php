@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Interfaces\V1\PelaporanRepositoryInterface;
-use App\Repositories\V1\RepositoryRepository;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
 
