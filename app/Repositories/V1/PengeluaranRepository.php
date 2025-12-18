@@ -56,6 +56,7 @@ class PengeluaranRepository implements PengeluaranRepositoryInterface
                 'p.no_surat',
                 'pm.ruangan as instalasi',
                 'c.name as category_name',
+                's.name as stok_name',
                 'dpp.quantity',
                 'dpp.harga',
                 'dpp.subtotal',
