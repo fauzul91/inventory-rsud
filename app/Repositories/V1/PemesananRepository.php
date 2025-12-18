@@ -118,8 +118,22 @@ class PemesananRepository implements PemesananRepositoryInterface
     {
         $pemesanan = Pemesanan::with([
             'user:id,name',
-            'detailPemesanan.stok'
         ])->findOrFail($id);
+        $detailItems = $pemesanan->detailPemesanan()
+            ->with(['stok.satuan'])
+            ->paginate(10);
+
+        $detailItems->getCollection()->transform(function ($item) {
+            return [
+                'id' => $item->id,
+                'stok_id' => $item->stok_id,
+                'stok_name' => $item->stok->name,
+                'satuan_name' => ucfirst($item->stok->satuan->name),
+                'quantity' => $item->quantity,
+                'quantity_pj' => $item->quantity_pj,
+                'quantity_admin_gudang' => $item->quantity_admin_gudang,
+            ];
+        });
 
         return [
             'id' => $pemesanan->id,
@@ -129,18 +143,7 @@ class PemesananRepository implements PemesananRepositoryInterface
             'user_name' => $pemesanan->user->name,
             'ruangan' => $pemesanan->ruangan,
             'status' => $pemesanan->status,
-
-            'detail_items' => $pemesanan->detailPemesanan->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'stok_id' => $item->stok_id,
-                    'stok_name' => $item->stok->name,
-                    'satuan_name' => ucfirst($item->stok->satuan->name),
-                    'quantity' => $item->quantity,
-                    'quantity_pj' => $item->quantity_pj,
-                    'quantity_admin_gudang' => $item->quantity_admin_gudang,
-                ];
-            }),
+            'detail_items' => $detailItems
         ];
     }
 
