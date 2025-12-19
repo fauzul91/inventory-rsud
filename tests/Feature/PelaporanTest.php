@@ -87,12 +87,21 @@ class PelaporanTest extends TestCase
         $response = $this->getJson('/api/v1/pelaporan/dashboard');
 
         $response->assertStatus(200)
-            ->assertJson([
-                'success' => true,
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.total_stok_barang', 13)
+            ->assertJsonPath('data.bast_sudah_diterima', 1)
+            ->assertJsonPath('data.barang_belum_dibayar', 17)
+            ->assertJsonStructure([
+                'success',
+                'message',
                 'data' => [
-                    'total_stok_barang'    => 13,
-                    'bast_sudah_diterima'  => 1,
-                    'barang_belum_dibayar' => 17,
+                    'total_stok_barang',
+                    'stok_change_percent',
+                    'stok_change_trend',
+                    'bast_sudah_diterima',
+                    'barang_belum_dibayar',
+                    'belum_dibayar_change_percent',
+                    'belum_dibayar_change_trend',
                 ],
             ]);
     }
