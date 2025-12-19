@@ -9,4 +9,5 @@ interface PelaporanRepositoryInterface
     public function getTotalBarangBelumDibayar();
     public function getPenerimaanPerBulan($year);
     public function getPengeluaranPerBulan($year);
+    public function getDashboardInsight();
 }
