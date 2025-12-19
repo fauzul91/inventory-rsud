@@ -9,11 +9,11 @@ use App\Models\User;
 use App\Models\Category;
 use App\Models\Satuan;
 use App\Models\Stok;
-use App\Models\StokHistory;
 use App\Models\Penerimaan;
 use App\Models\DetailPenerimaanBarang;
 use App\Models\Pemesanan;
 use App\Models\DetailPemesanan;
+use Illuminate\Support\Facades\DB;
 
 class PelaporanTest extends TestCase
 {
@@ -22,27 +22,14 @@ class PelaporanTest extends TestCase
     /** @test */
     public function dapat_mengambil_data_dashboard()
     {
-        $satuan   = Satuan::factory()->create();
+        $user     = User::factory()->create();
         $kategori = Category::factory()->create();
+        $satuan   = Satuan::factory()->create();
 
         $stok = Stok::factory()->create([
             'category_id' => $kategori->id,
             'satuan_id'   => $satuan->id,
         ]);
-
-        // stok history buat total stok barang
-        StokHistory::create([
-            'stok_id'       => $stok->id,
-            'year'          => now()->year,
-            'quantity'      => 10,
-            'used_qty'      => 2,
-            'remaining_qty' => 8,
-            'source'        => 'test',
-            'source_id'     => 1,
-        ]);
-
-        // user & penerimaan signed
-        $user = User::factory()->create();
 
         $penerimaanSigned = Penerimaan::factory()->create([
             'user_id'     => $user->id,
@@ -50,15 +37,38 @@ class PelaporanTest extends TestCase
             'status'      => 'signed',
         ]);
 
-        DetailPenerimaanBarang::factory()->create([
+        $detailPenerimaanMasuk = DetailPenerimaanBarang::factory()->create([
             'penerimaan_id' => $penerimaanSigned->id,
             'stok_id'       => $stok->id,
-            'quantity'      => 5,
+            'quantity'      => 10,
             'harga'         => 1000,
-            'total_harga'   => 5000,
+            'total_harga'   => 10000,
         ]);
 
-        // penerimaan belum dibayar
+        $pemesanan = Pemesanan::factory()->create([
+            'user_id'           => $user->id,
+            'nama_pj_instalasi' => 'TEST',
+            'ruangan'           => 'TEST',
+            'status'            => 'pending',
+            'tanggal_pemesanan' => now()->toDateString(),
+        ]);
+
+        $detailPemesanan = DetailPemesanan::factory()->create([
+            'pemesanan_id' => $pemesanan->id,
+            'stok_id'      => $stok->id,
+            'quantity'     => 4,
+        ]);
+
+        DB::table('detail_pemesanan_penerimaan')->insert([
+            'detail_pemesanan_id'  => $detailPemesanan->id,
+            'detail_penerimaan_id' => $detailPenerimaanMasuk->id,
+            'quantity'             => 4,
+            'harga'                => 1000,
+            'subtotal'             => 4000,
+            'created_at'           => now(),
+            'updated_at'           => now(),
+        ]);
+
         $penerimaanBelumBayar = Penerimaan::factory()->create([
             'user_id'     => $user->id,
             'category_id' => $kategori->id,
@@ -77,13 +87,12 @@ class PelaporanTest extends TestCase
         $response = $this->getJson('/api/v1/pelaporan/dashboard');
 
         $response->assertStatus(200)
-            ->assertJsonStructure([
-                'success',
-                'message',
+            ->assertJson([
+                'success' => true,
                 'data' => [
-                    'total_stok_barang',
-                    'bast_sudah_diterima',
-                    'barang_belum_dibayar',
+                    'total_stok_barang'    => 13,
+                    'bast_sudah_diterima'  => 1,
+                    'barang_belum_dibayar' => 17,
                 ],
             ]);
     }
@@ -91,9 +100,9 @@ class PelaporanTest extends TestCase
     /** @test */
     public function dapat_mengambil_penerimaan_per_bulan()
     {
-        $satuan   = Satuan::factory()->create();
-        $kategori = Category::factory()->create();
         $user     = User::factory()->create();
+        $kategori = Category::factory()->create();
+        $satuan   = Satuan::factory()->create();
 
         $stok = Stok::factory()->create([
             'category_id' => $kategori->id,
@@ -103,87 +112,87 @@ class PelaporanTest extends TestCase
         $penerimaan = Penerimaan::factory()->create([
             'user_id'     => $user->id,
             'category_id' => $kategori->id,
-            // created_at default now()
         ]);
 
-        // Data dummy di bulan Mei 2024
         DetailPenerimaanBarang::factory()->create([
             'penerimaan_id' => $penerimaan->id,
             'stok_id'       => $stok->id,
             'quantity'      => 10,
             'harga'         => 1000,
             'total_harga'   => 10000,
-            'created_at'    => '2024-05-10 00:00:00',
+            'created_at'    => '2024-05-10 10:00:00',
         ]);
 
         $response = $this->getJson('/api/v1/pelaporan/penerimaan-per-bulan?year=2024');
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'success',
-                'message',
-                'data' => [
-                    '*' => ['month', 'total'],
-                ],
-            ]);
+        $response->assertStatus(200);
 
         $data = $response->json('data');
 
-        // 12 bulan
         $this->assertCount(12, $data);
 
-        foreach ($data as $row) {
-            $this->assertGreaterThanOrEqual(1, $row['month']);
-            $this->assertLessThanOrEqual(12, $row['month']);
-            $this->assertArrayHasKey('total', $row);
-        }
+        $mei = collect($data)->firstWhere('month', 5);
+        $this->assertEquals(10, $mei['total']);
     }
 
     /** @test */
     public function dapat_mengambil_pengeluaran_per_bulan()
     {
-        $satuan   = Satuan::factory()->create();
-        $kategori = Category::factory()->create();
         $user     = User::factory()->create();
+        $kategori = Category::factory()->create();
+        $satuan   = Satuan::factory()->create();
 
         $stok = Stok::factory()->create([
             'category_id' => $kategori->id,
             'satuan_id'   => $satuan->id,
         ]);
 
-        $pemesanan = Pemesanan::factory()->create([
-            'user_id'            => $user->id,
-            'status'             => 'done',
-            'tanggal_pemesanan'  => '2024-08-01',
+        $penerimaan = Penerimaan::factory()->create([
+            'user_id'     => $user->id,
+            'category_id' => $kategori->id,
         ]);
 
-        DetailPemesanan::factory()->create([
+        $detailPenerimaan = DetailPenerimaanBarang::factory()->create([
+            'penerimaan_id' => $penerimaan->id,
+            'stok_id'       => $stok->id,
+            'quantity'      => 10,
+            'harga'         => 1000,
+            'total_harga'   => 10000,
+        ]);
+
+        $pemesanan = Pemesanan::factory()->create([
+            'user_id'           => $user->id,
+            'nama_pj_instalasi' => 'TEST',
+            'ruangan'           => 'TEST',
+            'status'            => 'approved_admin_gudang',
+            'tanggal_pemesanan' => '2024-08-01',
+        ]);
+
+        $detailPemesanan = DetailPemesanan::factory()->create([
             'pemesanan_id' => $pemesanan->id,
             'stok_id'      => $stok->id,
             'quantity'     => 7,
-            'created_at'   => '2024-08-20 00:00:00',
+        ]);
+
+        DB::table('detail_pemesanan_penerimaan')->insert([
+            'detail_pemesanan_id'  => $detailPemesanan->id,
+            'detail_penerimaan_id' => $detailPenerimaan->id,
+            'quantity'             => 7,
+            'harga'                => 2000,
+            'subtotal'             => 14000,
+            'created_at'           => '2024-08-20 09:00:00',
+            'updated_at'           => '2024-08-20 09:00:00',
         ]);
 
         $response = $this->getJson('/api/v1/pelaporan/pengeluaran-per-bulan?year=2024');
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'success',
-                'message',
-                'data' => [
-                    '*' => ['month', 'total'],
-                ],
-            ]);
+        $response->assertStatus(200);
 
         $data = $response->json('data');
 
-        // 12 bulan
         $this->assertCount(12, $data);
 
-        foreach ($data as $row) {
-            $this->assertGreaterThanOrEqual(1, $row['month']);
-            $this->assertLessThanOrEqual(12, $row['month']);
-            $this->assertArrayHasKey('total', $row);
-        }
+        $agustus = collect($data)->firstWhere('month', 8);
+        $this->assertEquals(7, $agustus['total']);
     }
 }

@@ -10,14 +10,13 @@ class PemesananFactory extends Factory
 {
     protected $model = Pemesanan::class;
 
-    public function definition()
+    public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
+            'user_id'           => User::factory(),
             'nama_pj_instalasi' => $this->faker->name(),
-            'ruangan' => $this->faker->randomElement(['ICU', 'OK', 'Radiologi', 'UGD']),
-            'status' => $this->faker->randomElement(['pending', 'checked', 'confirmed', 'done']),
-            'tanggal_pemesanan' => $this->faker->date('Y-m-d'),
+            'ruangan'           => $this->faker->word(),
+            'tanggal_pemesanan' => $this->faker->date(),
         ];
     }
 }

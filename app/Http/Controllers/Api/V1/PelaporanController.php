@@ -39,9 +39,10 @@ class PelaporanController extends Controller
         $result = [];
         for ($m = 1; $m <= 12; $m++) {
             $found = $data->firstWhere('month', $m);
+
             $result[] = [
                 'month' => $m,
-                'total' => $found->total ?? 0,
+                'total' => $found['total'] ?? 0,
             ];
         }
 
@@ -62,9 +63,10 @@ class PelaporanController extends Controller
         $result = [];
         for ($m = 1; $m <= 12; $m++) {
             $found = $data->firstWhere('month', $m);
+
             $result[] = [
                 'month' => $m,
-                'total' => $found->total ?? 0,
+                'total' => $found['total'] ?? 0,
             ];
         }
 
