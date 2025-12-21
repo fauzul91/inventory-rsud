@@ -5,54 +5,22 @@ namespace App\Repositories\V1;
 use App\Interfaces\V1\PengeluaranRepositoryInterface;
 use App\Models\DetailPenerimaanBarang;
 use App\Models\DetailPenerimaanPemesanan;
-use App\Models\Pemesanan;
 use App\Models\DetailPemesanan;
 use Illuminate\Support\Facades\DB;
-use App\Interfaces\V1\PemesananRepositoryInterface;
+use Carbon\Carbon;
 
 class PengeluaranRepository implements PengeluaranRepositoryInterface
 {
-    public function getAllPengeluaran(array $filters)
+    public function getAllPengeluaranQuery(array $filters)
     {
         $query = DB::table('detail_pemesanan_penerimaan as dpp')
-            ->join(
-                'detail_penerimaan_barangs as dpb',
-                'dpp.detail_penerimaan_id',
-                '=',
-                'dpb.id'
-            )
-            ->join(
-                'penerimaans as p',
-                'dpb.penerimaan_id',
-                '=',
-                'p.id'
-            )
-            ->join(
-                'detail_pemesanans as dps',
-                'dpp.detail_pemesanan_id',
-                '=',
-                'dps.id'
-            )
-            ->join(
-                'pemesanans as pm',
-                'dps.pemesanan_id',
-                '=',
-                'pm.id'
-            )
-            ->join(
-                'stoks as s',
-                'dpb.stok_id',
-                '=',
-                's.id'
-            )
-            ->join(
-                'categories as c',
-                's.category_id',
-                '=',
-                'c.id'
-            )
+            ->join('detail_penerimaan_barangs as dpb', 'dpp.detail_penerimaan_id', '=', 'dpb.id')
+            ->join('penerimaans as p', 'dpb.penerimaan_id', '=', 'p.id')
+            ->join('detail_pemesanans as dps', 'dpp.detail_pemesanan_id', '=', 'dps.id')
+            ->join('pemesanans as pm', 'dps.pemesanan_id', '=', 'pm.id')
+            ->join('stoks as s', 'dpb.stok_id', '=', 's.id')
+            ->join('categories as c', 's.category_id', '=', 'c.id')
             ->select([
-                'dpp.id',
                 'p.no_surat',
                 'pm.ruangan as instalasi',
                 'c.name as category_name',
@@ -73,7 +41,24 @@ class PengeluaranRepository implements PengeluaranRepositoryInterface
             });
         }
 
-        return $query->paginate($filters['per_page'] ?? 10);
+        if (!empty($filters['category'])) {
+            $query->where('c.id', $filters['category']);
+        }
+
+        if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
+            $start = Carbon::parse($filters['start_date'])->startOfDay();
+            $end = Carbon::parse($filters['end_date'])->endOfDay();
+
+            $query->whereBetween('dpp.created_at', [$start, $end]);
+        }
+
+        return $query;
+    }
+
+    public function getAllPengeluaran(array $filters)
+    {
+        return $this->getAllPengeluaranQuery($filters)
+            ->paginate($filters['per_page'] ?? 10);
     }
 
     public function saveGudangQuantity(DetailPemesanan $detail, int $quantity)
