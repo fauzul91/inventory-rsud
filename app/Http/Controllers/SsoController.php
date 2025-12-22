@@ -90,16 +90,36 @@ class SsoController extends Controller
         // Login user ke sistem client
         Auth::login($user);
 
-        // Simpan role dari SSO ke session
-        session(['roles' => $ssoUser['roles'] ?? []]);
+        // --- MULAI PERUBAHAN DI SINI ---
 
-        // Redirect ke dashboard atau halaman utama
-        // return redirect('/dashboard');
-        return response()->json([
-            'message' => 'Login SSO berhasil!',
-            'user' => $user,
-            'roles' => session('roles'),
+        // 1. Ambil token dari respon SSO sebelumnya
+        $accessToken = $tokenResponse->json()['access_token'];
+
+        // 2. Siapkan URL Frontend
+        $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
+
+        // 1. Kita buat array baru (Custom Data)
+        // Gabungkan data dari DB Lokal ($user) + Role dari SSO ($ssoUser)
+        $userData = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'photo' => $user->photo, // Jika ada
+
+            // AMBIL ROLE DARI VARIABLE $ssoUser (Hasil API /api/me SSO)
+            // Pastikan kuncinya 'role' (sesuai yang diminta Frontend)
+            'role' => $ssoUser['roles'][0] ?? 'guest',
+        ];
+
+        // dd($ssoUser);
+
+        // 2. Encode array buatan kita tadi, BUKAN $user mentah
+        $query = http_build_query([
+            'token' => $accessToken,
+            'user' => json_encode($userData), // <--- Pakai $userData
         ]);
+
+        return redirect($frontendUrl . '/auth/sso-callback?' . $query);
     }
 
     /**
@@ -110,6 +130,16 @@ class SsoController extends Controller
         Auth::logout();
         session()->flush();
 
-        return redirect(config('services.sso.logout_url'));
+        // 1. Ambil URL Logout SSO
+        $ssoLogoutBaseUrl = config('services.sso.logout_url');
+
+        // 2. Tentukan Tujuan Akhir: "Kembalikan saya ke Rumah SSO (localhost:9000)"
+        $destination = config('services.sso.host'); // http://localhost:9000
+
+        // 3. Susun URL
+        // Hasil: http://localhost:9000/logout?redirect=http://localhost:9000
+        $targetUrl = $ssoLogoutBaseUrl . '?redirect=' . urlencode($destination);
+
+        return redirect($targetUrl);
     }
 }
