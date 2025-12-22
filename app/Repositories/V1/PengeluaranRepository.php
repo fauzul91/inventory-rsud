@@ -30,7 +30,7 @@ class PengeluaranRepository implements PengeluaranRepositoryInterface
                 'dpp.subtotal',
                 'dpp.created_at as tanggal_pengeluaran'
             ])
-            ->orderBy('dpp.created_at', 'desc');
+            ->orderBy('c.name', 'asc');
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
