@@ -250,7 +250,7 @@ class PenerimaanController extends Controller
         $collection = $data->getCollection();
 
         if ($isCheck) {
-            $collection = $collection->whereNotIn('status', ['pending', 'checked']);
+            $collection = $collection->whereNotIn('status', ['pending', 'checked'])->values();
         }
 
         $transformed = $collection->map(function ($item) {

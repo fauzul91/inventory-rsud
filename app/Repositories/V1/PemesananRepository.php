@@ -66,8 +66,7 @@ class PemesananRepository implements PemesananRepositoryInterface
                 DATE_FORMAT(tanggal_pemesanan, '%d-%m-%Y') as tanggal_pemesanan,
                 status  
             ")
-            ->where('status', '!=', 'pending')
-            ->orderBy('created_at', 'desc');
+            ->orderBy('status', 'desc');
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
