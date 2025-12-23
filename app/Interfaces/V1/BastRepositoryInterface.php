@@ -4,8 +4,7 @@ namespace App\Interfaces\V1;
 
 interface BastRepositoryInterface
 {
-    public function getUnsignedBast(array $filters);
-    public function getSignedBast(array $filters);
+    public function getBastList(array $filters, array $statuses);
     public function findPenerimaan($id);
     public function findBast($id);
     public function createBast($penerimaanId, $filename);

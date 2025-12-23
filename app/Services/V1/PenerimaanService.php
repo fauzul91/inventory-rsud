@@ -78,6 +78,11 @@ class PenerimaanService
                     'signed' => 'Telah Ditandatangani',
                     default => 'Telah Ditandatangani',
                 },
+            'paid' => match ($status) {
+                    'signed' => 'Belum Dibayar',
+                    'paid' => 'Sudah Dibayar',
+                    default => 'Sudah Dibayar',
+                },
             default => match ($status) {
                     'pending' => 'Belum Dicek',
                     'checked' => 'Sedang Dicek',

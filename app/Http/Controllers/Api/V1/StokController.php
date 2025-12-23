@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\StokUpdateRequest;
 use App\Interfaces\V1\StokRepositoryInterface;
 use App\Repositories\V1\StokRepository;
+use App\Services\V1\PenerimaanService;
 use App\Services\V1\StokService;
 use Exception;
 use Illuminate\Http\Request;
@@ -52,36 +53,6 @@ class StokController extends Controller
 
             $data = $this->stokService->getAllStoks($filters);
             return ResponseHelper::jsonResponse(true, 'Data stok berhasil diambil', $data, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
-        }
-    }
-    public function getPaidBastStock(Request $request)
-    {
-        try {
-            $filters = [
-                'per_page' => $request->query('per_page'),
-                'category' => $request->query('category'),
-                'search' => $request->query('search'),
-            ];
-
-            $data = $this->stokService->getPaidBastStock($filters);
-            return ResponseHelper::jsonResponse(true, 'Data bast sudah dibayar berhasil diambil', $data, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
-        }
-    }
-    public function getUnpaidBastStock(Request $request)
-    {
-        try {
-            $filters = [
-                'per_page' => $request->query('per_page'),
-                'category' => $request->query('category'),
-                'search' => $request->query('search'),
-            ];
-
-            $data = $this->stokService->getUnpaidBastStock($filters);
-            return ResponseHelper::jsonResponse(true, 'Data bast belum dibayar berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }

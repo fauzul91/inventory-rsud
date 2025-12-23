@@ -45,19 +45,31 @@ class StokRepository implements StokRepositoryInterface
                 'value' => $row->year,
             ]);
     }
-    public function getAllStoks($filters)
+    public function getAllStoks(array $filters)
     {
-        $query = Stok::query()->with('satuan');
-
-        if (!empty($filters['search'])) {
-            $query->where('name', 'like', '%' . $filters['search'] . '%');
-        }
-
-        if (!empty($filters['category'])) {
-            $query->where('category_id', $filters['category']);
-        }
-
-        return $query;
+        return Stok::query()
+            ->when(
+                $filters['search'] ?? null,
+                fn($q, $v) =>
+                $q->where('name', 'like', "%{$v}%")
+            )
+            ->when(
+                $filters['category'] ?? null,
+                fn($q, $v) =>
+                $q->where('category_id', $v)
+            )
+            ->with([
+                'category:id,name',
+                'satuan:id,name',
+                'detailPenerimaanBarang' => fn($q) =>
+                    $q->where('is_layak', true)
+                        ->whereHas(
+                            'penerimaan',
+                            fn($p) =>
+                            $p->whereIn('status', ['checked', 'confirmed', 'signed', 'paid'])
+                        )
+            ])
+            ->orderBy('name');
     }
     public function getStokById($stokId)
     {
@@ -109,12 +121,17 @@ class StokRepository implements StokRepositoryInterface
             ->select([
                 'dpp.created_at as tanggal',
                 DB::raw("'keluar' as tipe"),
-                DB::raw("CONCAT('BAST-', p.no_surat) as no_surat"), // 🔥 tetap BAST asal
+                DB::raw("CONCAT('BAST-', p.no_surat) as no_surat"),
                 'dpp.quantity',
                 'dpp.harga',
                 'dpp.subtotal'
             ]);
-
+        $details = $stok->detailPenerimaanBarang;
+        $stokMasuk = $details->sum('quantity');
+        $stokKeluar = $details
+            ->flatMap(fn($d) => $d->detailPemesanans)
+            ->sum('pivot.quantity');
+        $totalStok = $stokMasuk - $stokKeluar;
         $mutasi = $masuk
             ->unionAll($keluar)
             ->orderBy('tanggal', 'desc')
@@ -126,38 +143,9 @@ class StokRepository implements StokRepositoryInterface
             'category_name' => $stok->category->name,
             'satuan' => $stok->satuan->name ?? null,
             'minimum_stok' => $stok->minimum_stok,
+            'total_stok' => $totalStok,
             'mutasi' => $mutasi
         ];
-    }
-    public function getPaidBastStock($filters)
-    {
-        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
-            ->where('status', 'paid');
-
-        if (!empty($filters['category'])) {
-            $query->where('category_id', $filters['category']);
-        }
-
-        if (!empty($filters['search'])) {
-            $query->where('no_surat', 'like', '%' . $filters['search'] . '%');
-        }
-
-        return $query;
-    }
-    public function getUnpaidBastStock($filters)
-    {
-        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
-            ->where('status', 'signed');
-
-        if (!empty($filters['category'])) {
-            $query->where('category_id', $filters['category']);
-        }
-
-        if (!empty($filters['search'])) {
-            $query->where('no_surat', 'like', '%' . $filters['search'] . '%');
-        }
-
-        return $query;
     }
     public function edit($id)
     {

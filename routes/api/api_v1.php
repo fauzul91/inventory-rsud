@@ -43,15 +43,12 @@ Route::prefix('v1')->group(function () {
     Route::get('/stok/year', [StokController::class, 'getAllYearForSelect'])->name('stok.year');
     Route::patch('penerimaan/{penerimaanId}/barang/{detailId}/paid', [PenerimaanController::class, 'markDetailAsPaid']);
     Route::apiResource('stok', StokController::class)->except('create', 'destroy');
-    Route::get('/bast/paid', [StokController::class, 'getPaidBastStock'])->name('bast.paid');
-    Route::get('/bast/unpaid', [StokController::class, 'getUnpaidBastStock'])->name('bast.unpaid');
-    Route::get('/bast/{penerimaanId}/generate', [BastController::class, 'generate'])->name('bast.generate');
+    Route::get('/bast/payment', [BastController::class, 'getAllPaymentBast'])->name('bast.paid');
     Route::get('/bast/unsigned', [BastController::class, 'getUnsignedBast'])->name('bast.unsigned');
     Route::get('/bast/signed', [BastController::class, 'getSignedBast'])->name('bast.signed');
     Route::get('/bast/unsigned/{id}/download', [BastController::class, 'downloadUnsignedBast'])->name('bast.unsigned.download');
     Route::get('/bast/signed/{id}/download', [BastController::class, 'downloadSignedBast'])->name('bast.signed.download');
     Route::post('/bast/upload/{id}', [BastController::class, 'upload'])->name('bast.upload');
-    Route::get('/bast/history', [BastController::class, 'historyBast'])->name('bast.history');
     Route::apiResource('pegawai', PegawaiController::class);
     Route::patch('/pegawai/{id}/status', [PegawaiController::class, 'toggleStatus'])->name('pegawai.toggleStatus');
     Route::post('/pemesanan/{pemesananId}/alokasi-stok', [PengeluaranController::class, 'alokasiStokGudang']);

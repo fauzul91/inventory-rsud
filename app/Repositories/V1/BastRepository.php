@@ -8,31 +8,27 @@ use App\Models\Penerimaan;
 
 class BastRepository implements BastRepositoryInterface
 {
-    public function getUnsignedBast(array $filters)
+    public function getBastList(array $filters, array $statuses)
     {
-        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang', 'bast'])
-            ->where('status', 'confirmed');
+        $query = Penerimaan::with([
+            'category:id,name',
+            'detailPegawai.pegawai:id,name',
+            'detailBarang',
+            'bast'
+        ])->whereIn('status', $statuses);
 
-        if (!empty($filters['sort_by'])) {
-            $query->orderBy('created_at', $filters['sort_by'] === 'oldest' ? 'asc' : 'desc');
-        } else {
-            $query->orderBy('created_at', 'desc');
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+
+            $query->where(function ($q) use ($search) {
+                $q->where('no_surat', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($qc) use ($search) {
+                        $qc->where('name', 'like', "%{$search}%");
+                    });
+            });
         }
 
-        return $query->paginate($filters['per_page'] ?? 10);
-    }
-
-    public function getSignedBast(array $filters)
-    {
-        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
-            ->whereIn('status', ['signed', 'paid']);
-
-        if (!empty($filters['sort_by'])) {
-            $query->orderBy('created_at', $filters['sort_by'] === 'oldest' ? 'asc' : 'desc');
-        } else {
-            $query->orderBy('created_at', 'desc');
-        }
-
+        $query->orderBy('created_at', 'asc');
         return $query->paginate($filters['per_page'] ?? 10);
     }
 

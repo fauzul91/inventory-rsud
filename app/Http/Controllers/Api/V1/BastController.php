@@ -5,17 +5,23 @@ namespace App\Http\Controllers\Api\V1;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Interfaces\V1\BastRepositoryInterface;
+use App\Repositories\V1\BastRepository;
 use App\Services\V1\BastService;
+use App\Services\V1\PenerimaanService;
 use Exception;
 use Illuminate\Http\Request;
 
 class BastController extends Controller
 {
+    private PenerimaanService $penerimaanService;
+    private BastRepository $bastRepository;
     private BastService $bastService;
 
-    public function __construct(BastService $bastService)
+    public function __construct(BastService $bastService, BastRepository $bastRepository, PenerimaanService $penerimaanService)
     {
+        $this->bastRepository = $bastRepository;
         $this->bastService = $bastService;
+        $this->penerimaanService = $penerimaanService;
     }
     public function getUnsignedBast(Request $request)
     {
@@ -23,9 +29,10 @@ class BastController extends Controller
             $filters = [
                 'per_page' => $request->query('per_page'),
                 'sort_by' => $request->query('sort_by'),
+                'search' => $request->query('search'),
             ];
 
-            $data = $this->bastService->getUnsignedBast($filters);
+            $data = $this->bastService->getBastList($filters, 'unsigned');
             return ResponseHelper::jsonResponse(true, 'Data Unsigned BAST berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
@@ -37,31 +44,44 @@ class BastController extends Controller
             $filters = [
                 'per_page' => $request->query('per_page'),
                 'sort_by' => $request->query('sort_by'),
+                'search' => $request->query('search'),
             ];
 
-            $data = $this->bastService->getSignedBast($filters);            
+            $data = $this->bastService->getBastList($filters, 'signed');
             return ResponseHelper::jsonResponse(true, 'Data Signed BAST berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
-    /**
-     * Generate BAST PDF
-     */
-    public function generate($penerimaanId)
+    public function getAllPaymentBast(Request $request)
     {
         try {
-            $result = $this->bastService->generateBast($penerimaanId);
-            return ResponseHelper::jsonResponse(true, 'Dokumen BAST berhasil dibuat', $result, 200);
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'category' => $request->query('category'),
+                'search' => $request->query('search'),
+            ];
+
+            $status = $request->query('status');
+            $statuses = match ($status) {
+                'signed' => ['signed'],
+                'paid' => ['paid'],
+                default => ['signed', 'paid'],
+            };
+
+            $data = $this->penerimaanService->getPenerimaanList($filters, $statuses, 'paid');
+
+            return ResponseHelper::jsonResponse(true, 'Data bast berhasil diambil', $data, 200);
         } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
     }
 
     public function downloadUnsignedBast($bastId)
     {
         try {
-            return $this->bastService->downloadUnsignedBast($bastId);
+            $bast = $this->bastRepository->findBast($bastId);
+            return $this->bastService->downloadBastFile($bast, 'unsigned');
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
@@ -69,7 +89,8 @@ class BastController extends Controller
     public function downloadSignedBast($bastId)
     {
         try {
-            return $this->bastService->downloadSignedBast($bastId);
+            $bast = $this->bastRepository->findBast($bastId);
+            return $this->bastService->downloadBastFile($bast, 'signed');
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
@@ -91,21 +112,6 @@ class BastController extends Controller
             return ResponseHelper::jsonResponse(true, 'BAST bertandatangan berhasil diupload', $result, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
-    }
-
-    /**
-     * Ambil riwayat BAST milik user yang login
-     */
-    public function historyBast(Request $request)
-    {
-        try {
-            $filters = $request->only(['sort_by', 'per_page']);
-            $history = $this->bastService->history($filters);
-
-            return ResponseHelper::jsonResponse(true,'Data riwayat BAST berhasil diambil',$history,200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false,'Terjadi kesalahan: ' . $e->getMessage(),null,500);
         }
     }
 }
