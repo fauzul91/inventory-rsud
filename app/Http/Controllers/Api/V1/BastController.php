@@ -114,19 +114,4 @@ class BastController extends Controller
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
-
-    /**
-     * Ambil riwayat BAST milik user yang login
-     */
-    public function historyBast(Request $request)
-    {
-        try {
-            $filters = $request->only(['sort_by', 'per_page']);
-            $history = $this->bastService->history($filters);
-
-            return ResponseHelper::jsonResponse(true, 'Data riwayat BAST berhasil diambil', $history, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
-    }
 }
