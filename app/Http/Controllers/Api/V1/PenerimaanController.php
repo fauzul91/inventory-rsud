@@ -64,7 +64,7 @@ class PenerimaanController extends Controller
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
-    public function checkedHistory(Request $request)
+    public function checkHistory(Request $request)
     {
         try {
             $filters = [
