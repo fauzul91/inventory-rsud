@@ -28,6 +28,7 @@ class PenerimaanController extends Controller
             $filters = [
                 'per_page' => $request->query('per_page'),
                 'sort_by' => $request->query('sort_by'),
+                'search' => $request->query('search'),
             ];
 
             $data = $this->penerimaanService->getPenerimaanList($filters, ['pending']);
@@ -42,6 +43,7 @@ class PenerimaanController extends Controller
             $filters = [
                 'per_page' => $request->query('per_page'),
                 'sort_by' => $request->query('sort_by'),
+                'search' => $request->query('search'),
             ];
 
             $data = $this->penerimaanService->getPenerimaanList($filters, ['pending', 'checked'], 'check');
@@ -56,6 +58,7 @@ class PenerimaanController extends Controller
             $filters = [
                 'per_page' => $request->query('per_page'),
                 'sort_by' => $request->query('sort_by'),
+                'search' => $request->query('search'),
             ];
 
             $data = $this->penerimaanService->getPenerimaanList($filters, ['checked', 'confirmed', 'signed', 'paid']);
@@ -70,6 +73,7 @@ class PenerimaanController extends Controller
             $filters = [
                 'per_page' => $request->query('per_page'),
                 'sort_by' => $request->query('sort_by'),
+                'search' => $request->query('search'),
             ];
 
             $data = $this->penerimaanService->getPenerimaanList($filters, ['confirmed', 'signed', 'paid'], 'check');
