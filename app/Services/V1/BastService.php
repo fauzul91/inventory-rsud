@@ -2,6 +2,7 @@
 
 namespace App\Services\V1;
 
+use App\Models\Bast;
 use App\Models\Penerimaan;
 use App\Repositories\V1\BastRepository;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -18,75 +19,70 @@ class BastService
         $this->monitoringService = $monitoringService;
     }
 
-    public function getUnsignedBast($filters)
+    public function getBastList(array $filters, string $type)
     {
-        $data = $this->bastRepository->getUnsignedBast($filters);
-        $transformed = $data->getCollection()->map(function ($item) {
-            return [
-                'id' => $item->id,
-                'no_surat' => $item->no_surat,
-                'role_user' => $item->user->roles->pluck('name')->first() ?? null,
-                'category_name' => $item->category->name ?? null,
-                'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                'status' => 'Belum Ditandatangani',
-                'bast' => $item->status === 'confirmed' && $item->bast ? [
-                    'id' => $item->bast->id,
-                    'file_url' => asset('storage/' . $item->bast->filename),
-                    'download_endpoint' => route('bast.unsigned.download', ['id' => $item->bast->id]),
-                ] : null,
-            ];
-        });
+        $statuses = match ($type) {
+            'unsigned' => ['confirmed'],
+            'signed' => ['signed', 'paid'],
+            default => [],
+        };
+
+        $data = $this->bastRepository->getBastList($filters, $statuses);
+        $transformed = $data->getCollection()->map(
+            fn($item) => $this->transformBastItem($item, $type)
+        );
 
         $data->setCollection($transformed);
 
         return $data;
     }
-
-    public function getSignedBast($filters)
+    private function transformBastItem($item, string $type): array
     {
-        $data = $this->bastRepository->getSignedBast($filters);
+        $pegawai = optional($item->detailPegawai->first()?->pegawai);
 
-        $transformed = $data->getCollection()->map(function ($item) {
-            return [
-                'id' => $item->id,
-                'no_surat' => $item->no_surat,
-                'role_user' => $item->user->roles->pluck('name')->first() ?? null,
-                'category_name' => $item->category->name ?? null,
-                'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                'status' => $item->status === 'signed' || $item->status === 'paid' ? 'Telah Ditandatangani' : 'Belum Ditandatangani',
-                'bast' => $item->bast ? [
-                    'id' => $item->bast->id,
-                    'signed_file_url' => $item->bast->uploaded_signed_file
-                        ? asset('storage/' . $item->bast->uploaded_signed_file)
-                        : null,
-                    'download_endpoint' => route('bast.signed.download', ['id' => $item->bast->id]),
-                ] : null,
-            ];
-        });
+        return [
+            'id' => $item->id,
+            'no_surat' => $item->no_surat,
+            'role_user' => $item->user?->roles->pluck('name')->first(),
+            'category_name' => $item->category?->name,
+            'pegawai_name' => $pegawai->name,
+            'status' => $type === 'signed'
+                ? 'Telah Ditandatangani'
+                : 'Belum Ditandatangani',
 
-        $data->setCollection($transformed);
-
-        return $data;
+            'bast' => $this->mapBastFile($item, $type),
+        ];
     }
+    private function mapBastFile($item, string $type): ?array
+    {
+        if (!$item->bast) {
+            return null;
+        }
 
-    // public function generateBast($penerimaanId)
-    // {
-    //     $penerimaan = $this->bastRepository->findPenerimaan($penerimaanId);
+        return match ($type) {
+            'unsigned' => [
+                'id' => $item->bast->id,
+                'file_url' => asset('storage/' . $item->bast->filename),
+                'download_endpoint' => route(
+                    'bast.unsigned.download',
+                    ['id' => $item->bast->id]
+                ),
+            ],
 
-    //     $cleanNoSurat = str_replace(['/', '\\', ' '], '-', $penerimaan->no_surat);
-    //     $filename = "bast/generated/{$cleanNoSurat}.pdf";
+            'signed' => [
+                'id' => $item->bast->id,
+                'signed_file_url' => $item->bast->uploaded_signed_file
+                    ? asset('storage/' . $item->bast->uploaded_signed_file)
+                    : null,
+                'download_endpoint' => route(
+                    'bast.signed.download',
+                    ['id' => $item->bast->id]
+                ),
+            ],
 
-    //     Pdf::view('pdf.bast', compact('penerimaan'))
-    //         ->format(Format::Legal)
-    //         ->margins(40, 20, 40, 20)
-    //         ->disk('public')
-    //         ->save($filename);
-
-    //     $bast = $this->bastRepository->createBast($penerimaanId, $filename);
-    //     $bast->url = asset('storage/' . $filename);
-
-    //     return $bast;
-    // }
+            default => null,
+        };
+    }
 
     public function generateBast($penerimaanId)
     {
@@ -108,37 +104,36 @@ class BastService
         return $bast;
     }
 
-    public function downloadUnsignedBast($bastId)
+    public function downloadBastFile(Bast $bast, string $type = 'unsigned')
     {
-        $bast = $this->bastRepository->findBast($bastId);
-        $filePath = storage_path('app/public/' . $bast->filename);
+        $fileField = match ($type) {
+            'signed' => 'uploaded_signed_file',
+            default => 'filename',
+        };
+
+        if (empty($bast->$fileField)) {
+            throw new \Exception(
+                ucfirst($type) . ' BAST belum tersedia'
+            );
+        }
+
+        $filePath = storage_path('app/public/' . $bast->$fileField);
 
         if (!file_exists($filePath)) {
-            throw new \Exception('Unsigned BAST tidak ditemukan.');
+            throw new \Exception(
+                ucfirst($type) . ' BAST tidak ditemukan'
+            );
         }
 
-        $this->monitoringService->log("Download SIGNED BAST", 2);
+        $this->monitoringService->log(
+            'Download ' . strtoupper($type) . ' BAST',
+            2
+        );
 
-        return response()->download($filePath, basename($bast->filename));
-    }
-
-    public function downloadSignedBast($bastId)
-    {
-        $bast = $this->bastRepository->findBast($bastId);
-
-        if (!$bast->uploaded_signed_file) {
-            throw new \Exception('Signed file belum tersedia');
-        }
-
-        $filePath = storage_path('app/public/' . $bast->uploaded_signed_file);
-
-        if (!file_exists($filePath)) {
-            throw new \Exception('Signed file tidak ditemukan');
-        }
-
-        $this->monitoringService->log("Download SIGNED BAST", 2);
-
-        return response()->download($filePath, basename($bast->uploaded_signed_file));
+        return response()->download(
+            $filePath,
+            basename($bast->$fileField)
+        );
     }
 
     public function uploadSignedBast($penerimaanId, $file)
