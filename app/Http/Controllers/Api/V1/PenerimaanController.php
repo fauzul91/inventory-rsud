@@ -30,10 +30,8 @@ class PenerimaanController extends Controller
                 'sort_by' => $request->query('sort_by'),
             ];
 
-            $data = $this->penerimaanService->getAllPenerimaan($filters);
-            $transformed = $this->transformPenerimaanList($data);
-
-            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil diambil', $transformed, 200);
+            $data = $this->penerimaanService->getPenerimaanList($filters, ['pending']);
+            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
@@ -46,10 +44,36 @@ class PenerimaanController extends Controller
                 'sort_by' => $request->query('sort_by'),
             ];
 
-            $data = $this->penerimaanService->getAllCheckedPenerimaan($filters);
-            $transformed = $this->transformCheckPenerimaanList($data);
+            $data = $this->penerimaanService->getPenerimaanList($filters, ['pending', 'checked'], 'check');
+            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil diambil', $data, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
+    public function history(Request $request)
+    {
+        try {
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'sort_by' => $request->query('sort_by'),
+            ];
 
-            return ResponseHelper::jsonResponse(true, 'Data penerimaan berhasil diambil', $transformed, 200);
+            $data = $this->penerimaanService->getPenerimaanList($filters, ['checked', 'confirmed', 'signed', 'paid']);
+            return ResponseHelper::jsonResponse(true, 'History penerimaan berhasil diambil', $data, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
+    public function checkedHistory(Request $request)
+    {
+        try {
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'sort_by' => $request->query('sort_by'),
+            ];
+
+            $data = $this->penerimaanService->getPenerimaanList($filters, ['confirmed', 'signed', 'paid'], 'check');
+            return ResponseHelper::jsonResponse(true, 'History penerimaan berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
@@ -88,7 +112,7 @@ class PenerimaanController extends Controller
     public function update(PenerimaanUpdateRequest $request, string $id)
     {
         try {
-            $data = $this->penerimaanService->update($request->validated(), $id);
+            $data = $this->penerimaanService->updatePenerimaan($id, $request->validated());
             return ResponseHelper::jsonResponse(
                 true,
                 'Data penerimaan berhasil diperbarui',
@@ -157,49 +181,6 @@ class PenerimaanController extends Controller
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
-
-    public function history(Request $request)
-    {
-        try {
-            $filters = [
-                'per_page' => $request->query('per_page'),
-                'sort_by' => $request->query('sort_by'),
-            ];
-
-            $data = $this->penerimaanService->getHistoryPenerimaan($filters);
-            $transformed = $this->transformPenerimaanList($data, true);
-
-            return ResponseHelper::jsonResponse(
-                true,
-                'History penerimaan berhasil diambil',
-                $transformed,
-                200
-            );
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
-    }
-    public function checkHistory(Request $request)
-    {
-        try {
-            $filters = [
-                'per_page' => $request->query('per_page'),
-                'sort_by' => $request->query('sort_by'),
-            ];
-
-            $data = $this->penerimaanService->getHistoryPenerimaan($filters);
-            $transformed = $this->transformCheckPenerimaanList($data, true);
-
-            return ResponseHelper::jsonResponse(
-                true,
-                'History pengecekan penerimaan berhasil diambil',
-                $transformed,
-                200
-            );
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
-    }
     public function markDetailAsPaid($penerimaanId, $detailId)
     {
         try {
@@ -216,63 +197,5 @@ class PenerimaanController extends Controller
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
-    }
-    private function mapPenerimaanStatusLabel(string $status): string
-    {
-        return match ($status) {
-            'pending' => 'Belum Dicek',
-            'checked' => 'Sedang Dicek',
-            'confirmed' => 'Telah Dikonfirmasi',
-            'signed' => 'Sudah Ditandatangani',
-            'paid' => 'Sudah Dibayar',
-            default => 'Status Tidak Diketahui',
-        };
-    }
-    private function transformPenerimaanList($data, $isHistory = false)
-    {
-        $transformed = $data->getCollection()->map(function ($item) use ($isHistory) {
-            return [
-                'id' => $item->id,
-                'no_surat' => $item->no_surat,
-                'role_user' => $item->user->roles->pluck('name')->first() ?? null,
-                'category_name' => $item->category->name ?? null,
-                'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                'status' => $this->mapPenerimaanStatusLabel($item->status),
-                'status_code' => $item->status,
-            ];
-        });
-
-        $data->setCollection($transformed);
-        return $data;
-    }
-    private function transformCheckPenerimaanList($data, $isCheck = false)
-    {
-        $collection = $data->getCollection();
-
-        if ($isCheck) {
-            $collection = $collection->whereNotIn('status', ['pending', 'checked'])->values();
-        }
-
-        $transformed = $collection->map(function ($item) {
-            $statusLabel = match ($item->status) {
-                'pending' => 'Belum Dicek',
-                'checked' => 'Sedang Dicek',
-                default => 'Telah Dicek',
-            };
-
-            return [
-                'id' => $item->id,
-                'no_surat' => $item->no_surat,
-                'role_user' => $item->user->roles->pluck('name')->first() ?? null,
-                'category_name' => $item->category->name ?? null,
-                'pegawai_name' => optional($item->detailPegawai->first()?->pegawai)->name,
-                'status' => $statusLabel,
-                'status_code' => $item->status,
-            ];
-        });
-
-        $data->setCollection($transformed);
-
-        return $data;
     }
 }

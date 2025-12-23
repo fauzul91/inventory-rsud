@@ -2,6 +2,7 @@
 
 namespace App\Services\V1;
 
+use App\Models\Penerimaan;
 use App\Repositories\V1\PenerimaanRepository;
 
 class DetailPegawaiService
@@ -29,20 +30,56 @@ class DetailPegawaiService
         ]);
     }
 
-    public function syncDetailPegawai($penerimaanId, array $pegawais)
+    public function syncDetailPegawai($penerimaan, array $pegawais)
     {
-        foreach ($pegawais as $pegawai) {
-            $pegawaiId = $pegawai['pegawai_id'];
-            $existing = $this->repository->findDetailPegawaiByPegawaiId($penerimaanId, $pegawaiId);
+        $penerimaanId = $penerimaan instanceof Penerimaan
+            ? $penerimaan->id
+            : (is_object($penerimaan) ? $penerimaan->id : $penerimaan);
 
-            if ($existing) {
-                if (isset($pegawai['alamat_staker'])) {
-                    $this->repository->updateDetailPegawai($existing, [
-                        'alamat_staker' => $pegawai['alamat_staker']
-                    ]);
+        $requestDetailIds = collect($pegawais)
+            ->pluck('id')
+            ->filter()
+            ->toArray();
+
+        $existingPegawais = $this->repository->getDetailPegawaisByPenerimaanId($penerimaanId);
+
+        foreach ($existingPegawais as $existing) {
+            if (!empty($requestDetailIds)) {
+                if (!in_array($existing->id, $requestDetailIds)) {
+                    $this->repository->deleteDetailPegawai($existing);
                 }
             } else {
-                $this->createSingle($penerimaanId, $pegawai);
+                $requestPegawaiIds = collect($pegawais)->pluck('pegawai_id')->toArray();
+                if (!in_array($existing->pegawai_id, $requestPegawaiIds)) {
+                    $this->repository->deleteDetailPegawai($existing);
+                }
+            }
+        }
+
+        foreach ($pegawais as $pegawai) {
+            $pegawaiData = [
+                'alamat_staker' => $pegawai['alamat_staker'] ?? '-'
+            ];
+
+            if (!empty($pegawai['id'])) {
+                $existing = $existingPegawais->firstWhere('id', $pegawai['id']);
+
+                if ($existing) {
+                    $this->repository->updateDetailPegawai($existing, $pegawaiData);
+                } else {
+                    $this->createSingle($penerimaanId, $pegawai);
+                }
+            } else {
+                $existing = $this->repository->findDetailPegawaiByPegawaiId(
+                    $penerimaanId,
+                    $pegawai['pegawai_id']
+                );
+
+                if ($existing) {
+                    $this->repository->updateDetailPegawai($existing, $pegawaiData);
+                } else {
+                    $this->createSingle($penerimaanId, $pegawai);
+                }
             }
         }
     }

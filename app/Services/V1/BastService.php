@@ -53,7 +53,7 @@ class BastService
                 'role_user' => $item->user->roles->pluck('name')->first() ?? null,
                 'category_name' => $item->category->name ?? null,
                 'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                'status' => $item->status === 'signed' ? 'Telah Ditandatangani' : 'Belum Ditandatangani',
+                'status' => $item->status === 'signed' || $item->status === 'paid' ? 'Telah Ditandatangani' : 'Belum Ditandatangani',
                 'bast' => $item->bast ? [
                     'id' => $item->bast->id,
                     'signed_file_url' => $item->bast->uploaded_signed_file

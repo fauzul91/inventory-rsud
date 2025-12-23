@@ -25,7 +25,7 @@ class BastRepository implements BastRepositoryInterface
     public function getSignedBast(array $filters)
     {
         $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
-            ->where('status', 'signed');
+            ->whereIn('status', ['signed', 'paid']);
 
         if (!empty($filters['sort_by'])) {
             $query->orderBy('created_at', $filters['sort_by'] === 'oldest' ? 'asc' : 'desc');
