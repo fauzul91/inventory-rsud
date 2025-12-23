@@ -15,22 +15,25 @@ class PemesananRepository implements PemesananRepositoryInterface
     ) {
         $this->stokRepository = $stokRepository;
     }
-    public function getAllPemesanan(array $filters, string $status)
+    public function getAllPemesanan(array $filters, array $statuses)
     {
-        $query = Pemesanan::with(['user:id,name'])
-            ->selectRaw("
-                id,
-                user_id,
-                ruangan,
-                DATE_FORMAT(tanggal_pemesanan, '%d-%m-%Y') as tanggal_pemesanan,
-                status  
-            ")
-            ->where('status', '=', $status)
+        $query = Pemesanan::query()
+            ->select([
+                'id',
+                'user_id',
+                'ruangan',
+                'tanggal_pemesanan',
+                'status',
+            ])
+            ->with('user:id,name')
             ->orderBy('created_at', 'desc');
 
+        if (!empty($statuses)) {
+            $query->whereIn('status', $statuses);
+        }
+
         if (!empty($filters['search'])) {
             $search = $filters['search'];
-
             $query->where(function ($q) use ($search) {
                 $q->where('ruangan', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($uq) use ($search) {
@@ -39,62 +42,7 @@ class PemesananRepository implements PemesananRepositoryInterface
             });
         }
 
-        $perPage = $filters['per_page'] ?? 10;
-        $data = $query->paginate($perPage);
-
-        $data->getCollection()->transform(function ($item) {
-            return [
-                'id' => $item->id,
-                'user_name' => $item->user->name,
-                'ruangan' => $item->ruangan,
-                'tanggal_pemesanan' => $item->tanggal_pemesanan
-                    ? $item->tanggal_pemesanan->format('d-m-Y')
-                    : null,
-                'status' => $item->status,
-            ];
-        });
-
-        return $data;
-    }
-    public function getAllStatusPemesananInstalasi(array $filters)
-    {
-        $query = Pemesanan::with(['user:id,name'])
-            ->selectRaw("
-                id,
-                user_id,
-                ruangan,
-                DATE_FORMAT(tanggal_pemesanan, '%d-%m-%Y') as tanggal_pemesanan,
-                status  
-            ")
-            ->orderBy('status', 'desc');
-
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
-
-            $query->where(function ($q) use ($search) {
-                $q->where('ruangan', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($uq) use ($search) {
-                        $uq->where('name', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        $perPage = $filters['per_page'] ?? 10;
-        $data = $query->paginate($perPage);
-
-        $data->getCollection()->transform(function ($item) {
-            return [
-                'id' => $item->id,
-                'user_name' => $item->user->name,
-                'ruangan' => $item->ruangan,
-                'tanggal_pemesanan' => $item->tanggal_pemesanan
-                    ? $item->tanggal_pemesanan->format('d-m-Y')
-                    : null,
-                'status' => $item->status,
-            ];
-        });
-
-        return $data;
+        return $query->paginate($filters['per_page'] ?? 10);
     }
     public function createPemesanan(array $data)
     {
@@ -131,11 +79,32 @@ class PemesananRepository implements PemesananRepositoryInterface
     }
     public function getPemesananById($id)
     {
-        $pemesanan = Pemesanan::with([
-            'user:id,name',
-        ])->findOrFail($id);
+        $pemesanan = Pemesanan::query()
+            ->select([
+                'id',
+                'user_id',
+                'tanggal_pemesanan',
+                'ruangan',
+                'status',
+            ])
+            ->with([
+                'user:id,name',
+            ])
+            ->findOrFail($id);
+
         $detailItems = $pemesanan->detailPemesanan()
-            ->with(['stok.satuan'])
+            ->select([
+                'id',
+                'pemesanan_id',
+                'stok_id',
+                'quantity',
+                'quantity_pj',
+                'quantity_admin_gudang',
+            ])
+            ->with([
+                'stok:id,name,satuan_id',
+                'stok.satuan:id,name',
+            ])
             ->paginate(10);
 
         $detailItems->getCollection()->transform(function ($item) {
@@ -158,7 +127,7 @@ class PemesananRepository implements PemesananRepositoryInterface
             'user_name' => $pemesanan->user->name,
             'ruangan' => $pemesanan->ruangan,
             'status' => $pemesanan->status,
-            'detail_items' => $detailItems
+            'detail_items' => $detailItems,
         ];
     }
 

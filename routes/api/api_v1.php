@@ -53,11 +53,13 @@ Route::prefix('v1')->group(function () {
     Route::apiResource('pegawai', PegawaiController::class);
     Route::patch('/pegawai/{id}/status', [PegawaiController::class, 'toggleStatus'])->name('pegawai.toggleStatus');
     Route::post('/pemesanan/{pemesananId}/alokasi-stok', [PengeluaranController::class, 'alokasiStokGudang']);
+    Route::get('/pemesanan', [PemesananController::class, 'getAllPendingPemesanan']);
+    Route::get('/pemesanan/riwayat-pj', [PemesananController::class, 'getAllPJRiwayatPemesanan']);
     Route::get('/pemesanan/approved-pj', [PemesananController::class, 'getAllPemesananApprovedPJ']);
     Route::get('/pemesanan/status', [PemesananController::class, 'getAllStatusPemesananInstalasi']);
     Route::get('/pemesanan/stok', [PemesananController::class, 'getAllStockPemesanan']);
     Route::patch('/pemesanan/{pemesananId}/quantity-pj', [PemesananController::class, 'updateQuantityPenanggungJawab']);
-    Route::apiResource('pemesanan', PemesananController::class)->except('update', 'destroy');
+    Route::apiResource('pemesanan', PemesananController::class)->except('index', 'update', 'destroy');
     Route::get('/pengeluaran', [PengeluaranController::class, 'index']);
     Route::get('/pengeluaran/export/excel', [PengeluaranController::class, 'exportExcel']);
     Route::get('/pelaporan/dashboard', [PelaporanController::class, 'index']);

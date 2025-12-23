@@ -23,7 +23,7 @@ class PemesananController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function getAllPendingPemesanan(Request $request)
     {
         try {
             $filters = [
@@ -31,7 +31,21 @@ class PemesananController extends Controller
                 'search' => $request->query('search'),
             ];
 
-            $data = $this->pemesananService->getAllPemesanan($filters, 'pending');
+            $data = $this->pemesananService->getAllPemesanan($filters, ['pending']);
+            return ResponseHelper::jsonResponse(true, 'Data pemesanan berhasil diambil', $data, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
+    public function getAllPJRiwayatPemesanan(Request $request)
+    {
+        try {
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'search' => $request->query('search'),
+            ];
+
+            $data = $this->pemesananService->getAllPemesanan($filters, ['approved_pj', 'approved_admin_gudang'], 'pj');
             return ResponseHelper::jsonResponse(true, 'Data pemesanan berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
@@ -45,8 +59,23 @@ class PemesananController extends Controller
                 'search' => $request->query('search'),
             ];
 
-            $data = $this->pemesananService->getAllPemesanan($filters, 'approved_pj');
+            $data = $this->pemesananService->getAllPemesanan($filters, ['approved_pj']);
             return ResponseHelper::jsonResponse(true, 'Data pemesanan berhasil diambil', $data, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
+    public function getAllStatusPemesananInstalasi(Request $request)
+    {
+        try {
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'category' => $request->query('category'),
+                'search' => $request->query('search'),
+            ];
+
+            $data = $this->pemesananService->getAllPemesanan($filters, ['pending', 'approved_pj', 'approved_admin_gudang']);
+            return ResponseHelper::jsonResponse(true, 'Data status pemesanan berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
@@ -62,21 +91,6 @@ class PemesananController extends Controller
 
             $data = $this->pemesananService->getAllStoks($filters);
             return ResponseHelper::jsonResponse(true, 'Data stok pemesanan berhasil diambil', $data, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
-    }
-    public function getAllStatusPemesananInstalasi(Request $request)
-    {
-        try {
-            $filters = [
-                'per_page' => $request->query('per_page'),
-                'category' => $request->query('category'),
-                'search' => $request->query('search'),
-            ];
-
-            $data = $this->pemesananService->getAllStatusPemesananInstalasi($filters);
-            return ResponseHelper::jsonResponse(true, 'Data status pemesanan berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
