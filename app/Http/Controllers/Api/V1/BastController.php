@@ -64,7 +64,7 @@ class BastController extends Controller
 
             $status = $request->query('status');
             $statuses = match ($status) {
-                'signed' => ['signed'],
+                'unpaid' => ['signed'],
                 'paid' => ['paid'],
                 default => ['signed', 'paid'],
             };
