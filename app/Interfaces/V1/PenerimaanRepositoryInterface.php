@@ -8,8 +8,7 @@ use App\Models\DetailPenerimaanPegawai;
 
 interface PenerimaanRepositoryInterface
 {
-    public function getAllPenerimaan(array $filters);
-    public function getHistoryPenerimaan(array $filters);
+    public function getPenerimaanForTable(array $filters = [], array $statuses = null);
     public function findById($id);
     public function findWithDetails($id);
     public function create(array $data);

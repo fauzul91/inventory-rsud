@@ -14,30 +14,32 @@ class PenerimaanUpdateRequest extends FormRequest
 
     public function rules(): array
     {
-        $penerimaanId = $this->route('penerimaan') ?? $this->route('id');
-
         return [
-            'no_surat' => [
+            'no_surat' => ['sometimes', 'string', 'max:255'],
+            'deskripsi' => ['sometimes', 'nullable', 'string'],
+            'status' => ['sometimes', 'string', Rule::in(['pending'])],
+            'category_id' => ['sometimes', 'integer', 'exists:categories,id'],
+            'category_name' => ['sometimes', 'string', 'max:255'],
+            'detail_barangs' => ['sometimes', 'array'],
+            'detail_barangs.*.id' => ['sometimes', 'integer', 'exists:detail_penerimaan_barangs,id'],
+            'detail_barangs.*.stok_id' => [
                 'sometimes',
-                'string',
-                'max:100',
-                Rule::unique('penerimaans', 'no_surat')->ignore($penerimaanId, 'id'),
+                'integer',
+                'exists:stoks,id',
+                Rule::requiredIf(fn() => !$this->hasNameForNewItem())
             ],
-            'category_id' => 'sometimes|exists:categories,id',
-            'deskripsi' => 'sometimes|nullable|string',
-            'status' => 'sometimes|string',
-            'detail_barangs' => 'sometimes|array',
-            'detail_barangs.*.id' => 'nullable|exists:detail_penerimaan_barangs,id',
-            'detail_barangs.*.stok_id' => 'required|exists:stoks,id',
-            'detail_barangs.*.quantity' => 'required|numeric|min:1',
-            'detail_barangs.*.harga' => 'sometimes|numeric|min:0',
-            'detail_barangs.*.price' => 'sometimes|numeric|min:0',
-            'detail_barangs.*.is_layak' => 'sometimes|nullable|boolean',
-            'deleted_barang_ids' => 'sometimes|array',
-            'deleted_barang_ids.*' => 'exists:detail_penerimaan_barangs,id',
-            'pegawais' => 'sometimes|array',
-            'pegawais.*.pegawai_id' => 'required|exists:pegawais,id',
-            'pegawais.*.alamat_staker' => 'nullable|string|max:255',
+            'detail_barangs.*.name' => ['sometimes', 'string', 'max:255'],
+            'detail_barangs.*.quantity' => ['required_with:detail_barangs', 'integer', 'min:1'],
+            'detail_barangs.*.harga' => ['sometimes', 'numeric', 'min:0'],
+            'detail_barangs.*.price' => ['sometimes', 'numeric', 'min:0'],
+            'detail_barangs.*.minimum_stok' => ['sometimes', 'integer', 'min:0'],
+            'detail_barangs.*.satuan_id' => ['sometimes', 'integer', 'exists:satuans,id'],
+            'detail_barangs.*.satuan_name' => ['sometimes', 'string', 'max:255'],
+
+            'pegawais' => ['sometimes', 'array', 'min:2'],
+            'pegawais.*.id' => ['sometimes', 'integer', 'exists:detail_penerimaan_pegawais,id'],
+            'pegawais.*.pegawai_id' => ['required_with:pegawais', 'integer', 'exists:pegawais,id', 'distinct'],
+            'pegawais.*.alamat_staker' => ['sometimes', 'nullable', 'string', 'max:500'],
         ];
     }
 
@@ -45,14 +47,26 @@ class PenerimaanUpdateRequest extends FormRequest
     {
         return [
             'no_surat.unique' => 'Nomor surat sudah digunakan oleh penerimaan lain',
-            'detail_barangs.*.stok_id.required' => 'Stok ID wajib diisi',
-            'detail_barangs.*.quantity.required' => 'Quantity wajib diisi',
+            'status.in' => 'Status harus pending',
+
+            'detail_barangs.*.stok_id.required' => 'Stok ID wajib diisi jika tidak menyertakan nama barang',
+            'detail_barangs.*.stok_id.exists' => 'Stok tidak ditemukan',
+            'detail_barangs.*.name.required' => 'Nama barang wajib diisi jika tidak menyertakan stok_id',
+            'detail_barangs.*.quantity.required_with' => 'Quantity wajib diisi',
             'detail_barangs.*.quantity.min' => 'Quantity minimal 1',
+            'detail_barangs.*.harga.min' => 'Harga tidak boleh negatif',
+
+            'pegawais.*.pegawai_id.required_with' => 'Pegawai ID wajib diisi',
+            'pegawais.*.pegawai_id.exists' => 'Pegawai tidak ditemukan',
+            'pegawais.*.pegawai_id.distinct' => 'Pegawai tidak boleh duplikat',
+            'pegawais.min' => 'Minimal harus ada 2 pegawai',
         ];
     }
 
     protected function prepareForValidation(): void
     {
+        $merge = [];
+
         if ($this->has('detail_barangs')) {
             $detailBarangs = $this->input('detail_barangs', []);
 
@@ -60,11 +74,83 @@ class PenerimaanUpdateRequest extends FormRequest
                 if (isset($barang['price']) && !isset($barang['harga'])) {
                     $detailBarangs[$index]['harga'] = $barang['price'];
                 }
+
+                if (isset($barang['name'])) {
+                    $detailBarangs[$index]['name'] = trim($barang['name']);
+                }
+
+                if (isset($barang['satuan_name'])) {
+                    $detailBarangs[$index]['satuan_name'] = trim($barang['satuan_name']);
+                }
             }
 
-            $this->merge([
-                'detail_barangs' => $detailBarangs
-            ]);
+            $merge['detail_barangs'] = $detailBarangs;
         }
+
+        if ($this->has('pegawais')) {
+            $pegawais = $this->input('pegawais', []);
+
+            foreach ($pegawais as $index => $pegawai) {
+                if (isset($pegawai['alamat_staker'])) {
+                    $pegawais[$index]['alamat_staker'] = trim($pegawai['alamat_staker']);
+                }
+            }
+
+            $merge['pegawais'] = $pegawais;
+        }
+
+        if (!empty($merge)) {
+            $this->merge($merge);
+        }
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if ($this->has('detail_barangs')) {
+                foreach ($this->input('detail_barangs', []) as $index => $barang) {
+                    if (empty($barang['stok_id']) && empty($barang['name'])) {
+                        $validator->errors()->add(
+                            "detail_barangs.{$index}",
+                            'Setiap barang harus memiliki stok_id atau name'
+                        );
+                    }
+
+                    if (
+                        empty($barang['stok_id']) &&
+                        empty($barang['satuan_id']) &&
+                        empty($barang['satuan_name'])
+                    ) {
+                        $validator->errors()->add(
+                            "detail_barangs.{$index}.satuan",
+                            'Untuk barang baru, harus menyertakan satuan_id atau satuan_name'
+                        );
+                    }
+                }
+            }
+
+            if ($this->has('pegawais')) {
+                $pegawais = $this->input('pegawais', []);
+                if (count($pegawais) < 2) {
+                    $validator->errors()->add(
+                        'pegawais',
+                        'Minimal harus ada 2 pegawai'
+                    );
+                }
+
+                $pegawaiIds = collect($pegawais)->pluck('pegawai_id')->toArray();
+                if (count($pegawaiIds) !== count(array_unique($pegawaiIds))) {
+                    $validator->errors()->add(
+                        'pegawais',
+                        'Tidak boleh ada pegawai yang sama (duplikat)'
+                    );
+                }
+            }
+        });
+    }
+
+    private function hasNameForNewItem(): bool
+    {
+        return true;
     }
 }

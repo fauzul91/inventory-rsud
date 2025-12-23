@@ -9,47 +9,50 @@ use App\Models\DetailPenerimaanPegawai;
 
 class PenerimaanRepository implements PenerimaanRepositoryInterface
 {
-    public function getAllPenerimaan(array $filters)
+    public function getPenerimaanForTable(array $filters = [], array $statuses = null)
     {
-        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
-            ->where('status', 'pending')
-            ->orderBy('created_at', 'desc');
+        $query = Penerimaan::with([
+            'category:id,name',
+            'user.roles:id,name',
+            'detailPegawai.pegawai:id,name'
+        ])->select('id', 'no_surat', 'category_id', 'user_id', 'status');
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('no_surat', 'like', "%{$search}%")
+                    ->orWhereHas('category', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($statuses) {
+            $query->whereIn('status', $statuses);
+        }
 
         $perPage = $filters['per_page'] ?? 10;
         return $query->paginate($perPage);
     }
-    public function getAllCheckedPenerimaan(array $filters)
-    {
-        return Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
-            ->whereIn('status', ['pending', 'checked'])
-            ->latest()
-            ->paginate($filters['per_page'] ?? 10);
-    }
-    public function getHistoryPenerimaan(array $filters)
-    {
-        $query = Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang', 'bast'])
-            ->where('status', '!=', 'pending')
-            ->orderBy('created_at', 'desc');
-
-        $perPage = $filters['per_page'] ?? 10;
-        return $query->paginate($perPage);
-    }
-    public function getHistoryCheckPenerimaan(array $filters)
-    {
-        return Penerimaan::with(['category', 'detailPegawai.pegawai', 'detailBarang'])
-            ->whereIn('status', ['confirmed', 'signed', 'paid'])
-            ->latest()
-            ->paginate($filters['per_page'] ?? 10);
-    }
-
     public function findById($id)
     {
         return Penerimaan::with([
-            'detailBarang.stok.category',
-            'detailBarang.stok.satuan',
-            'detailPegawai.pegawai.jabatan',
-            'category'
-        ])->findOrFail($id);
+            'category:id,name',
+            'detailBarang.stok' => function ($q) {
+                $q->select('id', 'name', 'category_id', 'satuan_id')
+                    ->with([
+                        'category:id,name',
+                        'satuan:id,name'
+                    ]);
+            },
+            'detailPegawai.pegawai' => function ($q) {
+                $q->select('id', 'name', 'nip', 'jabatan_id')
+                    ->with([
+                        'jabatan:id,name'
+                    ]);
+            }
+        ])->select('id', 'no_surat', 'deskripsi', 'status', 'category_id')
+            ->findOrFail($id);
     }
 
     public function findWithDetails($id)
@@ -115,23 +118,6 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
             ->first();
     }
 
-    public function createDetailPegawai(array $data)
-    {
-        return DetailPenerimaanPegawai::create($data);
-    }
-
-    public function updateDetailPegawai(DetailPenerimaanPegawai $detail, array $data)
-    {
-        $detail->update($data);
-        return $detail;
-    }
-
-    public function findDetailPegawaiByPegawaiId($penerimaanId, $pegawaiId)
-    {
-        return DetailPenerimaanPegawai::where('penerimaan_id', $penerimaanId)
-            ->where('pegawai_id', $pegawaiId)
-            ->first();
-    }
     public function updateDetailBarangPayment(DetailPenerimaanBarang $detail)
     {
         $detail->update(['is_paid' => true]);
@@ -147,4 +133,31 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
             'status' => $status
         ]);
     }
+    public function getDetailPegawaisByPenerimaanId($penerimaanId)
+    {
+        return DetailPenerimaanPegawai::where('penerimaan_id', $penerimaanId)->get();
+    }
+
+    public function findDetailPegawaiByPegawaiId($penerimaanId, $pegawaiId)
+    {
+        return DetailPenerimaanPegawai::where('penerimaan_id', $penerimaanId)
+            ->where('pegawai_id', $pegawaiId)
+            ->first();
+    }
+    public function createDetailPegawai(array $data)
+    {
+        return DetailPenerimaanPegawai::create($data);
+    }
+
+    public function updateDetailPegawai(DetailPenerimaanPegawai $detailPegawai, array $data)
+    {
+        $detailPegawai->update($data);
+        return $detailPegawai->fresh();
+    }
+
+    public function deleteDetailPegawai(DetailPenerimaanPegawai $detailPegawai)
+    {
+        return $detailPegawai->delete();
+    }
+
 }

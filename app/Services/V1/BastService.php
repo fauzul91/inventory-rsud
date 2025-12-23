@@ -4,8 +4,8 @@ namespace App\Services\V1;
 
 use App\Models\Penerimaan;
 use App\Repositories\V1\BastRepository;
-use Spatie\LaravelPdf\Facades\Pdf;
-use Spatie\LaravelPdf\Enums\Format;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 class BastService
 {
@@ -53,7 +53,7 @@ class BastService
                 'role_user' => $item->user->roles->pluck('name')->first() ?? null,
                 'category_name' => $item->category->name ?? null,
                 'pegawai_name' => optional($item->detailPegawai->first()->pegawai)->name ?? null,
-                'status' => $item->status === 'signed' ? 'Telah Ditandatangani' : 'Belum Ditandatangani',
+                'status' => $item->status === 'signed' || $item->status === 'paid' ? 'Telah Ditandatangani' : 'Belum Ditandatangani',
                 'bast' => $item->bast ? [
                     'id' => $item->bast->id,
                     'signed_file_url' => $item->bast->uploaded_signed_file
@@ -69,6 +69,25 @@ class BastService
         return $data;
     }
 
+    // public function generateBast($penerimaanId)
+    // {
+    //     $penerimaan = $this->bastRepository->findPenerimaan($penerimaanId);
+
+    //     $cleanNoSurat = str_replace(['/', '\\', ' '], '-', $penerimaan->no_surat);
+    //     $filename = "bast/generated/{$cleanNoSurat}.pdf";
+
+    //     Pdf::view('pdf.bast', compact('penerimaan'))
+    //         ->format(Format::Legal)
+    //         ->margins(40, 20, 40, 20)
+    //         ->disk('public')
+    //         ->save($filename);
+
+    //     $bast = $this->bastRepository->createBast($penerimaanId, $filename);
+    //     $bast->url = asset('storage/' . $filename);
+
+    //     return $bast;
+    // }
+
     public function generateBast($penerimaanId)
     {
         $penerimaan = $this->bastRepository->findPenerimaan($penerimaanId);
@@ -76,11 +95,12 @@ class BastService
         $cleanNoSurat = str_replace(['/', '\\', ' '], '-', $penerimaan->no_surat);
         $filename = "bast/generated/{$cleanNoSurat}.pdf";
 
-        Pdf::view('pdf.bast', compact('penerimaan'))
-            ->format(Format::Legal)
-            ->margins(40, 20, 40, 20)
-            ->disk('public')
-            ->save($filename);
+        $pdf = Pdf::loadView('pdf.bast', compact('penerimaan'))
+            ->setPaper('legal', 'portrait')
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', true); // Untuk load external images
+
+        Storage::disk('public')->put($filename, $pdf->output());
 
         $bast = $this->bastRepository->createBast($penerimaanId, $filename);
         $bast->url = asset('storage/' . $filename);

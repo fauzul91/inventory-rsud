@@ -31,25 +31,63 @@ class PenerimaanService
         $this->detailBarangService = $detailBarangService;
         $this->detailPegawaiService = $detailPegawaiService;
     }
+    /**
+     * Ambil list Penerimaan dengan filter, status, dan context
+     * @param array $filters
+     * @param array|null $statuses
+     * @param string $context
+     */
+    public function getPenerimaanList(array $filters = [], array $statuses = null, string $context = 'default')
+    {
+        $penerimaanData = $this->repository->getPenerimaanForTable($filters, $statuses);
+        return $this->transformPenerimaan($penerimaanData, $context);
+    }
+    private function transformPenerimaan($data, $context = 'default', $filterStatuses = null)
+    {
+        $collection = $data->getCollection();
 
-    public function getAllPenerimaan(array $filters)
-    {
-        return $this->repository->getAllPenerimaan($filters);
-    }
-    public function getAllCheckedPenerimaan(array $filters)
-    {
-        return $this->repository->getAllCheckedPenerimaan($filters);
-    }
+        if ($filterStatuses) {
+            $collection = $collection->whereIn('status', $filterStatuses)->values();
+        }
 
-    public function getHistoryPenerimaan(array $filters)
-    {
-        return $this->repository->getHistoryPenerimaan($filters);
-    }
-    public function getCheckHistoryPenerimaan(array $filters)
-    {
-        return $this->repository->getHistoryCheckPenerimaan($filters);
-    }
+        $transformed = $collection->map(function ($item) use ($context) {
+            return [
+                'id' => $item->id,
+                'no_surat' => $item->no_surat,
+                'role_user' => $item->user->roles->pluck('name')->first() ?? null,
+                'category_name' => $item->category->name ?? null,
+                'pegawai_name' => optional($item->detailPegawai->first()?->pegawai)->name,
+                'status' => $this->mapPenerimaanStatusLabel($item->status, $context),
+                'status_code' => $item->status,
+            ];
+        });
 
+        $data->setCollection($transformed);
+        return $data;
+    }
+    private function mapPenerimaanStatusLabel(string $status, string $context = 'default'): string
+    {
+        return match ($context) {
+            'check' => match ($status) {
+                    'pending' => 'Belum Dicek',
+                    'checked' => 'Sedang Dicek',
+                    default => 'Telah Dicek',
+                },
+            'signed' => match ($status) {
+                    'confirmed' => 'Belum Ditandatangani',
+                    'signed' => 'Telah Ditandatangani',
+                    default => 'Telah Ditandatangani',
+                },
+            default => match ($status) {
+                    'pending' => 'Belum Dicek',
+                    'checked' => 'Sedang Dicek',
+                    'confirmed' => 'Telah Dikonfirmasi',
+                    'signed' => 'Sudah Ditandatangani',
+                    'paid' => 'Sudah Dibayar',
+                    default => 'Status Tidak Diketahui',
+                },
+        };
+    }
     public function getPenerimaanForEdit($id)
     {
         $penerimaan = $this->repository->findById($id);
@@ -113,37 +151,73 @@ class PenerimaanService
         return Category::firstOrCreate(['name' => 'Lainnya']);
     }
 
-    public function update(array $data, $id)
-    {
-        return DB::transaction(function () use ($data, $id) {
-            $penerimaan = $this->repository->findById($id);
 
-            $updateFields = $this->prepareUpdateFields($data);
-            if (!empty($updateFields)) {
-                $this->repository->update($penerimaan, $updateFields);
+    public function updatePenerimaan($penerimaanId, array $data)
+    {
+        return DB::transaction(function () use ($penerimaanId, $data) {
+            $penerimaan = $this->repository->findById($penerimaanId);
+
+            if (!$penerimaan) {
+                throw new \Exception("Penerimaan dengan ID {$penerimaanId} tidak ditemukan");
+            }
+
+            if ($penerimaan->status !== 'pending') {
+                throw new \Exception("Penerimaan dengan status '{$penerimaan->status}' tidak bisa diupdate.");
+            }
+
+            $categoryId = $penerimaan->category_id;
+            if (isset($data['category_id']) || isset($data['category_name'])) {
+                $category = $this->findOrCreateCategory($data);
+                $categoryId = $category->id;
+            }
+
+            $updateData = [];
+
+            if (isset($data['no_surat'])) {
+                $updateData['no_surat'] = $data['no_surat'];
+            }
+
+            if (isset($data['deskripsi'])) {
+                $updateData['deskripsi'] = $data['deskripsi'];
+            }
+
+            if (isset($categoryId) && $categoryId !== $penerimaan->category_id) {
+                $updateData['category_id'] = $categoryId;
+            }
+
+            if (isset($data['status'])) {
+                $updateData['status'] = $data['status'];
+            }
+
+            if (!empty($updateData)) {
+                $penerimaan = $this->repository->update($penerimaan, $updateData);
             }
 
             if (isset($data['detail_barangs'])) {
                 $this->detailBarangService->syncDetailBarang(
-                    $penerimaan,
+                    $penerimaan->fresh(),
                     $data['detail_barangs']
                 );
             }
 
-            if (!empty($data['deleted_barang_ids'])) {
-                $this->repository->deleteDetailBarang($data['deleted_barang_ids']);
-            }
-
             if (isset($data['pegawais'])) {
                 $this->detailPegawaiService->syncDetailPegawai(
-                    $penerimaan->id,
+                    $penerimaan,
                     $data['pegawais']
                 );
             }
 
-            $this->monitoringService->log("Mengupdate penerimaan: {$penerimaan->no_surat}", 4);
+            $this->monitoringService->log(
+                "Memperbarui penerimaan: {$penerimaan->no_surat}",
+                Auth::id() ?? 4
+            );
 
-            return $penerimaan->fresh()->load(['detailBarang', 'detailPegawai.pegawai', 'category']);
+            return $penerimaan->fresh()->load([
+                'detailBarang.stok.category',
+                'detailBarang.stok.satuan',
+                'detailPegawai.pegawai.jabatan',
+                'category'
+            ]);
         });
     }
 
