@@ -22,58 +22,66 @@ class PemesananService
     public function getAllStoks(array $filters)
     {
         $perPage = $filters['per_page'] ?? 10;
-        $year = $filters['year'] ?? now()->year;
+        $stoks = $this->stokRepository
+            ->getAllStoks($filters)
+            ->paginate($perPage);
 
-        $query = $this->stokRepository->getAllStoks($filters);
-        $query->with([
-            'category:id,name',
-            'satuan:id,name',
-            'detailPenerimaanBarang' => fn($q) =>
-                $q->where('is_layak', true)
-                    ->whereHas(
-                        'penerimaan',
-                        fn($p) =>
-                        $p->whereIn('status', ['checked', 'confirmed', 'signed', 'paid'])
-                            ->whereYear('created_at', '<=', $year)
-                    )
-        ])->orderBy('name');
-
-        $stoks = $query->paginate($perPage);
-        $stoks->getCollection()->transform(function ($stok) use ($year) {
-
+        $stoks->getCollection()->transform(function ($stok) {
             $details = $stok->detailPenerimaanBarang;
-
-            $masukThisYear = $details
-                ->filter(fn($d) => $d->penerimaan->created_at->year == $year)
-                ->sum('quantity');
-
-            $masukBefore = $details
-                ->filter(fn($d) => $d->penerimaan->created_at->year < $year)
-                ->sum('quantity');
-
-            $keluarTotal = $details
+            $stokMasuk = $details->sum('quantity');
+            $stokKeluar = $details
                 ->flatMap(fn($d) => $d->detailPemesanans)
                 ->sum('pivot.quantity');
-
+            $totalStok = $stokMasuk - $stokKeluar;
             return [
                 'id' => $stok->id,
                 'name' => $stok->name,
-                'category_name' => $stok->category->name,
-                'total_stok' => ($masukBefore + $masukThisYear) - $keluarTotal,
                 'satuan' => $stok->satuan->name ?? null,
+                'category_name' => $stok->category->name,
+                'total_stok' => $totalStok,
             ];
         });
 
         return $stoks;
     }
-    public function getAllPemesanan(array $filters, string $status)
+    public function getAllPemesanan(array $filters, array $statuses, string $context = 'default')
     {
-        return $this->pemesananRepository->getAllPemesanan($filters, $status);
+        $data = $this->pemesananRepository->getAllPemesanan($filters, $statuses);
+
+        $data->getCollection()->transform(function ($item) use ($context) {
+            return [
+                'id' => $item->id,
+                'user_name' => $item->user->name,
+                'ruangan' => $item->ruangan,
+                'tanggal_pemesanan' => $item->tanggal_pemesanan
+                    ? $item->tanggal_pemesanan->format('d-m-Y')
+                    : null,
+                'status' => $this->mapPemesananStatus($item->status, $context),
+                'status_code' => $item->status,
+            ];
+        });
+
+        return $data;
     }
-    public function getAllStatusPemesananInstalasi(array $filters)
+    private function mapPemesananStatus(string $status, string $context = 'default')
     {
-        return $this->pemesananRepository->getAllStatusPemesananInstalasi($filters);
+        return match ($context) {
+            'pj' => match ($status) {
+                    'pending' => 'Menunggu Persetujuan',
+                    'approved_pj',
+                    'approved_admin_gudang' => 'Disetujui PJ Ruangan',
+                    default => '-',
+                },
+
+            default => match ($status) {
+                    'pending' => 'Menunggu Persetujuan',
+                    'approved_pj' => 'Disetujui PJ Ruangan',
+                    'approved_admin_gudang' => 'Disetujui Admin Gudang',
+                    default => '-',
+                },
+        };
     }
+
     public function create(array $data)
     {
         return $this->pemesananRepository->createPemesanan($data);
