@@ -26,7 +26,7 @@ class PegawaiRepository implements PegawaiRepositoryInterface
 
     public function getAll(array $filters = [])
     {
-        $query = Pegawai::select('id', 'name', 'nip', 'status', 'jabatan_id')
+        $query = Pegawai::select('id', 'name', 'nip', 'phone', 'status', 'jabatan_id')
             ->with([
                 'jabatan' => function ($q) {
                     $q->select('id', 'name');
@@ -61,6 +61,7 @@ class PegawaiRepository implements PegawaiRepositoryInterface
                 'id' => $pegawai->id,
                 'name' => $pegawai->name,
                 'nip' => $pegawai->nip,
+                'phone' => $pegawai->phone,
                 'status' => $pegawai->status,
                 'jabatan' => $pegawai->jabatan ? $pegawai->jabatan->name : null,
             ];

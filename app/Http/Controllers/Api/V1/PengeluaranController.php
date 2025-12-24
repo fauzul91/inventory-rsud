@@ -30,6 +30,9 @@ class PengeluaranController extends Controller
             $filters = [
                 'per_page' => $request->query('per_page'),
                 'search' => $request->query('search'),
+
+                'start_date' => $request->input('start_date'),
+                'end_date'   => $request->input('end_date'),
             ];
 
             $data = $this->pengeluaranService->getAllPengeluaran($filters);
