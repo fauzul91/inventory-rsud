@@ -11,28 +11,27 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
 {
     public function getPenerimaanForTable(array $filters = [], array $statuses = null)
     {
-        $query = Penerimaan::with([
-            'category:id,name',
-            'user.roles:id,name',
-            'detailPegawai.pegawai:id,name'
-        ])->select('id', 'no_surat', 'category_id', 'user_id', 'status');
-
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('no_surat', 'like', "%{$search}%")
-                    ->orWhereHas('category', function ($q2) use ($search) {
-                        $q2->where('name', 'like', "%{$search}%");
-                    });
-            });
-        }
-
-        if ($statuses) {
-            $query->whereIn('status', $statuses);
-        }
-
-        $perPage = $filters['per_page'] ?? 10;
-        return $query->paginate($perPage);
+        return Penerimaan::query()
+            ->select('id', 'no_surat', 'category_id', 'user_id', 'status', 'created_at')
+            ->with([
+                'category:id,name',
+                'user:id,name',
+                'user.roles:id,name',
+                'detailPegawai.pegawai:id,name',
+            ])
+            ->when($filters['search'] ?? null, function ($q, $search) {
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('no_surat', 'like', "%{$search}%")
+                        ->orWhereHas('category', function ($cat) use ($search) {
+                            $cat->where('name', 'like', "%{$search}%");
+                        });
+                });
+            })
+            ->when($statuses, function ($q, $statuses) {
+                $q->whereIn('status', $statuses);
+            })
+            ->latest('created_at')
+            ->paginate($filters['per_page'] ?? 10);
     }
     public function findById($id)
     {
