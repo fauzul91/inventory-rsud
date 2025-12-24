@@ -15,10 +15,11 @@ class SsoController extends Controller
     public function redirectToSso()
     {
         $query = http_build_query([
-            'client_id' => config('services.sso.client_id'),
-            'redirect_uri' => config('services.sso.redirect'),
+            'client_id'     => config('services.sso.client_id'),
+            'redirect_uri'  => config('services.sso.redirect'),
             'response_type' => 'code',
-            'scope' => '', // kosong jika tidak ada scope tambahan
+            'scope'         => '',
+            // 'prompt'        => 'none',
         ]);
 
         return redirect(config('services.sso.host') . '/oauth/authorize?' . $query);
@@ -34,92 +35,91 @@ class SsoController extends Controller
      */
     public function handleCallback(Request $request)
     {
-        // Pastikan ada 'code' dari SSO
         if (!$request->has('code')) {
             return response()->json(['error' => 'Kode otorisasi tidak ditemukan.'], 400);
         }
 
-        // Tukar authorization code menjadi access token
-        $tokenResponse = Http::asForm()->post(config('services.sso.host') . '/oauth/token', [
-            'grant_type' => 'authorization_code',
-            'client_id' => config('services.sso.client_id'),
-            'client_secret' => config('services.sso.secret'),
-            'redirect_uri' => config('services.sso.redirect'),
-            'code' => $request->code,
-        ]);
+        // 1. Tukar code → access token
+        $tokenResponse = Http::asForm()->post(
+            config('services.sso.host') . '/oauth/token',
+            [
+                'grant_type'    => 'authorization_code',
+                'client_id'     => config('services.sso.client_id'),
+                'client_secret' => config('services.sso.secret'),
+                'redirect_uri'  => config('services.sso.redirect'),
+                'code'          => $request->code,
+            ]
+        );
 
         if ($tokenResponse->failed()) {
             return response()->json([
-                'error' => 'Gagal mendapatkan access token.',
-                'details' => $tokenResponse->json()
+                'error'   => 'Gagal mendapatkan access token',
+                'details' => $tokenResponse->json(),
             ], 500);
         }
 
-        $token = $tokenResponse->json()['access_token'];
+        $accessToken = $tokenResponse->json()['access_token'];
 
-        // Ambil data user dari endpoint /api/me di server SSO
-        $userResponse = Http::withToken($token)
+        // 2. Ambil data user dari SSO
+        $userResponse = Http::withToken($accessToken)
             ->get(config('services.sso.host') . '/api/me');
 
         if ($userResponse->failed()) {
             return response()->json([
-                'error' => 'Gagal mengambil data user dari SSO.',
-                'details' => $userResponse->json()
+                'error'   => 'Gagal mengambil data user dari SSO',
+                'details' => $userResponse->json(),
             ], 500);
         }
 
         $ssoUser = $userResponse->json();
 
-        // Simpan atau update user di database client
-        // $user = User::updateOrCreate(
-        //     ['sso_user_id' => $ssoUser['id']],
-        //     [
-        //         'name' => $ssoUser['name'],
-        //         'email' => $ssoUser['email'],
-        //     ]
-        // );
+        // 3. Cari user lokal (AMAN: by sso_user_id ATAU email)
+        $user = User::where('sso_user_id', $ssoUser['id'])
+            ->orWhere('email', $ssoUser['email'])
+            ->first();
 
-        $user = User::updateOrCreate(
-            ['sso_user_id' => $ssoUser['id']],
-            [
-                'name' => $ssoUser['name'],
-                'email' => $ssoUser['email'],
-            ]
-        );
+        if (!$user) {
+            $user = User::create([
+                'sso_user_id' => $ssoUser['id'],
+                'name'        => $ssoUser['name'],
+                'email'       => $ssoUser['email'],
+            ]);
+        } else {
+            $user->update([
+                'sso_user_id' => $ssoUser['id'],
+                'name'        => $ssoUser['name'],
+                'email'       => $ssoUser['email'],
+            ]);
+        }
 
-        // Login user ke sistem client
+        // 4. Login user di backend
         Auth::login($user);
 
-        // --- MULAI PERUBAHAN DI SINI ---
-
-        // 1. Ambil token dari respon SSO sebelumnya
-        $accessToken = $tokenResponse->json()['access_token'];
-
-        // 2. Siapkan URL Frontend
+        // 5. Siapkan payload ke FE (SESUAI FE)
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
 
-        // 1. Kita buat array baru (Custom Data)
-        // Gabungkan data dari DB Lokal ($user) + Role dari SSO ($ssoUser)
         $userData = [
-            'id' => $user->id,
-            'name' => $user->name,
+            'id'    => $user->id,
+            'name'  => $user->name,
             'email' => $user->email,
-            'photo' => $user->photo, // Jika ada
+            'photo' => $user->photo ?? null,
 
-            // AMBIL ROLE DARI VARIABLE $ssoUser (Hasil API /api/me SSO)
-            // Pastikan kuncinya 'role' (sesuai yang diminta Frontend)
-            'role' => $ssoUser['roles'][0] ?? 'guest',
+            // FE kamu pakai `role` (string), bukan array
+            'role'  => $ssoUser['roles'][0] ?? 'guest',
         ];
 
-        // dd($ssoUser);
-
-        // 2. Encode array buatan kita tadi, BUKAN $user mentah
+        // 6. Redirect ke FE callback
         $query = http_build_query([
             'token' => $accessToken,
-            'user' => json_encode($userData), // <--- Pakai $userData
+            'user'  => json_encode($userData),
         ]);
 
-        return redirect($frontendUrl . '/auth/sso-callback?' . $query);
+        return redirect()->away(
+            env('FRONTEND_URL') . '/auth/sso-callback?' . $query
+        );
+
+
+        dd(env('FRONTEND_URL'));
     }
 
     /**
