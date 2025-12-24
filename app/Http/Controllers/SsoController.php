@@ -9,9 +9,6 @@ use App\Models\User;
 
 class SsoController extends Controller
 {
-    /**
-     * Arahkan user ke halaman login SSO.
-     */
     public function redirectToSso()
     {
         $query = http_build_query([
@@ -25,21 +22,12 @@ class SsoController extends Controller
         return redirect(config('services.sso.host') . '/oauth/authorize?' . $query);
     }
 
-    /**
-     * Callback yang dipanggil setelah login SSO berhasil.
-     * Di sini kita akan:
-     * - Tukar authorization code jadi access token
-     * - Ambil data user dari SSO (/api/me)
-     * - Simpan user ke database client
-     * - Login user ke sistem client
-     */
     public function handleCallback(Request $request)
     {
         if (!$request->has('code')) {
             return response()->json(['error' => 'Kode otorisasi tidak ditemukan.'], 400);
         }
 
-        // 1. Tukar code → access token
         $tokenResponse = Http::asForm()->post(
             config('services.sso.host') . '/oauth/token',
             [
@@ -60,7 +48,6 @@ class SsoController extends Controller
 
         $accessToken = $tokenResponse->json()['access_token'];
 
-        // 2. Ambil data user dari SSO
         $userResponse = Http::withToken($accessToken)
             ->get(config('services.sso.host') . '/api/me');
 
@@ -73,7 +60,6 @@ class SsoController extends Controller
 
         $ssoUser = $userResponse->json();
 
-        // 3. Cari user lokal (AMAN: by sso_user_id ATAU email)
         $user = User::where('sso_user_id', $ssoUser['id'])
             ->orWhere('email', $ssoUser['email'])
             ->first();
@@ -92,10 +78,8 @@ class SsoController extends Controller
             ]);
         }
 
-        // 4. Login user di backend
         Auth::login($user);
 
-        // 5. Siapkan payload ke FE (SESUAI FE)
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
 
         $userData = [
@@ -104,11 +88,9 @@ class SsoController extends Controller
             'email' => $user->email,
             'photo' => $user->photo ?? null,
 
-            // FE kamu pakai `role` (string), bukan array
             'role'  => $ssoUser['roles'][0] ?? 'guest',
         ];
 
-        // 6. Redirect ke FE callback
         $query = http_build_query([
             'token' => $accessToken,
             'user'  => json_encode($userData),
@@ -122,22 +104,15 @@ class SsoController extends Controller
         dd(env('FRONTEND_URL'));
     }
 
-    /**
-     * Logout user dari client & arahkan juga ke logout SSO.
-     */
     public function logout()
     {
         Auth::logout();
         session()->flush();
 
-        // 1. Ambil URL Logout SSO
         $ssoLogoutBaseUrl = config('services.sso.logout_url');
 
-        // 2. Tentukan Tujuan Akhir: "Kembalikan saya ke Rumah SSO (localhost:9000)"
-        $destination = config('services.sso.host'); // http://localhost:9000
+        $destination = config('services.sso.host');
 
-        // 3. Susun URL
-        // Hasil: http://localhost:9000/logout?redirect=http://localhost:9000
         $targetUrl = $ssoLogoutBaseUrl . '?redirect=' . urlencode($destination);
 
         return redirect($targetUrl);
