@@ -36,11 +36,11 @@ return [
     ],
 
     'sso' => [
-        'host' => env('SSO_HOST'),
-        'client_id' => env('SSO_CLIENT_ID'),
-        'secret' => env('SSO_SECRET'),
-        'redirect' => env('SSO_REDIRECT_URI'),
-        'logout_url' => env('SSO_HOST') . '/logout',
+        'host' => env('PASSPORT_HOST'),
+        'client_id' => env('PASSPORT_CLIENT_ID'),
+        'secret' => env('PASSPORT_CLIENT_SECRET'),
+        'redirect' => env('PASSPORT_REDIRECT_URI'),
+        'logout_url' => env('SSO_LOGOUT_URL'),
     ],
 
 
