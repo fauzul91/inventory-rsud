@@ -14,13 +14,13 @@ class PegawaiSeeder extends Seeder
             [
                 'nama' => 'dr. Nurullah Hidajahningtyas, MM',
                 'nip' => '197107022002122006',
-                'jabatan' => 'Direktur',
+                'jabatan' => 'Pengguna Anggaran BLUD',
                 'status' => 'active',
             ],
             [
                 'nama' => 'Didik Eko Pramono, SE, M.Si',
                 'nip' => '197704112003121006',
-                'jabatan' => 'Kepala Bidang Keuangan dan Perencanaan',
+                'jabatan' => 'Pejabat Keuangan BLUD',
                 'status' => 'active',
             ],
             [
