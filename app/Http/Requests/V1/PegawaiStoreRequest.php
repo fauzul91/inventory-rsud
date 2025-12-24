@@ -20,9 +20,8 @@ class PegawaiStoreRequest extends FormRequest
             'name' => 'required|string|max:255',
             'nip' => 'required|string|max:50|unique:pegawais,nip',
             'jabatan_id' => 'required|integer|exists:jabatans,id',
-            'phone' => 'required|string|max:20',
+            'phone' => 'nullable|string|max:20',
             'status' => 'required|in:active,inactive',
-
         ];
     }
 

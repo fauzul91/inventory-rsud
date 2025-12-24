@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->string('nip');
+            $table->string('phone')->nullable();
             $table->enum('status', ['active', 'inactive']);
             $table->foreignId('jabatan_id')->constrained('jabatans')->onDelete('cascade');
             $table->timestamps();
