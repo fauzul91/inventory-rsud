@@ -24,34 +24,14 @@ class PegawaiRepository implements PegawaiRepositoryInterface
             });
     }
 
-    // public function getAll(array $filters = [])
-    // {
-    //     $query = Pegawai::with('jabatan:id,name');
-
-    //     if (!empty($filters['search'])) {
-    //         $search = $filters['search'];
-    //         $query->where(function ($q) use ($search) {
-    //             $q->where('name', 'LIKE', "%{$search}%")
-    //                 ->orWhereHas('jabatan', function ($q2) use ($search) {
-    //                     $q2->where('name', 'LIKE', "%{$search}%");
-    //                 });
-    //         });
-    //     }
-
-    //     if (!empty($filters['jabatan_id'])) {
-    //         $query->where('jabatan_id', $filters['jabatan_id']);
-    //     }
-
-    //     if (isset($filters['status'])) {
-    //         $query->where('status', $filters['status']);
-    //     }
-
-    //     return $query->orderBy('name', 'asc')->get();
-    // }
-
     public function getAll(array $filters = [])
     {
-        $query = Pegawai::with('jabatan:id,name');
+        $query = Pegawai::select('id', 'name', 'nip', 'status', 'jabatan_id')
+            ->with([
+                'jabatan' => function ($q) {
+                    $q->select('id', 'name');
+                }
+            ]);
 
         if (!empty($filters['search'])) {
             $search = $filters['search'];
@@ -71,20 +51,22 @@ class PegawaiRepository implements PegawaiRepositoryInterface
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['sort_by'])) {
-            if ($filters['sort_by'] === 'latest') {
-                $query->orderBy('created_at', 'desc');
-            } elseif ($filters['sort_by'] === 'oldest') {
-                $query->orderBy('created_at', 'asc');
-            } else {
-                $query->orderBy($filters['sort_by'], 'asc'); // optional: sort by field name
-            }
-        } else {
-            $query->orderBy('name', 'asc');
-        }
+        $query->orderBy('name', 'asc');
 
         $perPage = $filters['per_page'] ?? 10;
-        return $query->paginate($perPage);
+        $paginated = $query->paginate($perPage);
+
+        $paginated->getCollection()->transform(function ($pegawai) {
+            return [
+                'id' => $pegawai->id,
+                'name' => $pegawai->name,
+                'nip' => $pegawai->nip,
+                'status' => $pegawai->status,
+                'jabatan' => $pegawai->jabatan ? $pegawai->jabatan->name : null,
+            ];
+        });
+
+        return $paginated;
     }
 
     public function findById($id)
