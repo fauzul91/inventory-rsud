@@ -14,12 +14,23 @@ use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\MonitoringController;
 use App\Http\Controllers\Api\V1\PenerimaanController;
 use App\Http\Controllers\Api\V1\PelaporanController;
+use Illuminate\Http\Request;
 
 Route::get('/sso/login', [SsoController::class, 'redirectToSso'])->name('sso.login');
 Route::get('/sso/callback', [SsoController::class, 'handleCallback'])->name('sso.callback');
 Route::get('/sso/logout', [SsoController::class, 'logout'])->name('sso.logout');
 
 Route::middleware('auth:api')->group(function () {
+    Route::get('/me', function (Request $request) { // Class Request sekarang sudah dikenali
+        $user = $request->user();
+        return response()->json([
+            'id'    => $user->id,
+            'name'  => $user->name,
+            'email' => $user->email,
+            'photo' => $user->photo ?? null,
+            'role'  => $user->getRoleNames()->first() ?? 'guest',
+        ]);
+    });
 });
 
 Route::prefix('v1')->group(function () {

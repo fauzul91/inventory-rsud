@@ -15,50 +15,50 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $users = [
-            [
-                'name' => 'Super Admin',
-                'sso_user_id' => 1,
-                'email' => 'superadmin@example.com',
-                'photo' => null,
-                'role' => 'Super Admin',
-            ],
-            [
-                'name' => 'Admin Gudang',
-                'sso_user_id' => 2,
-                'email' => 'admingudang@example.com',
-                'photo' => null,
-                'role' => 'Admin Gudang Umum',
-            ],
-            [
-                'name' => 'Tim Teknis',
-                'sso_user_id' => 3,
-                'email' => 'timteknis@example.com',
-                'photo' => null,
-                'role' => 'Tim Teknis',
-            ],
-            [
-                'name' => 'Tim PPK',
-                'sso_user_id' => 4,
-                'email' => 'timppk@example.com',
-                'photo' => null,
-                'role' => 'Tim PPK',
-            ],
-            [
-                'name' => 'Penanggung Jawab',
-                'sso_user_id' => 5,
-                'email' => 'penanggungjawab@example.com',
-                'photo' => null,
-                'role' => 'Penanggung Jawab',
-            ],
-            [
-                'name' => 'Instalasi',
-                'sso_user_id' => 6,
-                'email' => 'instalasi@example.com',
-                'photo' => null,
-                'role' => 'Instalasi',
-            ],
-        ];
+$users = [
+        [
+            'name' => 'Super Admin',
+            'sso_user_id' => 1, // Cocok (Urutan 1 di SSO)
+            'email' => 'bluepylox@gmail.com', // Samakan emailnya biar tidak bingung
+            'photo' => null,
+            'role' => 'super-admin',
+        ],
+        [
+            'name' => 'Tim PPK',
+            'sso_user_id' => 2, // ✅ UBAH JADI 2 (Sesuai urutan create di SSO)
+            'photo' => null,
+            'email' => 'timppk@gmail.com',
+            'role' => 'tim-ppk',
+        ],
+        [
+            'name' => 'Instalasi',
+            'sso_user_id' => 3, // ✅ UBAH JADI 3
+            'photo' => null,
+            'email' => 'instalasi@gmail.com',
+            'role' => 'instalasi',
+        ],
+        [
+            'name' => 'Admin Gudang',
+            'sso_user_id' => 4, // ✅ UBAH JADI 4
+            'photo' => null,
+            'email' => 'adminGudang@gmail.com',
+            'role' => 'admin-gudang-umum',
+        ],
+        [
+            'name' => 'Tim Teknis',
+            'sso_user_id' => 5, // ✅ UBAH JADI 5
+            'photo' => null,
+            'email' => 'teknis@gmail.com',
+            'role' => 'tim-teknis',
+        ],
+        [
+            'name' => 'Penanggung Jawab',
+            'sso_user_id' => 6, // ✅ UBAH JADI 6
+            'photo' => null,
+            'email' => 'penanggungJawab@gmail.com',
+            'role' => 'penanggung-jawab',
+        ],
+    ];
 
         foreach ($users as $userData) {
             $user = User::updateOrCreate(

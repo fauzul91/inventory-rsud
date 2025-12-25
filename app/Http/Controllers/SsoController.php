@@ -80,28 +80,20 @@ class SsoController extends Controller
 
         Auth::login($user);
 
+        $localToken = $user->createToken('InventoryApp')->accessToken;
+
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
 
-        $userData = [
-            'id'    => $user->id,
-            'name'  => $user->name,
-            'email' => $user->email,
-            'photo' => $user->photo ?? null,
-
-            'role'  => $ssoUser['roles'][0] ?? 'guest',
-        ];
-
         $query = http_build_query([
-            'token' => $accessToken,
-            'user'  => json_encode($userData),
+            'token' => $localToken,
         ]);
 
         return redirect()->away(
-            env('FRONTEND_URL') . '/auth/sso-callback?' . $query
+            $frontendUrl . '/auth/sso-callback?' . $query
         );
 
 
-        dd(env('FRONTEND_URL'));
+        // dd(env('FRONTEND_URL'));
     }
 
     public function logout()
