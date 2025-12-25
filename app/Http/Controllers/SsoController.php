@@ -12,10 +12,10 @@ class SsoController extends Controller
     public function redirectToSso()
     {
         $query = http_build_query([
-            'client_id'     => config('services.sso.client_id'),
-            'redirect_uri'  => config('services.sso.redirect'),
+            'client_id' => config('services.sso.client_id'),
+            'redirect_uri' => config('services.sso.redirect'),
             'response_type' => 'code',
-            'scope'         => '',
+            'scope' => '',
             // 'prompt'        => 'none',
         ]);
 
@@ -31,17 +31,17 @@ class SsoController extends Controller
         $tokenResponse = Http::asForm()->post(
             config('services.sso.host') . '/oauth/token',
             [
-                'grant_type'    => 'authorization_code',
-                'client_id'     => config('services.sso.client_id'),
+                'grant_type' => 'authorization_code',
+                'client_id' => config('services.sso.client_id'),
                 'client_secret' => config('services.sso.secret'),
-                'redirect_uri'  => config('services.sso.redirect'),
-                'code'          => $request->code,
+                'redirect_uri' => config('services.sso.redirect'),
+                'code' => $request->code,
             ]
         );
 
         if ($tokenResponse->failed()) {
             return response()->json([
-                'error'   => 'Gagal mendapatkan access token',
+                'error' => 'Gagal mendapatkan access token',
                 'details' => $tokenResponse->json(),
             ], 500);
         }
@@ -53,55 +53,66 @@ class SsoController extends Controller
 
         if ($userResponse->failed()) {
             return response()->json([
-                'error'   => 'Gagal mengambil data user dari SSO',
+                'error' => 'Gagal mengambil data user dari SSO',
                 'details' => $userResponse->json(),
             ], 500);
         }
 
         $ssoUser = $userResponse->json();
-
-        $user = User::where('sso_user_id', $ssoUser['id'])
-            ->orWhere('email', $ssoUser['email'])
-            ->first();
-
-        if (!$user) {
-            $user = User::create([
+        $user = User::updateOrCreate(
+            ['email' => $ssoUser['email']],
+            [
                 'sso_user_id' => $ssoUser['id'],
-                'name'        => $ssoUser['name'],
-                'email'       => $ssoUser['email'],
-            ]);
-        } else {
-            $user->update([
-                'sso_user_id' => $ssoUser['id'],
-                'name'        => $ssoUser['name'],
-                'email'       => $ssoUser['email'],
-            ]);
-        }
+                'name' => $ssoUser['name'],
+            ]
+        );
+        // $user = User::where('sso_user_id', $ssoUser['id'])
+        //     ->orWhere('email', $ssoUser['email'])
+        //     ->first();
 
-        Auth::login($user);
-
-        $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
-
-        $userData = [
-            'id'    => $user->id,
-            'name'  => $user->name,
-            'email' => $user->email,
-            'photo' => $user->photo ?? null,
-
-            'role'  => $ssoUser['roles'][0] ?? 'guest',
-        ];
-
-        $query = http_build_query([
-            'token' => $accessToken,
-            'user'  => json_encode($userData),
-        ]);
+        // if (!$user) {
+        //     $user = User::create([
+        //         'sso_user_id' => $ssoUser['id'],
+        //         'name' => $ssoUser['name'],
+        //         'email' => $ssoUser['email'],
+        //     ]);
+        // } else {
+        //     $user->update([
+        //         'sso_user_id' => $ssoUser['id'],
+        //         'name' => $ssoUser['name'],
+        //         'email' => $ssoUser['email'],
+        //     ]);
+        // }
+        $user->tokens()->delete();
+        $token = $user->createToken('sso-login')->plainTextToken;
 
         return redirect()->away(
-            env('FRONTEND_URL') . '/auth/sso-callback?' . $query
+            env('FRONTEND_URL') . '/auth/sso-callback?' . http_build_query([
+                'token' => $token,
+            ])
         );
+        // Auth::login($user);
 
+        // $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
 
-        dd(env('FRONTEND_URL'));
+        // $userData = [
+        //     'id'    => $user->id,
+        //     'name'  => $user->name,
+        //     'email' => $user->email,
+        //     'photo' => $user->photo ?? null,
+
+        //     'role'  => $ssoUser['roles'][0] ?? 'guest',
+        // ];
+
+        // $query = http_build_query([
+        //     'token' => $accessToken,
+        //     'user'  => json_encode($userData),
+        // ]);
+
+        // return redirect()->away(
+        //     env('FRONTEND_URL') . '/auth/sso-callback?' . $query
+        // );
+        // dd(env('FRONTEND_URL'));
     }
 
     public function logout()

@@ -15,6 +15,7 @@ class PenerimaanService
     private PenerimaanRepository $repository;
     private StokService $stokService;
     private MonitoringService $monitoringService;
+    private NotifikasiService $notifikasiService;
     private DetailBarangService $detailBarangService;
     private DetailPegawaiService $detailPegawaiService;
 
@@ -22,12 +23,14 @@ class PenerimaanService
         PenerimaanRepository $repository,
         StokService $stokService,
         MonitoringService $monitoringService,
+        NotifikasiService $notifikasiService,
         DetailBarangService $detailBarangService,
         DetailPegawaiService $detailPegawaiService
     ) {
         $this->repository = $repository;
         $this->stokService = $stokService;
         $this->monitoringService = $monitoringService;
+        $this->notifikasiService = $notifikasiService;
         $this->detailBarangService = $detailBarangService;
         $this->detailPegawaiService = $detailPegawaiService;
     }
@@ -131,7 +134,7 @@ class PenerimaanService
             if (!empty($data['pegawais'])) {
                 $this->detailPegawaiService->createMultiple($penerimaan->id, $data['pegawais']);
             }
-
+            $this->notifikasiService->penerimaanDiajukan($penerimaan);
             $this->monitoringService->log("Membuat penerimaan: {$penerimaan->no_surat}", 4);
 
             return $penerimaan->load(['detailBarang', 'detailPegawai.pegawai']);
