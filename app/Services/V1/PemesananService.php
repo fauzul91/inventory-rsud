@@ -7,17 +7,24 @@ use App\Models\Pemesanan;
 use App\Repositories\V1\PemesananRepository;
 use App\Repositories\V1\StokRepository;
 use DB;
+use Illuminate\Support\Facades\Auth;
 
 class PemesananService
 {
     private PemesananRepository $pemesananRepository;
     private StokRepository $stokRepository;
+    private NotifikasiService $notifikasiService;
+    private MonitoringService $monitoringService;
     public function __construct(
         StokRepository $stokRepository,
-        PemesananRepository $pemesananRepository
+        PemesananRepository $pemesananRepository,
+        NotifikasiService $notifikasiService,
+        MonitoringService $monitoringService
     ) {
         $this->stokRepository = $stokRepository;
         $this->pemesananRepository = $pemesananRepository;
+        $this->notifikasiService = $notifikasiService;
+        $this->monitoringService = $monitoringService;
     }
     public function getAllStoks(array $filters)
     {
@@ -84,7 +91,14 @@ class PemesananService
 
     public function create(array $data)
     {
-        return $this->pemesananRepository->createPemesanan($data);
+        return DB::transaction(function () use ($data) {
+            $pemesanan = $this->pemesananRepository->createPemesanan($data);
+
+            $this->notifikasiService->pemesananDiajukan($pemesanan, Auth::user()->name ?? "Instalasi");
+            $this->monitoringService->log("Membuat pemesanan baru: {$pemesanan->id}", Auth::id());
+
+            return $pemesanan;
+        });
     }
     public function findById($id)
     {
@@ -92,7 +106,7 @@ class PemesananService
     }
     public function updateQuantityPenanggungJawab(int $pemesananId, array $details)
     {
-        $data = DB::transaction(function () use ($pemesananId, $details) {
+        $pemesanan = DB::transaction(function () use ($pemesananId, $details) {
             foreach ($details as $item) {
                 $this->pemesananRepository
                     ->updateQuantityPenanggungJawab(
@@ -110,7 +124,8 @@ class PemesananService
 
             return Pemesanan::with('detailPemesanan')->find($pemesananId);
         });
-
-        return $data;
+        $this->notifikasiService->konfirmasiPemesananAdmin($pemesanan, Auth::user()->name ?? "Penanggung Jawab");
+        $this->monitoringService->log("Konfirmasi kuantitas pemesanan: {$pemesanan->id}", Auth::id());
+        return $pemesanan;
     }
 }

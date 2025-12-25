@@ -12,13 +12,12 @@ return new class extends Migration {
     {
         Schema::create('notifikasis', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->text('sender');
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('type');
             $table->string('title');
             $table->text('message');
-            $table->json('data')->nullable();
+            $table->json('data');
             $table->timestamp('read_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();

@@ -134,7 +134,7 @@ class PenerimaanService
             if (!empty($data['pegawais'])) {
                 $this->detailPegawaiService->createMultiple($penerimaan->id, $data['pegawais']);
             }
-            $this->notifikasiService->penerimaanDiajukan($penerimaan);
+            $this->notifikasiService->penerimaanDiajukan($penerimaan, Auth::user()->name ?? "Tim PPK");
             $this->monitoringService->log("Membuat penerimaan: {$penerimaan->no_surat}", 4);
 
             return $penerimaan->load(['detailBarang', 'detailPegawai.pegawai']);
@@ -354,6 +354,7 @@ class PenerimaanService
                 "Mengkonfirmasi penerimaan: {$penerimaan->no_surat}",
                 2
             );
+            $this->notifikasiService->uploadTTDPenerimaan($penerimaan, Auth::user()->name ?? "Tim Teknis");
 
             return [
                 'success' => true,

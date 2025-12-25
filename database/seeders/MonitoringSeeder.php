@@ -27,7 +27,7 @@ class MonitoringSeeder extends Seeder
 
         for ($i = 0; $i < 20; $i++) {
             Monitoring::create([
-                'user_id' => rand(1, 6),
+                'user_id' => rand(1, 3),
                 'time' => $faker->time('H:i:s'),
                 'date' => $faker->date('Y-m-d'),
                 'activity' => $activities[array_rand($activities)],

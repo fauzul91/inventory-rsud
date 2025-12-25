@@ -4,7 +4,10 @@ namespace App\Enum\V1;
 
 enum RoleName: string
 {
-    case TIM_TEKNIS = 'tim_teknis';
-    case ADMIN_GUDANG = 'admin_gudang_umum';
-    case PENANGGUNG_JAWAB = 'penanggung_jawab';
+    case SUPER_ADMIN = 'super-admin';
+    case ADMIN_GUDANG = 'admin-gudang-umum';
+    case TIM_TEKNIS = 'tim-teknis';
+    case PPK = 'tim-ppk';
+    case INSTALASI = 'instalasi';
+    case PENANGGUNG_JAWAB = 'penanggung-jawab';
 }
