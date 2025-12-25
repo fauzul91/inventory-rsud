@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\NotifikasiController;
 use App\Http\Controllers\Api\V1\PemesananController;
 use App\Http\Controllers\Api\V1\PengeluaranController;
 use Illuminate\Support\Facades\Route;
@@ -17,12 +18,9 @@ use App\Http\Controllers\Api\V1\PelaporanController;
 
 Route::get('/sso/login', [SsoController::class, 'redirectToSso'])->name('sso.login');
 Route::get('/sso/callback', [SsoController::class, 'handleCallback'])->name('sso.callback');
-Route::get('/sso/logout', [SsoController::class, 'logout'])->name('sso.logout');
 
-Route::middleware('auth:api')->group(function () {
-});
-
-Route::prefix('v1')->group(function () {
+Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
+    Route::post('/sso/logout', [SsoController::class, 'logout'])->name('sso.logout');
     Route::get('/category/select', [CategoryController::class, 'getAllForSelect'])->name('category.selectAll');
     Route::apiResource('category', CategoryController::class);
     Route::apiResource('satuan', SatuanController::class);
@@ -65,10 +63,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/pelaporan/dashboard', [PelaporanController::class, 'index']);
     Route::get('/pelaporan/penerimaan-per-bulan', [PelaporanController::class, 'penerimaanPerBulan']);
     Route::get('pelaporan/pengeluaran-per-bulan', [PelaporanController::class, 'pengeluaranPerBulan']);
+    Route::get('/notifikasi', [NotifikasiController::class, 'index']);
+    Route::patch('/notifikasi/{id}/markRead', [NotifikasiController::class, 'markAsRead']);
+    Route::patch('/notifikasi/markAll', [NotifikasiController::class, 'markAllAsRead']);
+    Route::delete('/notifikasi/{id}', [NotifikasiController::class, 'destroy']);
+    Route::delete('/notifikasi/delete-all', [NotifikasiController::class, 'destroyAll']);
 });
-
-// Route::middleware(['role:super-admin,tim-ppk'])->group(function () {
-//     Route::apiResource('pegawai', PegawaiController::class);
-//     Route::patch('/pegawai/{id}/status', [PegawaiController::class, 'toggleStatus'])
-//         ->name('pegawai.toggleStatus');
-// });

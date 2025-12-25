@@ -28,6 +28,7 @@ class MonitoringRepository implements MonitoringRepositoryInterface
             return [
                 'foto' => $item->user->photo ? asset('storage/' . $item->user->photo) : null,
                 'role' => $item->user ? $item->user->getRoleNames()->join(',') : 'Super Admin',
+                'name' => $item->user->name,
                 'waktu' => $item->time,
                 'tanggal' => $item->date,
                 'activity' => $item->activity,

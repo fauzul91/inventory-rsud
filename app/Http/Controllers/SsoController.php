@@ -2,21 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\V1\MonitoringService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class SsoController extends Controller
 {
+    private MonitoringService $monitoringService;
+
+    public function __construct(
+        MonitoringService $monitoringService,
+    ) {
+        $this->monitoringService = $monitoringService;
+    }
     public function redirectToSso()
     {
         $query = http_build_query([
-            'client_id'     => config('services.sso.client_id'),
-            'redirect_uri'  => config('services.sso.redirect'),
+            'client_id' => config('services.sso.client_id'),
+            'redirect_uri' => config('services.sso.redirect'),
             'response_type' => 'code',
-            'scope'         => '',
-            // 'prompt'        => 'none',
+            'scope' => '',
+            'prompt' => 'login', // <--- WAJIB ADA INI BANG!
         ]);
 
         return redirect(config('services.sso.host') . '/oauth/authorize?' . $query);
@@ -31,17 +40,17 @@ class SsoController extends Controller
         $tokenResponse = Http::asForm()->post(
             config('services.sso.host') . '/oauth/token',
             [
-                'grant_type'    => 'authorization_code',
-                'client_id'     => config('services.sso.client_id'),
+                'grant_type' => 'authorization_code',
+                'client_id' => config('services.sso.client_id'),
                 'client_secret' => config('services.sso.secret'),
-                'redirect_uri'  => config('services.sso.redirect'),
-                'code'          => $request->code,
+                'redirect_uri' => config('services.sso.redirect'),
+                'code' => $request->code,
             ]
         );
 
         if ($tokenResponse->failed()) {
             return response()->json([
-                'error'   => 'Gagal mendapatkan access token',
+                'error' => 'Gagal mendapatkan access token',
                 'details' => $tokenResponse->json(),
             ], 500);
         }
@@ -53,68 +62,59 @@ class SsoController extends Controller
 
         if ($userResponse->failed()) {
             return response()->json([
-                'error'   => 'Gagal mengambil data user dari SSO',
+                'error' => 'Gagal mengambil data user dari SSO',
                 'details' => $userResponse->json(),
             ], 500);
         }
 
         $ssoUser = $userResponse->json();
-
-        $user = User::where('sso_user_id', $ssoUser['id'])
-            ->orWhere('email', $ssoUser['email'])
-            ->first();
-
-        if (!$user) {
-            $user = User::create([
-                'sso_user_id' => $ssoUser['id'],
-                'name'        => $ssoUser['name'],
-                'email'       => $ssoUser['email'],
-            ]);
-        } else {
-            $user->update([
-                'sso_user_id' => $ssoUser['id'],
-                'name'        => $ssoUser['name'],
-                'email'       => $ssoUser['email'],
-            ]);
-        }
-
-        Auth::login($user);
-
-        $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173');
-
-        $userData = [
-            'id'    => $user->id,
-            'name'  => $user->name,
-            'email' => $user->email,
-            'photo' => $user->photo ?? null,
-
-            'role'  => $ssoUser['roles'][0] ?? 'guest',
-        ];
-
-        $query = http_build_query([
-            'token' => $accessToken,
-            'user'  => json_encode($userData),
-        ]);
-
-        return redirect()->away(
-            env('FRONTEND_URL') . '/auth/sso-callback?' . $query
+        $roleNameFromSso = $ssoUser['roles'][0] ?? 'guest';
+        $user = User::updateOrCreate(
+            ['sso_user_id' => $ssoUser['id']],
+            [
+                'email' => $ssoUser['email'],
+                'name' => $ssoUser['name'],
+            ]
         );
 
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => $roleNameFromSso]);
+        $user->syncRoles($roleNameFromSso);
 
-        dd(env('FRONTEND_URL'));
+        $user->tokens()->delete();
+        $token = $user->createToken('sso-login')->plainTextToken;
+        $userData = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'photo' => $user->photo ?? null,
+            'role' => $ssoUser['roles'][0] ?? 'guest',
+        ];
+        $this->monitoringService->log("{$user->name} telah login!", $user->id);
+        return redirect()->away(
+            env('FRONTEND_URL') . '/auth/sso-callback?' . http_build_query([
+                'token' => $token,
+                'user' => json_encode($userData),
+            ])
+        );
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
-        Auth::logout();
-        session()->flush();
+        $user = $request->user();
+
+        if ($user) {
+            $this->monitoringService->log("{$user->name} telah logout!", $user->id);
+            $user->tokens()->delete();
+        }
 
         $ssoLogoutBaseUrl = config('services.sso.logout_url');
-
-        $destination = config('services.sso.host');
+        $destination = env('FRONTEND_URL') . '/login';
 
         $targetUrl = $ssoLogoutBaseUrl . '?redirect=' . urlencode($destination);
 
-        return redirect($targetUrl);
+        return response()->json([
+            'success' => true,
+            'target_url' => $targetUrl
+        ]);
     }
 }

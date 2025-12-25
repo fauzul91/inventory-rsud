@@ -78,11 +78,13 @@ class StokRepository implements StokRepositoryInterface
             'satuan:id,name',
         ])->findOrFail($stokId);
 
+        $validStatuses = ['checked', 'confirmed', 'signed', 'paid'];
+
         $masuk = DB::table('detail_penerimaan_barangs as dpb')
             ->join('penerimaans as p', 'dpb.penerimaan_id', '=', 'p.id')
             ->where('dpb.stok_id', $stokId)
             ->where('dpb.is_layak', true)
-            ->whereIn('p.status', ['checked', 'confirmed', 'signed', 'paid'])
+            ->whereIn('p.status', $validStatuses)
             ->select([
                 'dpb.created_at as tanggal',
                 DB::raw("'masuk' as tipe"),
@@ -126,19 +128,14 @@ class StokRepository implements StokRepositoryInterface
                 'dpp.harga',
                 'dpp.subtotal'
             ]);
-        $stokMasuk = DB::table('detail_penerimaan_barangs as dpb')
-            ->join('penerimaans as p', 'dpb.penerimaan_id', '=', 'p.id')
-            ->where('dpb.stok_id', $stokId)
-            ->where('dpb.is_layak', true)
-            ->whereIn('p.status', ['checked', 'confirmed', 'signed', 'paid'])
-            ->sum('dpb.quantity');
-        $stokKeluar = DB::table('detail_pemesanan_penerimaan as dpp')
-            ->join('detail_penerimaan_barangs as dpb', 'dpp.detail_penerimaan_id', '=', 'dpb.id')
-            ->join('penerimaans as p', 'dpb.penerimaan_id', '=', 'p.id')
-            ->where('dpb.stok_id', $stokId)
-            ->where('dpb.is_layak', true)
-            ->whereIn('p.status', ['checked', 'confirmed', 'signed', 'paid'])
-            ->sum('dpp.quantity');
+        $details = $stok->detailPenerimaanBarang()
+            ->where('is_layak', true)
+            ->whereHas('penerimaan', fn($q) => $q->whereIn('status', $validStatuses))
+            ->get();
+        $stokMasuk = $details->sum('quantity');
+        $stokKeluar = $details
+            ->flatMap(fn($d) => $d->detailPemesanans)
+            ->sum('pivot.quantity');
         $totalStok = $stokMasuk - $stokKeluar;
         $mutasi = $masuk
             ->unionAll($keluar)

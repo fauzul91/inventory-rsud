@@ -7,6 +7,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 class UserSeeder extends Seeder
 {
@@ -15,68 +16,74 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        $roles = [
+            'SUPER_ADMIN' => 'super-admin',
+            'ADMIN_GUDANG' => 'admin-gudang-umum',
+            'TEKNIS' => 'tim-teknis',
+            'PPK' => 'tim-ppk',
+            'INSTALASI' => 'instalasi',
+            'PENANGGUNG_JAWAB' => 'penanggung-jawab',
+        ];
+
+        foreach ($roles as $roleName) {
+            Role::updateOrCreate(['name' => $roleName]);
+        }
+
         $users = [
             [
-                'name' => 'Super Admin',
                 'sso_user_id' => 1,
+                'name' => 'Super Admin',
                 'email' => 'superadmin@example.com',
-                'photo' => null,
-                'role' => 'Super Admin',
+                'role' => $roles['SUPER_ADMIN']
             ],
             [
-                'name' => 'Admin Gudang',
                 'sso_user_id' => 2,
+                'name' => 'Admin Gudang',
                 'email' => 'admingudang@example.com',
-                'photo' => null,
-                'role' => 'Admin Gudang Umum',
+                'role' => $roles['ADMIN_GUDANG']
             ],
             [
-                'name' => 'Tim Teknis',
                 'sso_user_id' => 3,
+                'name' => 'Tim Teknis',
                 'email' => 'timteknis@example.com',
-                'photo' => null,
-                'role' => 'Tim Teknis',
+                'role' => $roles['TEKNIS']
             ],
             [
-                'name' => 'Tim PPK',
                 'sso_user_id' => 4,
+                'name' => 'Tim PPK',
                 'email' => 'timppk@example.com',
-                'photo' => null,
-                'role' => 'Tim PPK',
+                'role' => $roles['PPK']
             ],
             [
-                'name' => 'Penanggung Jawab',
                 'sso_user_id' => 5,
+                'name' => 'Penanggung Jawab',
                 'email' => 'penanggungjawab@example.com',
-                'photo' => null,
-                'role' => 'Penanggung Jawab',
+                'role' => $roles['PENANGGUNG_JAWAB']
             ],
             [
-                'name' => 'Instalasi',
                 'sso_user_id' => 6,
+                'name' => 'Instalasi',
                 'email' => 'instalasi@example.com',
-                'photo' => null,
-                'role' => 'Instalasi',
+                'role' => $roles['INSTALASI']
             ],
         ];
 
         foreach ($users as $userData) {
             $user = User::updateOrCreate(
-                ['email' => $userData['email']], // unik key
+                ['email' => $userData['email']],
                 [
-                    'name' => $userData['name'],
                     'sso_user_id' => $userData['sso_user_id'],
+                    'name' => $userData['name'],
                     'email_verified_at' => now(),
                     'remember_token' => Str::random(10),
-                    'photo' => $userData['photo'],
                 ]
             );
 
             if (!empty($userData['role'])) {
-                $user->assignRole($userData['role']);
+                $user->syncRoles($userData['role']);
             }
         }
 
-        echo "Seeder user lokal selesai, role sudah diassign.\n";
+        echo "UserSeeder: Data SSO User & Spatie Roles berhasil disinkronkan!\n";
     }
 }
