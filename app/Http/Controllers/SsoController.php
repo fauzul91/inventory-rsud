@@ -108,7 +108,7 @@ class SsoController extends Controller
         }
 
         $ssoLogoutBaseUrl = config('services.sso.logout_url');
-        $destination = env('FRONTEND_URL') . '/login';
+        $destination = env('FRONTEND_URL');
 
         $targetUrl = $ssoLogoutBaseUrl . '?redirect=' . urlencode($destination);
 
