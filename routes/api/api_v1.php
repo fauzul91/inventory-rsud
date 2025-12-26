@@ -66,6 +66,6 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/notifikasi', [NotifikasiController::class, 'index']);
     Route::patch('/notifikasi/{id}/markRead', [NotifikasiController::class, 'markAsRead']);
     Route::patch('/notifikasi/markAll', [NotifikasiController::class, 'markAllAsRead']);
-    Route::delete('/notifikasi/{id}', [NotifikasiController::class, 'destroy']);
     Route::delete('/notifikasi/delete-all', [NotifikasiController::class, 'destroyAll']);
+    Route::delete('/notifikasi/{id}', [NotifikasiController::class, 'destroy']);
 });
