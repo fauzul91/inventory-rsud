@@ -51,7 +51,7 @@ class StokService
                 'stok_masuk' => $stokMasuk,
                 'stok_keluar' => $stokKeluar,
                 'total_stok' => $totalStok,
-                'minimum_stok' => $stok->minimum_stok,
+                'minimum_stok' => (float) $stok->minimum_stok,
                 'satuan' => $stok->satuan->name ?? null,
             ];
         });
