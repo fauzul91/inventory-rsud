@@ -49,8 +49,8 @@ class Notifikasi extends Model
         return match ($this->type) {
             NotificationType::PENERIMAAN_DIAJUKAN->value => "$urlFrontEnd/penerimaan/inspect/" . ($this->data['penerimaan_id'] ?? ''),
             NotificationType::UPLOAD_TTD_PENERIMAAN->value => "$urlFrontEnd/penerimaan/unggah/" . ($this->data['penerimaan_id'] ?? ''),
-            NotificationType::PEMESANAN_DIAJUKAN->value => "$urlFrontEnd/pemesanan/lihat/" . ($this->data['pemesanan_id'] ?? ''),
-            NotificationType::KONFIRMASI_PEMESANAN_ADMIN->value => "$urlFrontEnd/pemesanan/lihat/" . ($this->data['pemesanan_id'] ?? ''),
+            NotificationType::PEMESANAN_DIAJUKAN->value => "$urlFrontEnd/pengeluaran/lihat/" . ($this->data['pemesanan_id'] ?? ''),
+            NotificationType::KONFIRMASI_PEMESANAN_ADMIN->value => "$urlFrontEnd/pengeluaran/lihat/" . ($this->data['pemesanan_id'] ?? ''),
             NotificationType::STOK_MENIPIS->value => "$urlFrontEnd/stok/lihat/" . ($this->data['stok_id'] ?? ''),
             default => "$urlFrontEnd",
         };

@@ -4,17 +4,21 @@ namespace App\Services\V1;
 use App\Models\DetailPemesanan;
 use App\Models\DetailPenerimaanBarang;
 use App\Models\Pemesanan;
+use App\Models\Stok;
 use App\Repositories\V1\PengeluaranRepository;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class PengeluaranService
 {
-    private PengeluaranRepository $pengeluaranRepository;
+    private $pengeluaranRepository;
+    private $stokService;
     public function __construct(
-        PengeluaranRepository $pengeluaranRepository
+        PengeluaranRepository $pengeluaranRepository,
+        StokService $stokService
     ) {
         $this->pengeluaranRepository = $pengeluaranRepository;
+        $this->stokService = $stokService;
     }
     public function getAllPengeluaran($filters)
     {
@@ -25,12 +29,10 @@ class PengeluaranService
         array $detailsPayload
     ) {
         return DB::transaction(function () use ($pemesananId, $detailsPayload) {
-
             $pemesanan = Pemesanan::with('detailPemesanan')
                 ->findOrFail($pemesananId);
 
             foreach ($detailsPayload as $item) {
-
                 $detail = DetailPemesanan::where('pemesanan_id', $pemesananId)
                     ->findOrFail($item['detail_id']);
 
@@ -47,13 +49,24 @@ class PengeluaranService
                         'Total alokasi BAST harus sama dengan quantity admin gudang'
                     );
                 }
+                $stok = Stok::where('id', $detail->stok_id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-                // simpan quantity admin gudang
+                $totalStok = $this->stokService
+                    ->calculateTotalStok($stok->id);
+
+                $sisaSetelahKeluar = $totalStok - $quantityAdmin;
+
+                if ($sisaSetelahKeluar < $stok->minimum_stok) {
+                    throw new \DomainException(
+                        'Pengeluaran melebihi batas minimum stok'
+                    );
+                }
                 $this->pengeluaranRepository
                     ->saveGudangQuantity($detail, $quantityAdmin);
 
                 foreach ($allocations as $alloc) {
-
                     $penerimaan = DetailPenerimaanBarang::findOrFail(
                         $alloc['detail_penerimaan_id']
                     );
@@ -89,21 +102,31 @@ class PengeluaranService
 
     public function getAvailableBastByStok(int $stokId)
     {
+        $stok = Stok::findOrFail($stokId);
+        $totalStok = $this->stokService->calculateTotalStok($stokId);
+        $availableForAllocation = max(
+            0,
+            $totalStok - $stok->minimum_stok
+        );
+
         $data = $this->pengeluaranRepository
             ->getLayakByStok($stokId);
+
         $collection = $data->getCollection()
             ->map(function ($item) {
                 $usedQty = $item->detailPemesanans
                     ->sum('pivot.quantity');
 
                 $remaining = $item->quantity - $usedQty;
+
                 if ($remaining <= 0) {
                     return null;
                 }
+
                 return [
                     'detail_penerimaan_id' => $item->id,
-                    'bast_id' => $item->penerimaan->no_surat,
-                    'tanggal_bast' => Carbon::parse($item->penerimaan->created_at)->format('d-m-Y'),
+                    'bast_id' => $item->penerimaan?->no_surat,
+                    'tanggal_bast' => $item->penerimaan?->created_at?->format('d-m-Y'),
                     'quantity_total' => $item->quantity,
                     'quantity_used' => $usedQty,
                     'quantity_remaining' => $remaining,
@@ -114,6 +137,14 @@ class PengeluaranService
             ->values();
 
         $data->setCollection($collection);
-        return $data;
+
+        return [
+            'meta' => [
+                'total_stok' => $totalStok,
+                'minimum_stok' => (float) $stok->minimum_stok,
+                'available_for_allocation' => $availableForAllocation,
+            ],
+            'batches' => $data,
+        ];
     }
 }

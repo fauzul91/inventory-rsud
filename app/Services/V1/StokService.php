@@ -2,6 +2,7 @@
 
 namespace App\Services\V1;
 
+use App\Models\DetailPenerimaanBarang;
 use App\Models\StokHistory;
 use App\Repositories\V1\StokRepository;
 use Carbon\Carbon;
@@ -68,5 +69,23 @@ class StokService
     public function update($data, $id)
     {
         return $this->stokRepository->update($data, $id);
+    }
+    public function calculateTotalStok(int $stokId): int
+    {
+        $details = DetailPenerimaanBarang::where('stok_id', $stokId)
+            ->where('is_layak', true)
+            ->whereHas(
+                'penerimaan',
+                fn($q) =>
+                $q->whereIn('status', ['checked', 'confirmed', 'signed', 'paid'])
+            )
+            ->get();
+
+        $masuk = $details->sum('quantity');
+        $keluar = $details
+            ->flatMap(fn($d) => $d->detailPemesanans)
+            ->sum('pivot.quantity');
+
+        return $masuk - $keluar;
     }
 }

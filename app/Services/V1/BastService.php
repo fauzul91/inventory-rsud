@@ -161,7 +161,7 @@ class BastService
         $paginated->getCollection()->transform(function ($bast) {
             return [
                 'id' => $bast->id,
-                'filename' => $bast->filename,
+                'filename' => basename($bast->filename),
                 'signed_file' => $bast->uploaded_signed_file ? asset('storage/' . $bast->uploaded_signed_file) : null,
                 'uploaded_at' => $bast->uploaded_at,
                 'penerimaan_no_surat' => $bast->penerimaan->no_surat,
