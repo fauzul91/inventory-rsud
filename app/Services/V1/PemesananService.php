@@ -36,16 +36,18 @@ class PemesananService
         $stoks->getCollection()->transform(function ($stok) {
             $details = $stok->detailPenerimaanBarang;
             $stokMasuk = $details->sum('quantity');
-            $stokKeluar = $details
-                ->flatMap(fn($d) => $d->detailPemesanans)
+
+            $stokKeluar = $details->flatMap(fn($d) => $d->detailPemesanans)
                 ->sum('pivot.quantity');
-            $totalStok = $stokMasuk - $stokKeluar;
+
+            $availableForUser = ($stokMasuk - $stokKeluar) - $stok->minimum_stok;
+
             return [
                 'id' => $stok->id,
                 'name' => $stok->name,
                 'satuan' => $stok->satuan->name ?? null,
-                'category_name' => $stok->category->name,
-                'total_stok' => $totalStok,
+                'category_name' => $stok->category->name ?? null,
+                'total_stok' => $availableForUser > 0 ? $availableForUser : 0,
             ];
         });
 

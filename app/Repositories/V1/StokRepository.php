@@ -183,7 +183,7 @@ class StokRepository implements StokRepositoryInterface
         $keluar = $stok->detailPenerimaanBarang
             ->flatMap(fn($d) => $d->detailPemesanans)
             ->sum('pivot.quantity');
-
-        return $masuk - $keluar;
+        $total = ($masuk - $keluar) - $stok->minimum_stok;
+        return $total;
     }
 }
