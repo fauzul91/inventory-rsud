@@ -22,7 +22,7 @@ class PelaporanRepository implements PelaporanRepositoryInterface
 
     public function getTotalBastSigned()
     {
-        return Penerimaan::where('status', 'signed')
+        return Penerimaan::whereIn('status', ['signed', 'paid'])
             ->whereYear('created_at', now()->year)
             ->whereMonth('created_at', now()->month)
             ->count();
@@ -37,32 +37,32 @@ class PelaporanRepository implements PelaporanRepositoryInterface
 
     public function getDashboardInsight()
     {
-        $now       = now();
-        $year      = $now->year;
+        $now = now();
+        $year = $now->year;
         $thisMonth = $now->month;
         $lastMonth = $now->copy()->subMonth()->month;
 
         $stokThisMonth =
             DB::table('detail_penerimaan_barangs')
-            ->whereYear('created_at', $year)
-            ->whereMonth('created_at', $thisMonth)
-            ->sum('quantity')
+                ->whereYear('created_at', $year)
+                ->whereMonth('created_at', $thisMonth)
+                ->sum('quantity')
             -
             DB::table('detail_pemesanan_penerimaan')
-            ->whereYear('created_at', $year)
-            ->whereMonth('created_at', $thisMonth)
-            ->sum('quantity');
+                ->whereYear('created_at', $year)
+                ->whereMonth('created_at', $thisMonth)
+                ->sum('quantity');
 
         $stokLastMonth =
             DB::table('detail_penerimaan_barangs')
-            ->whereYear('created_at', $year)
-            ->whereMonth('created_at', $lastMonth)
-            ->sum('quantity')
+                ->whereYear('created_at', $year)
+                ->whereMonth('created_at', $lastMonth)
+                ->sum('quantity')
             -
             DB::table('detail_pemesanan_penerimaan')
-            ->whereYear('created_at', $year)
-            ->whereMonth('created_at', $lastMonth)
-            ->sum('quantity');
+                ->whereYear('created_at', $year)
+                ->whereMonth('created_at', $lastMonth)
+                ->sum('quantity');
 
         $stokChangePercent = $stokLastMonth > 0
             ? round((($stokThisMonth - $stokLastMonth) / $stokLastMonth) * 100)
@@ -88,10 +88,10 @@ class PelaporanRepository implements PelaporanRepositoryInterface
 
         return [
             'stok_change_percent' => abs($stokChangePercent),
-            'stok_change_trend'   => $stokChangePercent >= 0 ? 'up' : 'down',
+            'stok_change_trend' => $stokChangePercent >= 0 ? 'up' : 'down',
 
             'belum_dibayar_change_percent' => abs($belumBayarChangePercent),
-            'belum_dibayar_change_trend'   => $belumBayarChangePercent >= 0 ? 'down' : 'up',
+            'belum_dibayar_change_trend' => $belumBayarChangePercent >= 0 ? 'down' : 'up',
         ];
     }
 
