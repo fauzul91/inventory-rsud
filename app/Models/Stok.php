@@ -10,6 +10,9 @@ class Stok extends Model
 {
     use HasFactory, SoftDeletes;
     protected $fillable = ['name', 'category_id', 'minimum_stok', 'satuan_id'];
+    protected $casts = [
+        'minimum_stok' => 'float',
+    ];
 
     public function category()
     {
