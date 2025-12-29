@@ -2,6 +2,7 @@
 
 namespace App\Services\V1;
 
+use App\Models\DetailPenerimaanPegawai;
 use App\Models\Penerimaan;
 use App\Repositories\V1\PenerimaanRepository;
 
@@ -16,16 +17,17 @@ class DetailPegawaiService
 
     public function createMultiple($penerimaanId, array $pegawais)
     {
-        foreach ($pegawais as $pegawai) {
-            $this->createSingle($penerimaanId, $pegawai);
+        foreach ($pegawais as $index => $pegawai) {
+            $this->createSingle($penerimaanId, $pegawai, $index + 1);
         }
     }
 
-    public function createSingle($penerimaanId, array $pegawai)
+    public function createSingle($penerimaanId, array $pegawai, $urutan = 1)
     {
         return $this->repository->createDetailPegawai([
             'penerimaan_id' => $penerimaanId,
             'pegawai_id' => $pegawai['pegawai_id'],
+            'urutan' => $urutan,
             'alamat_staker' => $pegawai['alamat_staker'] ?? '-',
         ]);
     }
@@ -37,7 +39,7 @@ class DetailPegawaiService
         foreach ($pegawais as $index => $pegawai) {
             $nomorUrut = $index + 1;
 
-            \App\Models\DetailPenerimaanPegawai::updateOrCreate(
+            DetailPenerimaanPegawai::updateOrCreate(
                 [
                     'penerimaan_id' => $penerimaanId,
                     'urutan' => $nomorUrut,

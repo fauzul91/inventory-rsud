@@ -39,7 +39,7 @@ class PenerimaanUpdateRequest extends FormRequest
             'pegawais' => ['sometimes', 'array', 'min:2'],
             'pegawais.*.id' => ['sometimes', 'integer', 'exists:detail_penerimaan_pegawais,id'],
             'pegawais.*.pegawai_id' => ['required_with:pegawais', 'integer', 'exists:pegawais,id', 'distinct'],
-            'pegawais.*.alamat_staker' => ['sometimes', 'nullable', 'string', 'max:500'],
+            'pegawais.*.alamat_staker' => ['required', 'nullable', 'string', 'max:500'],
         ];
     }
 
@@ -60,6 +60,7 @@ class PenerimaanUpdateRequest extends FormRequest
             'pegawais.*.pegawai_id.exists' => 'Pegawai tidak ditemukan',
             'pegawais.*.pegawai_id.distinct' => 'Pegawai tidak boleh duplikat',
             'pegawais.min' => 'Minimal harus ada 2 pegawai',
+            'pegawais.*.alamat_staker.required' => 'Alamat satker wajib diisi',
         ];
     }
 

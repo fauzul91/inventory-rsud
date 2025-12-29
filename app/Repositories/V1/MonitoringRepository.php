@@ -9,7 +9,7 @@ class MonitoringRepository implements MonitoringRepositoryInterface
 {
     public function getAllMonitorings(array $filters)
     {
-        $query = Monitoring::query()->orderBy('created_at', 'desc');
+        $query = Monitoring::with('user')->orderBy('created_at', 'desc');
         if (!empty($filters['search'])) {
             $search = $filters['search'];
 
