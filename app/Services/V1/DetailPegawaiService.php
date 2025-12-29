@@ -32,55 +32,21 @@ class DetailPegawaiService
 
     public function syncDetailPegawai($penerimaan, array $pegawais)
     {
-        $penerimaanId = $penerimaan instanceof Penerimaan
-            ? $penerimaan->id
-            : (is_object($penerimaan) ? $penerimaan->id : $penerimaan);
+        $penerimaanId = $penerimaan instanceof Penerimaan ? $penerimaan->id : $penerimaan;
 
-        $requestDetailIds = collect($pegawais)
-            ->pluck('id')
-            ->filter()
-            ->toArray();
+        foreach ($pegawais as $index => $pegawai) {
+            $nomorUrut = $index + 1;
 
-        $existingPegawais = $this->repository->getDetailPegawaisByPenerimaanId($penerimaanId);
-
-        foreach ($existingPegawais as $existing) {
-            if (!empty($requestDetailIds)) {
-                if (!in_array($existing->id, $requestDetailIds)) {
-                    $this->repository->deleteDetailPegawai($existing);
-                }
-            } else {
-                $requestPegawaiIds = collect($pegawais)->pluck('pegawai_id')->toArray();
-                if (!in_array($existing->pegawai_id, $requestPegawaiIds)) {
-                    $this->repository->deleteDetailPegawai($existing);
-                }
-            }
-        }
-
-        foreach ($pegawais as $pegawai) {
-            $pegawaiData = [
-                'alamat_staker' => $pegawai['alamat_staker'] ?? '-'
-            ];
-
-            if (!empty($pegawai['id'])) {
-                $existing = $existingPegawais->firstWhere('id', $pegawai['id']);
-
-                if ($existing) {
-                    $this->repository->updateDetailPegawai($existing, $pegawaiData);
-                } else {
-                    $this->createSingle($penerimaanId, $pegawai);
-                }
-            } else {
-                $existing = $this->repository->findDetailPegawaiByPegawaiId(
-                    $penerimaanId,
-                    $pegawai['pegawai_id']
-                );
-
-                if ($existing) {
-                    $this->repository->updateDetailPegawai($existing, $pegawaiData);
-                } else {
-                    $this->createSingle($penerimaanId, $pegawai);
-                }
-            }
+            \App\Models\DetailPenerimaanPegawai::updateOrCreate(
+                [
+                    'penerimaan_id' => $penerimaanId,
+                    'urutan' => $nomorUrut,
+                ],
+                [
+                    'pegawai_id' => $pegawai['pegawai_id'],
+                    'alamat_staker' => $pegawai['alamat_staker'] ?? '-',
+                ]
+            );
         }
     }
 }

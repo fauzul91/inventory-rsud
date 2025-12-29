@@ -46,18 +46,20 @@ class PenerimaanSeeder extends Seeder
             shuffle($pegawaiIds);
 
             $pegawai1 = $pegawaiIds[0];
-            $pegawai2 = $pegawaiIds[1]; 
+            $pegawai2 = $pegawaiIds[1];
 
             DetailPenerimaanPegawai::create([
                 'penerimaan_id' => $penerimaan->id,
                 'pegawai_id' => $pegawai1,
                 'alamat_staker' => 'Alamat pegawai ' . $pegawai1,
+                'urutan' => 1,
             ]);
 
             DetailPenerimaanPegawai::create([
                 'penerimaan_id' => $penerimaan->id,
                 'pegawai_id' => $pegawai2,
                 'alamat_staker' => 'Alamat pegawai ' . $pegawai2,
+                'urutan' => 2,
             ]);
         }
     }

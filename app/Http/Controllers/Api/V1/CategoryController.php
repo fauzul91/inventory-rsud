@@ -31,4 +31,30 @@ class CategoryController extends Controller
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
     }
+    public function index(Request $request)
+    {
+        try {
+            $filters = [
+                'per_page' => $request->query('per_page'),
+                'sort_by' => $request->query('sort_by'),
+            ];
+
+            $categories = $this->categoryRepository->getAllCategories($filters);
+            return ResponseHelper::jsonResponse(true, 'Data kategori berhasil diambil', $categories, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
+        }
+    }
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        try {
+            $category = $this->categoryRepository->edit($id);
+            return ResponseHelper::jsonResponse(true, 'Detail kategori berhasil diambil', $category, 200);
+        } catch (Exception $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
+        }
+    }
 }
