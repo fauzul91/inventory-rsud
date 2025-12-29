@@ -19,23 +19,19 @@ class DetailBarangService
 
     public function syncDetailBarang($penerimaan, array $barangs)
     {
-        // Ambil ID barang yang ada di request
         $requestBarangIds = collect($barangs)
             ->pluck('id')
             ->filter()
             ->toArray();
 
-        // Hapus barang yang tidak ada di request
         $penerimaan->detailBarang()
             ->whereNotIn('id', $requestBarangIds)
             ->delete();
 
-        // Ambil existing barang untuk update
         $existingBarang = $penerimaan->detailBarang()->get()->keyBy('id');
 
         foreach ($barangs as $barang) {
             try {
-                // Validasi data barang
                 $this->validateBarangData($barang);
 
                 $stok = $this->findOrCreateStok($barang, $penerimaan->category_id);
@@ -48,7 +44,6 @@ class DetailBarangService
                     'total_harga' => $harga * $barang['quantity'],
                 ];
 
-                // Optional fields
                 if (isset($barang['is_layak'])) {
                     $barangData['is_layak'] = $barang['is_layak'];
                 }
@@ -57,7 +52,6 @@ class DetailBarangService
                     $barangData['is_paid'] = $barang['is_paid'];
                 }
 
-                // Update atau Create
                 if (!empty($barang['id']) && $existingBarang->has($barang['id'])) {
                     $this->repository->updateDetailBarang(
                         $existingBarang[$barang['id']],
@@ -81,17 +75,14 @@ class DetailBarangService
 
     private function validateBarangData(array $barang)
     {
-        // Validasi quantity
         if (!isset($barang['quantity']) || $barang['quantity'] < 1) {
             throw new \Exception("Quantity harus diisi dan minimal 1");
         }
 
-        // Validasi identifikasi stok (harus ada stok_id atau name)
         if (empty($barang['stok_id']) && empty($barang['name'])) {
             throw new \Exception("Harus menyertakan stok_id atau name untuk barang");
         }
 
-        // Jika create stok baru (tidak ada stok_id), validasi satuan
         if (empty($barang['stok_id']) && empty($barang['satuan_id']) && empty($barang['satuan_name'])) {
             throw new \Exception("Untuk barang baru, harus menyertakan satuan_id atau satuan_name");
         }
@@ -99,7 +90,6 @@ class DetailBarangService
 
     private function findOrCreateStok(array $barang, $categoryId)
     {
-        // Prioritas 1: Cari berdasarkan stok_id
         if (!empty($barang['stok_id'])) {
             $stok = Stok::find($barang['stok_id']);
             if ($stok) {
@@ -108,7 +98,6 @@ class DetailBarangService
             throw new \Exception("Stok dengan ID {$barang['stok_id']} tidak ditemukan");
         }
 
-        // Prioritas 2: Cari berdasarkan nama (case-insensitive)
         if (!empty($barang['name'])) {
             $stok = Stok::whereRaw('LOWER(name) = ?', [strtolower(trim($barang['name']))])
                 ->first();
@@ -117,7 +106,6 @@ class DetailBarangService
             }
         }
 
-        // Jika tidak ditemukan, create stok baru
         return $this->createNewStok($barang, $categoryId);
     }
 
@@ -140,7 +128,6 @@ class DetailBarangService
 
     private function findOrCreateSatuan(array $barang)
     {
-        // Prioritas 1: Cari berdasarkan satuan_id
         if (!empty($barang['satuan_id'])) {
             $satuan = Satuan::find($barang['satuan_id']);
             if ($satuan) {
@@ -149,7 +136,6 @@ class DetailBarangService
             throw new \Exception("Satuan dengan ID {$barang['satuan_id']} tidak ditemukan");
         }
 
-        // Prioritas 2: Cari atau create berdasarkan satuan_name
         if (!empty($barang['satuan_name'])) {
             $rawName = trim($barang['satuan_name']);
             $lower = strtolower($rawName);
@@ -165,7 +151,6 @@ class DetailBarangService
             ]);
         }
 
-        // Default: gunakan satuan "Lainnya"
         return Satuan::firstOrCreate(['name' => 'Lainnya']);
     }
 

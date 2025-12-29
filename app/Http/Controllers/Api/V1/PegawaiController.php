@@ -10,6 +10,7 @@ use App\Http\Requests\V1\PegawaiStoreRequest;
 use App\Http\Requests\V1\PegawaiUpdateRequest;
 use Exception;
 use Illuminate\Http\Request;
+use Throwable;
 
 class PegawaiController extends Controller
 {
@@ -32,7 +33,7 @@ class PegawaiController extends Controller
 
             $pegawai = $this->pegawaiRepository->getAll($filters);
             return ResponseHelper::jsonResponse(true, 'Data pegawai berhasil diambil', $pegawai, 200);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
         }
     }
@@ -42,7 +43,16 @@ class PegawaiController extends Controller
         try {
             $pegawai = $this->pegawaiRepository->getAllForSelect();
             return ResponseHelper::jsonResponse(true, 'Data pegawai berhasil diambil', $pegawai, 200);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
+            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
+        }
+    }
+    public function getPegawaiForProfile()
+    {
+        try {
+            $pegawai = $this->pegawaiRepository->getAllPegawaiForProfile();
+            return ResponseHelper::jsonResponse(true, 'Data profil pegawai berhasil diambil', $pegawai, 200);
+        } catch (Throwable $e) {
             return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
         }
     }
@@ -52,18 +62,17 @@ class PegawaiController extends Controller
         try {
             $pegawai = $this->pegawaiRepository->create($request->validated());
             return ResponseHelper::jsonResponse(true, 'Pegawai berhasil ditambahkan', $pegawai, 201);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return ResponseHelper::jsonResponse(false, 'Gagal menambahkan pegawai: ' . $e->getMessage(), null, 500);
         }
     }
 
-    // ambil pegawai untuk detail/edit
     public function show($id)
     {
         try {
             $pegawai = $this->pegawaiRepository->findById($id);
             return ResponseHelper::jsonResponse(true, 'Detail pegawai berhasil diambil', $pegawai, 200);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return ResponseHelper::jsonResponse(false, 'Data pegawai tidak ditemukan: ' . $e->getMessage(), null, 404);
         }
     }
@@ -73,7 +82,7 @@ class PegawaiController extends Controller
         try {
             $pegawai = $this->pegawaiRepository->update($request->validated(), $id);
             return ResponseHelper::jsonResponse(true, 'Data pegawai berhasil diperbarui', $pegawai, 200);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return ResponseHelper::jsonResponse(false, 'Gagal memperbarui pegawai: ' . $e->getMessage(), null, 500);
         }
     }
@@ -83,7 +92,7 @@ class PegawaiController extends Controller
         try {
             $pegawai = $this->pegawaiRepository->toggleStatus($id);
             return ResponseHelper::jsonResponse(true, 'Status pegawai berhasil diperbarui', $pegawai, 200);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return ResponseHelper::jsonResponse(false, 'Gagal memperbarui status: ' . $e->getMessage(), null, 500);
         }
     }

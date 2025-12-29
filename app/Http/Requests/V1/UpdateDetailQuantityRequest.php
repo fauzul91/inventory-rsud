@@ -25,4 +25,23 @@ class UpdateDetailQuantityRequest extends FormRequest
             'quantity' => 'required|integer|min:1',
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'quantity.required' => 'Atribut Jumlah Kuantitas wajib diisi.',
+            'quantity.integer' => 'Atribut Jumlah Kuantitas harus berupa format angka bulat.',
+            'quantity.min' => 'Atribut Jumlah Kuantitas minimal harus bernilai :min.',
+        ];
+    }
+    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
+    {
+        throw new \Illuminate\Http\Exceptions\HttpResponseException(
+            response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
+                'data' => null,
+            ], 422)
+        );
+    }
 }
