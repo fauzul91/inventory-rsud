@@ -49,6 +49,9 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
                     ->with([
                         'jabatan:id,name'
                     ]);
+            },
+            'detailPegawai' => function ($q) {
+                $q->orderBy('urutan', 'asc');
             }
         ])->select('id', 'no_surat', 'deskripsi', 'status', 'category_id')
             ->findOrFail($id);
