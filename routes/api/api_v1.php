@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SsoController;
 use App\Http\Controllers\Api\V1\BastController;
 use App\Http\Controllers\Api\V1\StokController;
-use App\Http\Controllers\Api\V1\SatuanController;
 use App\Http\Controllers\Api\V1\AccountController;
 use App\Http\Controllers\Api\V1\JabatanController;
 use App\Http\Controllers\Api\V1\PegawaiController;
@@ -19,13 +18,10 @@ use App\Http\Controllers\Api\V1\PelaporanController;
 Route::get('/sso/login', [SsoController::class, 'redirectToSso'])->name('sso.login');
 Route::get('/sso/callback', [SsoController::class, 'handleCallback'])->name('sso.callback');
 
-Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::post('/sso/logout', [SsoController::class, 'logout'])->name('sso.logout');
     Route::get('/category/select', [CategoryController::class, 'getAllForSelect'])->name('category.selectAll');
-    Route::apiResource('category', CategoryController::class);
-    Route::apiResource('satuan', SatuanController::class);
     Route::get('/jabatan/select', [JabatanController::class, 'getAllForSelect'])->name('jabatan.selectAll');
-    Route::apiResource('jabatan', JabatanController::class);
     Route::get('penerimaan/check', [PenerimaanController::class, 'getAllCheckedPenerimaan']);
     Route::get('penerimaan/history', [PenerimaanController::class, 'history']);
     Route::get('penerimaan/checkHistory', [PenerimaanController::class, 'checkHistory']);
@@ -48,6 +44,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('/bast/signed/{id}/download', [BastController::class, 'downloadSignedBast'])->name('bast.signed.download');
     Route::post('/bast/upload/{id}', [BastController::class, 'upload'])->name('bast.upload');
     Route::get('/bast/history', [BastController::class, 'historyBast'])->name('bast.history');
+    Route::get('/pegawai/profile', [PegawaiController::class, 'getPegawaiForProfile']);
     Route::apiResource('pegawai', PegawaiController::class);
     Route::patch('/pegawai/{id}/status', [PegawaiController::class, 'toggleStatus'])->name('pegawai.toggleStatus');
     Route::post('/pemesanan/{pemesananId}/alokasi-stok', [PengeluaranController::class, 'alokasiStokGudang']);

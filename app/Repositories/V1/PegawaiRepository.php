@@ -23,6 +23,52 @@ class PegawaiRepository implements PegawaiRepositoryInterface
                 ];
             });
     }
+    public function getAllowedJabatans(string $role): array
+    {
+        return config("role_jabatan.$role", []);
+    }
+    public function getAllPegawaiForProfile()
+    {
+        $user = auth()->user();
+        $role = $user->getRoleNames()->first();
+
+        $allowedJabatans = $this->getAllowedJabatans($role);
+
+        if (empty($allowedJabatans)) {
+            return collect();
+        }
+
+        $pegawai = Pegawai::query()
+            ->select('id', 'name', 'status', 'jabatan_id')
+            ->with('jabatan:id,name')
+            ->whereHas('jabatan', function ($q) use ($allowedJabatans) {
+                $q->whereIn('name', $allowedJabatans);
+            })
+            ->orderByDesc('status')
+            ->orderBy('name')
+            ->paginate(8);
+
+        $pegawai->getCollection()->transform(function ($item) {
+            return [
+                'initial' => $this->getInitialName($item->name),
+                'name' => $item->name,
+                'jabatan' => optional($item->jabatan)->name,
+                'status' => $item->status ? 'Aktif' : 'Nonaktif',
+            ];
+        });
+
+        return $pegawai;
+    }
+    private function getInitialName(string $name): string
+    {
+        $words = preg_split('/\s+/', trim($name));
+
+        $words = array_slice($words, 0, 2);
+
+        return collect($words)
+            ->map(fn($word) => strtoupper(substr($word, 0, 1)))
+            ->implode('');
+    }
 
     public function getAll(array $filters = [])
     {

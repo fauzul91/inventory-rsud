@@ -223,4 +223,15 @@ class PenerimaanStoreRequest extends FormRequest
             }
         });
     }
+    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
+    {
+        throw new \Illuminate\Http\Exceptions\HttpResponseException(
+            response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
+                'data' => null,
+            ], 422)
+        );
+    }
 }

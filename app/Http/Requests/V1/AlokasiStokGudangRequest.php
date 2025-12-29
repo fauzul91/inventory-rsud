@@ -70,4 +70,15 @@ class AlokasiStokGudangRequest extends FormRequest
             => 'Quantity alokasi minimal 1',
         ];
     }
+    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
+    {
+        throw new \Illuminate\Http\Exceptions\HttpResponseException(
+            response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first(),
+                'errors' => $validator->errors(),
+                'data' => null,
+            ], 422)
+        );
+    }
 }
