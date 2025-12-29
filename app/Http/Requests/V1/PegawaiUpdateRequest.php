@@ -16,7 +16,7 @@ class PegawaiUpdateRequest extends FormRequest
 
     public function rules(): array
     {
-        $id = $this->route('id');
+        $id = $this->route('pegawai');
 
         return [
             'name' => ['sometimes', 'string', 'max:255'],
