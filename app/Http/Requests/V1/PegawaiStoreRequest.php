@@ -16,59 +16,36 @@ class PegawaiStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => 'required|string|max:255',
-            'nip'         => 'required|string|max:50|unique:pegawais,nip',
-            'jabatan_id'  => 'required|integer|exists:jabatans,id',
-            'phone'       => 'nullable|string|max:20',
+            'name' => 'required|string|max:255',
+            'nip' => 'required|string|max:50|unique:pegawais,nip',
+            'jabatan_id' => 'required|integer|exists:jabatans,id',
+            'phone' => 'nullable|string|max:20',
         ];
     }
 
     public function messages(): array
     {
         return [
-            'name.required'       => 'Nama pegawai wajib diisi.',
-            'name.string'         => 'Nama pegawai harus berupa teks.',
-            'name.max'            => 'Nama pegawai maksimal 255 karakter.',
+            'name.required' => 'Nama pegawai wajib diisi.',
+            'name.string' => 'Nama pegawai harus berupa teks.',
+            'name.max' => 'Nama pegawai maksimal 255 karakter.',
 
-            'nip.required'        => 'NIP wajib diisi.',
-            'nip.string'          => 'NIP harus berupa teks.',
-            'nip.max'             => 'NIP maksimal 50 karakter.',
-            'nip.unique'          => 'NIP sudah terdaftar.',
+            'nip.required' => 'NIP wajib diisi.',
+            'nip.string' => 'NIP harus berupa teks.',
+            'nip.max' => 'NIP maksimal 50 karakter.',
+            'nip.unique' => 'NIP sudah terdaftar.',
 
             'jabatan_id.required' => 'Jabatan wajib dipilih.',
-            'jabatan_id.integer'  => 'Jabatan tidak valid.',
-            'jabatan_id.exists'   => 'Jabatan tidak ditemukan.',
+            'jabatan_id.integer' => 'Jabatan tidak valid.',
+            'jabatan_id.exists' => 'Jabatan tidak ditemukan.',
 
-            'phone.string'        => 'Nomor telepon harus berupa teks.',
-            'phone.max'           => 'Nomor telepon maksimal 20 karakter.',
+            'phone.string' => 'Nomor telepon harus berupa teks.',
+            'phone.max' => 'Nomor telepon maksimal 20 karakter.',
         ];
     }
-    public function messages(): array
+    protected function failedValidation(Validator $validator)
     {
-        return [
-            'name.required'      => 'Atribut Nama Pegawai wajib diisi.',
-            'name.string'        => 'Atribut Nama Pegawai harus berupa format teks.',
-            'name.max'           => 'Atribut Nama Pegawai tidak boleh lebih dari 255 karakter.',
-
-            'nip.required'       => 'Atribut NIP wajib diisi.',
-            'nip.string'         => 'Atribut NIP harus berupa format teks.',
-            'nip.max'            => 'Atribut NIP tidak boleh lebih dari 50 karakter.',
-            'nip.unique'         => 'NIP tersebut sudah digunakan oleh pegawai lain.',
-
-            'jabatan_id.required' => 'Bidang Jabatan wajib dipilih.',
-            'jabatan_id.integer'  => 'Format pilihan Jabatan tidak valid.',
-            'jabatan_id.exists'   => 'Jabatan yang dipilih tidak ditemukan dalam sistem.',
-
-            'phone.string'       => 'Atribut Nomor Telepon harus berupa format teks.',
-            'phone.max'          => 'Atribut Nomor Telepon tidak boleh lebih dari 20 karakter.',
-
-            'status.required'    => 'Atribut Status Pegawai wajib ditentukan.',
-            'status.in'          => 'Status yang dipilih harus salah satu dari: active atau inactive.',
-        ];
-    }
-    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
-    {
-        throw new \Illuminate\Http\Exceptions\HttpResponseException(
+        throw new HttpResponseException(
             response()->json([
                 'success' => false,
                 'message' => $validator->errors()->first(),
@@ -81,21 +58,10 @@ class PegawaiStoreRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name'       => 'Nama Pegawai',
-            'nip'        => 'NIP',
+            'name' => 'Nama Pegawai',
+            'nip' => 'NIP',
             'jabatan_id' => 'Jabatan',
-            'phone'      => 'Nomor Telepon',
+            'phone' => 'Nomor Telepon',
         ];
-    }
-
-    protected function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(
-            response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal',
-                'errors'  => $validator->errors(),
-            ], 422)
-        );
     }
 }

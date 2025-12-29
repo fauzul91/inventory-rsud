@@ -19,56 +19,41 @@ class PegawaiUpdateRequest extends FormRequest
         $id = $this->route('id');
 
         return [
-            'name'        => ['sometimes', 'string', 'max:255'],
-            'nip'         => [
+            'name' => ['sometimes', 'string', 'max:255'],
+            'nip' => [
                 'sometimes',
                 'string',
                 'max:50',
                 Rule::unique('pegawais', 'nip')->ignore($id),
             ],
-            'jabatan_id'  => ['sometimes', 'integer', 'exists:jabatans,id'],
-            'phone'       => ['sometimes', 'string', 'max:20'],
-            'status'      => ['sometimes', 'in:active,inactive'],
+            'jabatan_id' => ['sometimes', 'integer', 'exists:jabatans,id'],
+            'phone' => ['sometimes', 'string', 'max:20'],
+            'status' => ['sometimes', 'in:active,inactive'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'name.string'        => 'Nama pegawai harus berupa teks.',
-            'name.max'           => 'Nama pegawai maksimal 255 karakter.',
+            'name.string' => 'Nama pegawai harus berupa teks.',
+            'name.max' => 'Nama pegawai maksimal 255 karakter.',
 
-            'nip.string'         => 'NIP harus berupa teks.',
-            'nip.max'            => 'NIP maksimal 50 karakter.',
-            'nip.unique'         => 'NIP sudah digunakan pegawai lain.',
+            'nip.string' => 'NIP harus berupa teks.',
+            'nip.max' => 'NIP maksimal 50 karakter.',
+            'nip.unique' => 'NIP sudah digunakan pegawai lain.',
 
             'jabatan_id.integer' => 'Jabatan tidak valid.',
-            'jabatan_id.exists'  => 'Jabatan tidak ditemukan.',
+            'jabatan_id.exists' => 'Jabatan tidak ditemukan.',
 
-            'phone.string'       => 'Nomor telepon harus berupa teks.',
-            'phone.max'          => 'Nomor telepon maksimal 20 karakter.',
+            'phone.string' => 'Nomor telepon harus berupa teks.',
+            'phone.max' => 'Nomor telepon maksimal 20 karakter.',
 
-            'status.in'          => 'Status pegawai harus bernilai active atau inactive.',
+            'status.in' => 'Status pegawai harus bernilai active atau inactive.',
         ];
     }
-    public function messages(): array
+    protected function failedValidation(Validator $validator)
     {
-        return [
-            'name.string' => 'Atribut :attribute harus berupa format teks.',
-            'name.max' => 'Atribut :attribute tidak boleh lebih dari :max karakter.',
-            'nip.string' => 'Atribut :attribute harus berupa format teks.',
-            'nip.max' => 'Atribut :attribute tidak boleh lebih dari :max karakter.',
-            'nip.unique' => ':attribute sudah terdaftar dalam sistem.',
-            'jabatan_id.integer' => 'Pilihan :attribute harus berupa angka.',
-            'jabatan_id.exists' => ':attribute yang dipilih tidak valid atau tidak ditemukan.',
-            'phone.string' => 'Atribut :attribute harus berupa format teks.',
-            'phone.max' => 'Atribut :attribute tidak boleh lebih dari :max karakter.',
-            'status.in' => ':attribute yang dipilih harus bernilai active atau inactive.',
-        ];
-    }
-    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
-    {
-        throw new \Illuminate\Http\Exceptions\HttpResponseException(
+        throw new HttpResponseException(
             response()->json([
                 'success' => false,
                 'message' => $validator->errors()->first(),
@@ -80,22 +65,11 @@ class PegawaiUpdateRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name'       => 'Nama Pegawai',
-            'nip'        => 'NIP',
+            'name' => 'Nama Pegawai',
+            'nip' => 'NIP',
             'jabatan_id' => 'Jabatan',
-            'phone'      => 'Nomor Telepon',
-            'status'     => 'Status Pegawai',
+            'phone' => 'Nomor Telepon',
+            'status' => 'Status Pegawai',
         ];
-    }
-
-    protected function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(
-            response()->json([
-                'success' => false,
-                'message' => 'Validasi gagal',
-                'errors'  => $validator->errors(),
-            ], 422)
-        );
     }
 }
