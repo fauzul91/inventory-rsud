@@ -223,6 +223,9 @@ class PenerimaanService
             return $penerimaan->fresh()->load([
                 'detailBarang.stok.category',
                 'detailBarang.stok.satuan',
+                'detailPegawai' => function ($query) {
+                    $query->orderBy('urutan', 'asc');
+                },
                 'detailPegawai.pegawai.jabatan',
                 'category'
             ]);

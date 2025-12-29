@@ -21,6 +21,7 @@ Route::get('/sso/callback', [SsoController::class, 'handleCallback'])->name('sso
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::post('/sso/logout', [SsoController::class, 'logout'])->name('sso.logout');
     Route::get('/category/select', [CategoryController::class, 'getAllForSelect'])->name('category.selectAll');
+    Route::apiResource('category', CategoryController::class);
     Route::get('/jabatan/select', [JabatanController::class, 'getAllForSelect'])->name('jabatan.selectAll');
     Route::get('penerimaan/check', [PenerimaanController::class, 'getAllCheckedPenerimaan']);
     Route::get('penerimaan/history', [PenerimaanController::class, 'history']);
@@ -28,7 +29,6 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::patch('penerimaan/{id}/barang/{detailId}/layak', [PenerimaanController::class, 'updateKelayakanBarang']);
     Route::patch('penerimaan/{id}/confirm', [PenerimaanController::class, 'confirmPenerimaan']);
     Route::apiResource('penerimaan', PenerimaanController::class);
-    Route::apiResource('account', AccountController::class)->except('create', 'store', 'delete');
     Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
     Route::get('/pegawai/select', [PegawaiController::class, 'getAllForSelect'])->name('pegawai.selectAll');
     Route::get('/stok/{id}/bast-available', [PengeluaranController::class, 'getAvailableBastStokById']);

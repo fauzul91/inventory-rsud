@@ -9,7 +9,7 @@ class DetailPenerimaanPegawai extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['penerimaan_id', 'pegawai_id', 'alamat_staker'];
+    protected $fillable = ['penerimaan_id', 'pegawai_id', 'alamat_staker', 'urutan'];
 
     public function penerimaan()
     {
