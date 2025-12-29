@@ -22,7 +22,7 @@ class MonitoringController extends Controller
         try {
             $filters = [
                 'per_page' => $request->query('per_page'),
-                'sort_by' => $request->query('sort_by'),
+                'search' => $request->query('search'),
             ];
 
             $categories = $this->monitoringRepository->getAllMonitorings($filters);
