@@ -30,7 +30,7 @@ class PenerimaanSeeder extends Seeder
             shuffle($stokIds);
 
             for ($b = 0; $b < $barangCount; $b++) {
-                $qty = rand(1, 20);
+                $qty = rand(15, 20);
                 $harga = rand(10000, 50000);
 
                 DetailPenerimaanBarang::create([

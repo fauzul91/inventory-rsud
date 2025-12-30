@@ -8,15 +8,33 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Spatie\Permission\Models\Role;
 
 class SsoController extends Controller
 {
     private MonitoringService $monitoringService;
-
+    private array $allowedDomains = [
+        'localhost',
+        '127.0.0.1',
+        'myfrontend-app.com',
+    ];
     public function __construct(
         MonitoringService $monitoringService,
     ) {
         $this->monitoringService = $monitoringService;
+    }
+
+    private function getSafeFrontendUrl(): string
+    {
+        $url = env('FRONTEND_URL', 'http://localhost:3000');
+        $host = parse_url($url, PHP_URL_HOST);
+
+        if (!in_array($host, $this->allowedDomains)) {
+            Log::warning("Attempted redirect to unauthorized host: " . ($host ?? 'unknown'));
+            return 'http://localhost:8000';
+        }
+
+        return $url;
     }
     public function redirectToSso()
     {
@@ -25,7 +43,7 @@ class SsoController extends Controller
             'redirect_uri' => config('services.sso.redirect'),
             'response_type' => 'code',
             'scope' => '',
-            'prompt' => 'login', // <--- WAJIB ADA INI BANG!
+            'prompt' => 'login',
         ]);
 
         return redirect(config('services.sso.host') . '/oauth/authorize?' . $query);
@@ -77,7 +95,7 @@ class SsoController extends Controller
             ]
         );
 
-        \Spatie\Permission\Models\Role::firstOrCreate(['name' => $roleNameFromSso]);
+        Role::firstOrCreate(['name' => $roleNameFromSso]);
         $user->syncRoles($roleNameFromSso);
 
         $user->tokens()->delete();
@@ -86,12 +104,13 @@ class SsoController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'photo' => $user->photo ?? null,
             'role' => $ssoUser['roles'][0] ?? 'guest',
         ];
         $this->monitoringService->log("{$user->name} telah login!", $user->id);
+        $baseUrl = $this->getSafeFrontendUrl();
+
         return redirect()->away(
-            env('FRONTEND_URL') . '/auth/sso-callback?' . http_build_query([
+            $baseUrl . '/auth/sso-callback?' . http_build_query([
                 'token' => $token,
                 'user' => json_encode($userData),
             ])
@@ -108,7 +127,7 @@ class SsoController extends Controller
         }
 
         $ssoLogoutBaseUrl = config('services.sso.logout_url');
-        $destination = env('FRONTEND_URL');
+        $destination = $this->getSafeFrontendUrl();
 
         $targetUrl = $ssoLogoutBaseUrl . '?redirect=' . urlencode($destination);
 
