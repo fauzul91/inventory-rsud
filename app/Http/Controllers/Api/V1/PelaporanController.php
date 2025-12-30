@@ -6,23 +6,45 @@ use App\Http\Controllers\Controller;
 use App\Repositories\V1\PelaporanRepository;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
+use Illuminate\Http\JsonResponse;
 
+/**
+ * Class PelaporanController
+ * Menangani pembuatan laporan statistik dashboard, penerimaan, dan pengeluaran barang.
+ * * @package App\Http\Controllers\Api\V1
+ */
 class PelaporanController extends Controller
 {
-    private $pelaporanRepository;
+    /**
+     * @var PelaporanRepository
+     */
+    private PelaporanRepository $pelaporanRepository;
 
+    /**
+     * PelaporanController constructor.
+     * * @param PelaporanRepository $pelaporanRepository
+     */
     public function __construct(PelaporanRepository $pelaporanRepository)
     {
         $this->pelaporanRepository = $pelaporanRepository;
     }
 
-    public function index()
+    /**
+     * Mengambil ringkasan data statistik untuk halaman dashboard.
+     * * @return JsonResponse
+     */
+    public function index(): JsonResponse
     {
         $data = $this->pelaporanRepository->getDashboardStats();
         return ResponseHelper::jsonResponse(true, 'Data dashboard berhasil diambil', $data);
     }
 
-    public function penerimaanPerBulan(Request $request)
+    /**
+     * Mengambil tren data penerimaan barang bulanan berdasarkan tahun.
+     * * @param Request $request
+     * @return JsonResponse
+     */
+    public function penerimaanPerBulan(Request $request): JsonResponse
     {
         $year = $request->query('year', now()->year);
         $data = $this->pelaporanRepository->getPenerimaanPerBulan($year);
@@ -30,7 +52,12 @@ class PelaporanController extends Controller
         return ResponseHelper::jsonResponse(true, "Data penerimaan barang tahun $year", $data);
     }
 
-    public function pengeluaranPerBulan(Request $request)
+    /**
+     * Mengambil tren data pengeluaran barang bulanan berdasarkan tahun.
+     * * @param Request $request
+     * @return JsonResponse
+     */
+    public function pengeluaranPerBulan(Request $request): JsonResponse
     {
         $year = $request->query('year', now()->year);
         $data = $this->pelaporanRepository->getPengeluaranPerBulan($year);

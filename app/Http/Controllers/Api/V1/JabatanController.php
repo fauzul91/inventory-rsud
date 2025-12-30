@@ -4,29 +4,40 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\V1\CategoryStoreRequest;
-use App\Http\Requests\V1\CategoryUpdateRequest;
-use App\Http\Requests\V1\JabatanStoreRequest;
-use App\Http\Requests\V1\JabatanUpdateRequest;
-use App\Interfaces\V1\JabatanRepositoryInterface;
 use App\Repositories\V1\JabatanRepository;
-use Exception;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
+/**
+ * Class JabatanController
+ * Mengelola data jabatan pegawai.
+ * * @package App\Http\Controllers\Api\V1
+ */
 class JabatanController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * @var JabatanRepository
      */
     private JabatanRepository $jabatanRepository;
 
-    public function __construct(JabatanRepositoryInterface $jabatanRepository)
+    /**
+     * JabatanController constructor.
+     * * @param JabatanRepository $jabatanRepository
+     */
+    public function __construct(JabatanRepository $jabatanRepository)
     {
         $this->jabatanRepository = $jabatanRepository;
     }
-    public function getAllForSelect()
+
+    /**
+     * Mengambil daftar semua jabatan untuk keperluan dropdown/select.
+     * * @return JsonResponse
+     */
+    public function getAllForSelect(): JsonResponse
     {
-        $pegawai = $this->jabatanRepository->getAllForSelect();
-        return ResponseHelper::jsonResponse(true, 'Data jabatan berhasil diambil', $pegawai, 200);
+        return ResponseHelper::jsonResponse(
+            true, 
+            'Data jabatan berhasil diambil', 
+            $this->jabatanRepository->getAllForSelect()
+        );
     }
 }

@@ -4,27 +4,44 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Interfaces\V1\MonitoringRepositoryInterface;
 use App\Repositories\V1\MonitoringRepository;
-use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
+/**
+ * Class MonitoringController
+ * Menangani log aktivitas sistem dan monitoring user.
+ * * @package App\Http\Controllers\Api\V1
+ */
 class MonitoringController extends Controller
 {
+    /**
+     * @var MonitoringRepository
+     */
     private MonitoringRepository $monitoringRepository;
 
-    public function __construct(MonitoringRepositoryInterface $monitoringRepository)
+    /**
+     * MonitoringController constructor.
+     * * @param MonitoringRepository $monitoringRepository
+     */
+    public function __construct(MonitoringRepository $monitoringRepository)
     {
         $this->monitoringRepository = $monitoringRepository;
     }
-    public function index(Request $request)
-    {
-        $filters = [
-            'per_page' => $request->query('per_page'),
-            'search' => $request->query('search'),
-        ];
 
-        $categories = $this->monitoringRepository->getAllMonitorings($filters);
-        return ResponseHelper::jsonResponse(true, 'Data monitoring berhasil diambil', $categories, 200);
+    /**
+     * Mengambil daftar log monitoring dengan filtrasi dan paginasi.
+     * * @param Request $request
+     * @return JsonResponse
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $filters = $request->only(['per_page', 'search']);
+
+        return ResponseHelper::jsonResponse(
+            true,
+            'Data monitoring berhasil diambil',
+            $this->monitoringRepository->getAllMonitorings($filters)
+        );
     }
 }

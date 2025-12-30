@@ -8,16 +8,42 @@ use App\Services\V1\BastService;
 use App\Services\V1\PenerimaanService;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * Class PenerimaanWorkflowController
+ * Mengelola alur kerja kritis pasca-penerimaan, termasuk konfirmasi final, 
+ * pembuatan dokumen BAST otomatis, dan pencatatan status pembayaran item.
+ * * @package App\Http\Controllers\Api\V1
+ */
 class PenerimaanWorkflowController extends Controller
 {
+    /**
+     * @var PenerimaanService
+     */
     private PenerimaanService $penerimaanService;
+
+    /**
+     * @var BastService
+     */
     private BastService $bastService;
 
+    /**
+     * PenerimaanWorkflowController constructor.
+     * * @param PenerimaanService $penerimaanService
+     * @param BastService $bastService
+     */
     public function __construct(PenerimaanService $penerimaanService, BastService $bastService)
     {
         $this->penerimaanService = $penerimaanService;
         $this->bastService = $bastService;
     }
+
+    /**
+     * Mengonfirmasi penerimaan barang dan menghasilkan dokumen BAST secara otomatis.
+     * Menggunakan pendekatan Exception-based error handling untuk menjaga Cyclomatic Complexity tetap rendah.
+     * * @param string $id ID Penerimaan
+     * @return JsonResponse
+     * @throws \Exception Jika validasi di tingkat Service gagal
+     */
     public function confirmPenerimaan(string $id): JsonResponse
     {
         $penerimaan = $this->penerimaanService->confirmPenerimaan($id);
@@ -29,6 +55,12 @@ class PenerimaanWorkflowController extends Controller
         ]);
     }
 
+    /**
+     * Menandai detail item barang tertentu dalam penerimaan sebagai sudah dibayar (paid).
+     * * @param mixed $penerimaanId
+     * @param mixed $detailId
+     * @return JsonResponse
+     */
     public function markDetailAsPaid($penerimaanId, $detailId): JsonResponse
     {
         $data = $this->penerimaanService->markDetailAsPaid($penerimaanId, $detailId);

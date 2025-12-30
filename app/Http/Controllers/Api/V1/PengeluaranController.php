@@ -9,49 +9,91 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\AlokasiStokGudangRequest;
 use App\Http\Requests\V1\ExportExcelPengeluaran;
 use App\Repositories\V1\PengeluaranRepository;
-use Exception;
 use App\Services\V1\PengeluaranService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
+/**
+ * Class PengeluaranController
+ * Mengelola proses pengeluaran barang dari gudang (fulfillment), alokasi stok berdasarkan BAST,
+ * serta fitur ekspor laporan pengeluaran ke format Excel.
+ * * @package App\Http\Controllers\Api\V1
+ */
 class PengeluaranController extends Controller
 {
+    /**
+     * @var PengeluaranService
+     */
     private PengeluaranService $pengeluaranService;
+
+    /**
+     * @var GenerateFilenamePengeluaranExcel
+     */
     private GenerateFilenamePengeluaranExcel $generatePengeluaranExcel;
 
-    public function __construct(PengeluaranService $pengeluaranService, GenerateFilenamePengeluaranExcel $generatePengeluaranExcel)
-    {
+    /**
+     * PengeluaranController constructor.
+     * * @param PengeluaranService $pengeluaranService
+     * @param GenerateFilenamePengeluaranExcel $generatePengeluaranExcel
+     */
+    public function __construct(
+        PengeluaranService $pengeluaranService,
+        GenerateFilenamePengeluaranExcel $generatePengeluaranExcel
+    ) {
         $this->pengeluaranService = $pengeluaranService;
         $this->generatePengeluaranExcel = $generatePengeluaranExcel;
     }
-    public function index(Request $request)
-    {
-        $filters = [
-            'per_page' => $request->query('per_page'),
-            'search' => $request->query('search'),
 
-            'start_date' => $request->input('start_date'),
-            'end_date' => $request->input('end_date'),
-        ];
+    /**
+     * Menampilkan daftar transaksi pengeluaran barang dengan filter tanggal dan pencarian.
+     * * @param Request $request
+     * @return JsonResponse
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $filters = $request->only(['per_page', 'search', 'start_date', 'end_date']);
 
         $data = $this->pengeluaranService->getAllPengeluaran($filters);
-        return ResponseHelper::jsonResponse(true, 'Data pengeluaran berhasil diambil', $data, 200);
+
+        return ResponseHelper::jsonResponse(true, 'Data pengeluaran berhasil diambil', $data);
     }
-    public function alokasiStokGudang(AlokasiStokGudangRequest $request, int $pemesananId)
+
+    /**
+     * Memproses alokasi stok gudang untuk memenuhi (fulfillment) permintaan pemesanan.
+     * * @param AlokasiStokGudangRequest $request
+     * @param int $pemesananId
+     * @return JsonResponse
+     */
+    public function alokasiStokGudang(AlokasiStokGudangRequest $request, int $pemesananId): JsonResponse
     {
         $detail = $this->pengeluaranService->processGudangFulfillmentByPemesanan(
             $pemesananId,
             $request->detailPemesanan
         );
 
-        return ResponseHelper::jsonResponse(true, 'Data pengeluaran gudang berhasil dibuat', $detail, 200);
+        return ResponseHelper::jsonResponse(true, 'Data pengeluaran gudang berhasil dibuat', $detail);
     }
-    public function getAvailableBastStokById(int $stokId)
+
+    /**
+     * Mengambil daftar BAST yang tersedia dan memiliki sisa stok untuk item tertentu.
+     * * @param int $stokId
+     * @return JsonResponse
+     */
+    public function getAvailableBastStokById(int $stokId): JsonResponse
     {
         $detail = $this->pengeluaranService->getAvailableBastByStok($stokId);
-        return ResponseHelper::jsonResponse(true, 'Data BAST yang tersedia berhasil diambil', $detail, 200);
+
+        return ResponseHelper::jsonResponse(true, 'Data BAST yang tersedia berhasil diambil', $detail);
     }
-    public function exportExcel(ExportExcelPengeluaran $request)
+
+    /**
+     * Mengekspor data laporan pengeluaran barang ke dalam format file Excel.
+     * * @param ExportExcelPengeluaran $request
+     * @return BinaryFileResponse
+     */
+    public function exportExcel(ExportExcelPengeluaran $request): BinaryFileResponse
     {
         $filters = $request->validated();
         $filename = $this->generatePengeluaranExcel->generateExportFilename($filters);
