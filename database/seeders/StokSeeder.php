@@ -35,7 +35,7 @@ class StokSeeder extends Seeder
                 Stok::create([
                     'name' => $name,
                     'category_id' => $categoryId,
-                    'minimum_stok' => rand(5, 20),
+                    'minimum_stok' => rand(5, 8),
                     'satuan_id' => $satuans->random()->id,
                 ]);
             }

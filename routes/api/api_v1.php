@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SsoController;
 use App\Http\Controllers\Api\V1\BastController;
 use App\Http\Controllers\Api\V1\StokController;
-use App\Http\Controllers\Api\V1\AccountController;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Api\V1\JabatanController;
 use App\Http\Controllers\Api\V1\PegawaiController;
 use App\Http\Controllers\Api\V1\CategoryController;
@@ -65,4 +65,14 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::patch('/notifikasi/markAll', [NotifikasiController::class, 'markAllAsRead']);
     Route::delete('/notifikasi/delete-all', [NotifikasiController::class, 'destroyAll']);
     Route::delete('/notifikasi/{id}', [NotifikasiController::class, 'destroy']);
+    Route::get('/me', function (Request $request) {
+        $user = $request->user();
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->getRoleNames()->first(),
+        ];
+    });
 });
+
