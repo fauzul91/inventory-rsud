@@ -8,13 +8,19 @@ use App\Services\V1\Sso\SsoOAuthService;
 use App\Services\V1\Sso\SsoRedirectService;
 use App\Services\V1\Sso\SsoUserService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use App\Models\User;
-use Illuminate\Support\Facades\Log;
-use Spatie\Permission\Models\Role;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 
+/**
+ * Class SsoController
+ * Menangani proses Single Sign-On (SSO) termasuk pengalihan,
+ * callback otentikasi, dan proses logout.
+ */
 class SsoController extends Controller
 {
+    /**
+     * SsoController constructor.
+     */
     public function __construct(
         private MonitoringService $monitoringService,
         private SsoRedirectService $ssoRedirectService,
@@ -23,7 +29,13 @@ class SsoController extends Controller
         private SsoLogoutService $ssoLogoutService,
     ) {
     }
-    public function redirectToSso()
+
+    /**
+     * Mengalihkan pengguna ke halaman otorisasi server SSO.
+     *
+     * @return RedirectResponse
+     */
+    public function redirectToSso(): RedirectResponse
     {
         $query = http_build_query([
             'client_id' => config('services.sso.client_id'),
@@ -35,27 +47,46 @@ class SsoController extends Controller
 
         return redirect(config('services.sso.host') . '/oauth/authorize?' . $query);
     }
-    public function handleCallback(Request $request)
+
+    /**
+     * Menangani callback dari server SSO setelah otorisasi berhasil.
+     *
+     * @param Request $request
+     * @return RedirectResponse|JsonResponse
+     */
+    public function handleCallback(Request $request): RedirectResponse|JsonResponse
     {
         if (!$request->has('code')) {
             return response()->json(['error' => 'Kode otorisasi tidak ditemukan'], 400);
         }
+
+        // Proses pertukaran code dengan token dan pengambilan data user
         $accessToken = $this->ssoOAuthService->getAccessToken($request->code);
         $ssoUser = $this->ssoOAuthService->fetchUser($accessToken);
         $result = $this->ssoUserService->syncUser($ssoUser);
 
+        // Logging aktivitas login
         $this->monitoringService->log(
             "{$result['user']['name']} telah login!",
             $result['user']['id']
         );
+
+        // Redirect kembali ke frontend dengan payload token
         return redirect()->away(
             $this->ssoRedirectService->frontendCallback([
-                'token' => $result['token'],
+                'token' => $token = $result['token'],
                 'user' => json_encode($result['user']),
             ])
         );
     }
-    public function logout(Request $request)
+
+    /**
+     * Melakukan proses logout pengguna dan memberikan URL redirect server SSO.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function logout(Request $request): JsonResponse
     {
         $targetUrl = $this->ssoLogoutService->logout(
             $request->user(),
