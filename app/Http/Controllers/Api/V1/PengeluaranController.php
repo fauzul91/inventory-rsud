@@ -26,58 +26,42 @@ class PengeluaranController extends Controller
     }
     public function index(Request $request)
     {
-        try {
-            $filters = [
-                'per_page' => $request->query('per_page'),
-                'search' => $request->query('search'),
+        $filters = [
+            'per_page' => $request->query('per_page'),
+            'search' => $request->query('search'),
 
-                'start_date' => $request->input('start_date'),
-                'end_date'   => $request->input('end_date'),
-            ];
+            'start_date' => $request->input('start_date'),
+            'end_date' => $request->input('end_date'),
+        ];
 
-            $data = $this->pengeluaranService->getAllPengeluaran($filters);
-            return ResponseHelper::jsonResponse(true, 'Data pengeluaran berhasil diambil', $data, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
+        $data = $this->pengeluaranService->getAllPengeluaran($filters);
+        return ResponseHelper::jsonResponse(true, 'Data pengeluaran berhasil diambil', $data, 200);
     }
     public function alokasiStokGudang(AlokasiStokGudangRequest $request, int $pemesananId)
     {
-        try {
-            $detail = $this->pengeluaranService->processGudangFulfillmentByPemesanan(
-                $pemesananId,
-                $request->detailPemesanan
-            );
+        $detail = $this->pengeluaranService->processGudangFulfillmentByPemesanan(
+            $pemesananId,
+            $request->detailPemesanan
+        );
 
-            return ResponseHelper::jsonResponse(true, 'Data pengeluaran gudang berhasil dibuat', $detail, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
+        return ResponseHelper::jsonResponse(true, 'Data pengeluaran gudang berhasil dibuat', $detail, 200);
     }
     public function getAvailableBastStokById(int $stokId)
     {
-        try {
-            $detail = $this->pengeluaranService->getAvailableBastByStok($stokId);
-            return ResponseHelper::jsonResponse(true, 'Data BAST yang tersedia berhasil diambil', $detail, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
+        $detail = $this->pengeluaranService->getAvailableBastByStok($stokId);
+        return ResponseHelper::jsonResponse(true, 'Data BAST yang tersedia berhasil diambil', $detail, 200);
     }
     public function exportExcel(ExportExcelPengeluaran $request)
     {
-        try {
-            $filters = $request->validated();
-            $filename = $this->generatePengeluaranExcel->generateExportFilename($filters);
+        $filters = $request->validated();
+        $filename = $this->generatePengeluaranExcel->generateExportFilename($filters);
 
-            return Excel::download(
-                new PengeluaranExport(
-                    app(PengeluaranRepository::class),
-                    $filters
-                ),
-                $filename
-            );
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
+        return Excel::download(
+            new PengeluaranExport(
+                app(PengeluaranRepository::class),
+                $filters
+            ),
+            $filename
+        );
     }
 }

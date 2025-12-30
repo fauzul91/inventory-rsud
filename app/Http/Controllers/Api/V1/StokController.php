@@ -24,64 +24,29 @@ class StokController extends Controller
     }
     public function getAllForSelect(Request $request)
     {
-        try {
-            $categoryId = $request->query('category_id'); // bisa null
-            $stok = $this->stokRepository->getAllStoksForSelect($categoryId);
-            return ResponseHelper::jsonResponse(true, 'Data stok berhasil diambil', $stok, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
-        }
-    }
-    public function getAllYearForSelect()
-    {
-        try {
-            $year = $this->stokService->getAllYearForSelect();
-            return ResponseHelper::jsonResponse(true, 'Data year berhasil diambil', $year, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
-        }
+        $categoryId = $request->query('category_id');
+        $stok = $this->stokRepository->getAllStoksForSelect($categoryId);
+        return ResponseHelper::jsonResponse(true, 'Data stok berhasil diambil', $stok, 200);
     }
     public function index(Request $request)
     {
-        try {
-            $filters = [
-                'per_page' => $request->query('per_page'),
-                'category' => $request->query('category'),
-                'search' => $request->query('search'),
-                'year' => $request->query('year') ?? date('Y'), // default tahun sekarang
-            ];
-
-            $data = $this->stokService->getAllStoks($filters);
-            return ResponseHelper::jsonResponse(true, 'Data stok berhasil diambil', $data, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
-        }
+        $filters = $request->only(['per_page', 'category', 'search']);
+        $data = $this->stokService->getAllStoks($filters);
+        return ResponseHelper::jsonResponse(true, 'Data stok berhasil diambil', $data, 200);
     }
     public function show($id)
     {
-        try {
-            $data = $this->stokService->edit($id);
-            return ResponseHelper::jsonResponse(true, 'Detail stok berhasil diambil', $data, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
-        }
+        $data = $this->stokService->edit($id);
+        return ResponseHelper::jsonResponse(true, 'Detail stok berhasil diambil', $data, 200);
     }
     public function update(StokUpdateRequest $request, $id)
     {
-        try {
-            $data = $this->stokService->update($request->validated(), $id);
-            return ResponseHelper::jsonResponse(true, 'Stok berhasil diupdate', $data, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
-        }
+        $data = $this->stokService->update($request->validated(), $id);
+        return ResponseHelper::jsonResponse(true, 'Stok berhasil diupdate', $data, 200);
     }
     public function getDetailBastStockById($id)
     {
-        try {
-            $data = $this->stokService->getStockById($id);
-            return ResponseHelper::jsonResponse(true, 'Riwayat BAST Stok berhasil diambil', $data, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
-        }
+        $data = $this->stokService->getStockById($id);
+        return ResponseHelper::jsonResponse(true, 'Riwayat BAST Stok berhasil diambil', $data, 200);
     }
 }
