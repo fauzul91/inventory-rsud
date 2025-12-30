@@ -99,7 +99,9 @@ class PenerimaanService
     public function getPenerimaanForEdit($id)
     {
         $penerimaan = $this->repository->findById($id);
-
+        if (!$penerimaan) {
+            throw new \Exception("Data tidak ditemukan", 404);
+        }
         return [
             'id' => $penerimaan->id,
             'no_surat' => $penerimaan->no_surat,
@@ -325,30 +327,23 @@ class PenerimaanService
     {
         return DB::transaction(function () use ($id) {
             $penerimaan = $this->repository->findWithDetails($id);
+
             if (!$penerimaan) {
-                return [
-                    'success' => false,
-                    'message' => 'Penerimaan tidak ditemukan'
-                ];
+                throw new \Exception('Penerimaan tidak ditemukan', 404);
             }
+
             if ($penerimaan->status !== 'checked') {
-                return [
-                    'success' => false,
-                    'message' => 'Penerimaan belum siap untuk dikonfirmasi'
-                ];
+                throw new \Exception('Penerimaan belum siap untuk dikonfirmasi', 422);
             }
+
             if ($this->repository->hasUnassessedItems($id)) {
-                return [
-                    'success' => false,
-                    'message' => 'Masih ada barang yang belum dinilai kelayakannya'
-                ];
+                throw new \Exception('Masih ada barang yang belum dinilai kelayakannya', 422);
             }
+
             if ($this->repository->hasUnfitItems($id)) {
-                return [
-                    'success' => false,
-                    'message' => 'Masih terdapat barang yang tidak layak'
-                ];
+                throw new \Exception('Masih terdapat barang yang tidak layak', 422);
             }
+
             $this->repository->update($penerimaan, [
                 'status' => 'confirmed'
             ]);
@@ -357,12 +352,9 @@ class PenerimaanService
                 "Mengkonfirmasi penerimaan: {$penerimaan->no_surat}",
                 2
             );
-            $this->notifikasiService->uploadTTDPenerimaan($penerimaan, Auth::user()->name ?? "Tim Teknis");
 
-            return [
-                'success' => true,
-                'data' => $penerimaan->fresh()
-            ];
+            $this->notifikasiService->uploadTTDPenerimaan($penerimaan, Auth::user()->name ?? "Tim Teknis");
+            return $penerimaan->fresh();
         });
     }
 

@@ -6,7 +6,7 @@ use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Services\V1\BastService;
 use App\Services\V1\PenerimaanService;
-use Exception;
+use Illuminate\Http\JsonResponse;
 
 class PenerimaanWorkflowController extends Controller
 {
@@ -18,22 +18,21 @@ class PenerimaanWorkflowController extends Controller
         $this->penerimaanService = $penerimaanService;
         $this->bastService = $bastService;
     }
-    public function confirmPenerimaan(string $id)
+    public function confirmPenerimaan(string $id): JsonResponse
     {
-        $result = $this->penerimaanService->confirmPenerimaan($id);
-        if ($result['success'] === false) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $result['message'], null, 422);
-        }
+        $penerimaan = $this->penerimaanService->confirmPenerimaan($id);
         $bast = $this->bastService->generateBast($id);
 
-        return ResponseHelper::jsonResponse(true, 'Status penerimaan berhasil dikonfirmasi & BAST berhasil dibuat', ['penerimaan' => $result['data'], 'bast' => $bast], 200);
+        return ResponseHelper::jsonResponse(true, 'Konfirmasi sukses & BAST dibuat', [
+            'penerimaan' => $penerimaan,
+            'bast' => $bast
+        ]);
     }
-    public function markDetailAsPaid($penerimaanId, $detailId)
+
+    public function markDetailAsPaid($penerimaanId, $detailId): JsonResponse
     {
         $data = $this->penerimaanService->markDetailAsPaid($penerimaanId, $detailId);
-        if (is_array($data) && isset($data['success']) && $data['success'] === false) {
-            return ResponseHelper::jsonResponse(false, $data['message'], null, 404);
-        }
-        return ResponseHelper::jsonResponse(true, 'Barang berhasil dibayar', $data, 200);
+
+        return ResponseHelper::jsonResponse(true, 'Barang berhasil dibayar', $data);
     }
 }
