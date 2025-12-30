@@ -19,16 +19,12 @@ class MonitoringController extends Controller
     }
     public function index(Request $request)
     {
-        try {
-            $filters = [
-                'per_page' => $request->query('per_page'),
-                'search' => $request->query('search'),
-            ];
+        $filters = [
+            'per_page' => $request->query('per_page'),
+            'search' => $request->query('search'),
+        ];
 
-            $categories = $this->monitoringRepository->getAllMonitorings($filters);
-            return ResponseHelper::jsonResponse(true, 'Data monitoring berhasil diambil', $categories, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
-        }
+        $categories = $this->monitoringRepository->getAllMonitorings($filters);
+        return ResponseHelper::jsonResponse(true, 'Data monitoring berhasil diambil', $categories, 200);
     }
 }

@@ -4,11 +4,9 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
-use App\Interfaces\V1\BastRepositoryInterface;
 use App\Repositories\V1\BastRepository;
 use App\Services\V1\BastService;
 use App\Services\V1\PenerimaanService;
-use Exception;
 use Illuminate\Http\Request;
 
 class BastController extends Controller
@@ -17,112 +15,81 @@ class BastController extends Controller
     private BastRepository $bastRepository;
     private BastService $bastService;
 
-    public function __construct(BastService $bastService, BastRepository $bastRepository, PenerimaanService $penerimaanService)
-    {
+    public function __construct(
+        BastService $bastService,
+        BastRepository $bastRepository,
+        PenerimaanService $penerimaanService
+    ) {
         $this->bastRepository = $bastRepository;
         $this->bastService = $bastService;
         $this->penerimaanService = $penerimaanService;
     }
+    private function getFilters(Request $request, array $extra = []): array
+    {
+        return $request->only(array_merge(['per_page', 'search'], $extra));
+    }
+
     public function getUnsignedBast(Request $request)
     {
-        try {
-            $filters = [
-                'per_page' => $request->query('per_page'),
-                'sort_by' => $request->query('sort_by'),
-                'search' => $request->query('search'),
-            ];
-
-            $data = $this->bastService->getBastList($filters, 'unsigned');
-            return ResponseHelper::jsonResponse(true, 'Data Unsigned BAST berhasil diambil', $data, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
+        $data = $this->bastService->getBastList($this->getFilters($request), 'unsigned');
+        return ResponseHelper::jsonResponse(true, 'Data Unsigned BAST berhasil diambil', $data, 200);
     }
+
     public function getSignedBast(Request $request)
     {
-        try {
-            $filters = [
-                'per_page' => $request->query('per_page'),
-                'sort_by' => $request->query('sort_by'),
-                'search' => $request->query('search'),
-            ];
-
-            $data = $this->bastService->getBastList($filters, 'signed');
-            return ResponseHelper::jsonResponse(true, 'Data Signed BAST berhasil diambil', $data, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
+        $data = $this->bastService->getBastList($this->getFilters($request), 'signed');
+        return ResponseHelper::jsonResponse(true, 'Data Signed BAST berhasil diambil', $data, 200);
     }
+
     public function getAllPaymentBast(Request $request)
     {
-        try {
-            $filters = [
-                'per_page' => $request->query('per_page'),
-                'category' => $request->query('category'),
-                'search' => $request->query('search'),
-            ];
+        $statusMap = [
+            'unpaid' => ['signed'],
+            'paid' => ['paid'],
+        ];
 
-            $status = $request->query('status');
-            $statuses = match ($status) {
-                'unpaid' => ['signed'],
-                'paid' => ['paid'],
-                default => ['signed', 'paid'],
-            };
+        $statuses = $statusMap[$request->query('status')] ?? ['signed', 'paid'];
 
-            $data = $this->penerimaanService->getPenerimaanList($filters, $statuses, 'paid');
+        $data = $this->penerimaanService->getPenerimaanList(
+            $this->getFilters($request, ['category']),
+            $statuses,
+            'paid'
+        );
 
-            return ResponseHelper::jsonResponse(true, 'Data bast berhasil diambil', $data, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan ' . $e->getMessage(), null, 500);
-        }
+        return ResponseHelper::jsonResponse(true, 'Data bast berhasil diambil', $data, 200);
     }
 
     public function downloadUnsignedBast($bastId)
     {
-        try {
-            $bast = $this->bastRepository->findBast($bastId);
-            return $this->bastService->downloadBastFile($bast, 'unsigned');
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
+        return $this->bastService->downloadBastFile(
+            $this->bastRepository->findBast($bastId),
+            'unsigned'
+        );
     }
+
     public function downloadSignedBast($bastId)
     {
-        try {
-            $bast = $this->bastRepository->findBast($bastId);
-            return $this->bastService->downloadBastFile($bast, 'signed');
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
+        return $this->bastService->downloadBastFile(
+            $this->bastRepository->findBast($bastId),
+            'signed'
+        );
     }
 
-    /**
-     * Upload BAST setelah ditandatangani
-     */
     public function upload(Request $request, $penerimaanId)
     {
-        try {
-            $request->validate([
-                'uploaded_signed_file' => 'required|file|mimes:pdf|max:4096',
-            ]);
+        // Validasi tetap perlu, tapi isinya kita ringkas
+        $request->validate([
+            'uploaded_signed_file' => 'required|file|mimes:pdf|max:4096',
+        ]);
 
-            $file = $request->file('uploaded_signed_file');
-            $result = $this->bastService->uploadSignedBast($penerimaanId, $file);
+        $result = $this->bastService->uploadSignedBast($penerimaanId, $request->file('uploaded_signed_file'));
 
-            return ResponseHelper::jsonResponse(true, 'BAST bertandatangan berhasil diupload', $result, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
+        return ResponseHelper::jsonResponse(true, 'BAST bertandatangan berhasil diupload', $result, 200);
     }
+
     public function historyBast(Request $request)
     {
-        try {
-            $filters = $request->only(['sort_by', 'per_page']);
-            $history = $this->bastService->history($filters);
-
-            return ResponseHelper::jsonResponse(true, 'Data riwayat BAST berhasil diambil', $history, 200);
-        } catch (Exception $e) {
-            return ResponseHelper::jsonResponse(false, 'Terjadi kesalahan: ' . $e->getMessage(), null, 500);
-        }
+        $history = $this->bastService->history($this->getFilters($request, ['sort_by']));
+        return ResponseHelper::jsonResponse(true, 'Data riwayat BAST berhasil diambil', $history, 200);
     }
 }

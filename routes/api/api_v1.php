@@ -1,7 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\V1\NotifikasiController;
+use App\Http\Controllers\Api\V1\PemesananApprovalController;
 use App\Http\Controllers\Api\V1\PemesananController;
+use App\Http\Controllers\Api\V1\PenerimaanCheckController;
+use App\Http\Controllers\Api\V1\PenerimaanHistoryController;
+use App\Http\Controllers\Api\V1\PenerimaanWorkflowController;
 use App\Http\Controllers\Api\V1\PengeluaranController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SsoController;
@@ -23,11 +27,11 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::get('/category/select', [CategoryController::class, 'getAllForSelect'])->name('category.selectAll');
     Route::apiResource('category', CategoryController::class);
     Route::get('/jabatan/select', [JabatanController::class, 'getAllForSelect'])->name('jabatan.selectAll');
-    Route::get('penerimaan/check', [PenerimaanController::class, 'getAllCheckedPenerimaan']);
-    Route::get('penerimaan/history', [PenerimaanController::class, 'history']);
-    Route::get('penerimaan/checkHistory', [PenerimaanController::class, 'checkHistory']);
-    Route::patch('penerimaan/{id}/barang/{detailId}/layak', [PenerimaanController::class, 'updateKelayakanBarang']);
-    Route::patch('penerimaan/{id}/confirm', [PenerimaanController::class, 'confirmPenerimaan']);
+    Route::get('penerimaan/check', [PenerimaanCheckController::class, 'getAllCheckedPenerimaan']);
+    Route::get('penerimaan/history', [PenerimaanHistoryController::class, 'history']);
+    Route::get('penerimaan/checkHistory', [PenerimaanHistoryController::class, 'checkHistory']);
+    Route::patch('penerimaan/{id}/barang/{detailId}/layak', [PenerimaanCheckController::class, 'updateKelayakanBarang']);
+    Route::patch('penerimaan/{id}/confirm', [PenerimaanWorkflowController::class, 'confirmPenerimaan']);
     Route::apiResource('penerimaan', PenerimaanController::class);
     Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
     Route::get('/pegawai/select', [PegawaiController::class, 'getAllForSelect'])->name('pegawai.selectAll');
@@ -35,7 +39,7 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::get('/stok/{id}/bast', [StokController::class, 'getDetailBastStockById'])->name('stok.detailBastStock');
     Route::get('/stok/select', [StokController::class, 'getAllForSelect'])->name('stok.selectAll');
     Route::get('/stok/year', [StokController::class, 'getAllYearForSelect'])->name('stok.year');
-    Route::patch('penerimaan/{penerimaanId}/barang/{detailId}/paid', [PenerimaanController::class, 'markDetailAsPaid']);
+    Route::patch('penerimaan/{penerimaanId}/barang/{detailId}/paid', [PenerimaanWorkflowController::class, 'markDetailAsPaid']);
     Route::apiResource('stok', StokController::class)->except('create', 'destroy');
     Route::get('/bast/payment', [BastController::class, 'getAllPaymentBast'])->name('bast.paid');
     Route::get('/bast/unsigned', [BastController::class, 'getUnsignedBast'])->name('bast.unsigned');
@@ -48,12 +52,12 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::apiResource('pegawai', PegawaiController::class);
     Route::patch('/pegawai/{id}/status', [PegawaiController::class, 'toggleStatus'])->name('pegawai.toggleStatus');
     Route::post('/pemesanan/{pemesananId}/alokasi-stok', [PengeluaranController::class, 'alokasiStokGudang']);
-    Route::get('/pemesanan', [PemesananController::class, 'getAllPendingPemesanan']);
-    Route::get('/pemesanan/riwayat-pj', [PemesananController::class, 'getAllPJRiwayatPemesanan']);
-    Route::get('/pemesanan/approved-pj', [PemesananController::class, 'getAllPemesananApprovedPJ']);
+    Route::get('/pemesanan', [PemesananApprovalController::class, 'getAllPendingPemesanan']);
+    Route::get('/pemesanan/riwayat-pj', [PemesananApprovalController::class, 'getAllPJRiwayatPemesanan']);
+    Route::get('/pemesanan/approved-pj', [PemesananApprovalController::class, 'getAllPemesananApprovedPJ']);
     Route::get('/pemesanan/status', [PemesananController::class, 'getAllStatusPemesananInstalasi']);
     Route::get('/pemesanan/stok', [PemesananController::class, 'getAllStockPemesanan']);
-    Route::patch('/pemesanan/{pemesananId}/quantity-pj', [PemesananController::class, 'updateQuantityPenanggungJawab']);
+    Route::patch('/pemesanan/{pemesananId}/quantity-pj', [PemesananApprovalController::class, 'updateQuantityPenanggungJawab']);
     Route::apiResource('pemesanan', PemesananController::class)->except('index', 'update', 'destroy');
     Route::get('/pengeluaran', [PengeluaranController::class, 'index']);
     Route::get('/pengeluaran/export/excel', [PengeluaranController::class, 'exportExcel']);

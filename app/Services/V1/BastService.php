@@ -84,7 +84,7 @@ class BastService
         };
     }
 
-    public function generateBast($penerimaanId)
+    public function generateBast(int $penerimaanId): Bast
     {
         $penerimaan = $this->bastRepository->findPenerimaan($penerimaanId);
 
