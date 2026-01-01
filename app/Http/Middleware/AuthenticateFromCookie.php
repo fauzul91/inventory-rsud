@@ -15,7 +15,11 @@ class AuthenticateFromCookie
      */
     public function handle(Request $request, Closure $next)
     {
-        if (!$request->bearerToken() && $request->hasCookie('access_token')) {
+        if ($request->bearerToken() || $request->headers->has('Authorization')) {
+            return $next($request);
+        }
+
+        if ($request->hasCookie('access_token')) {
             $token = $request->cookie('access_token');
             $request->headers->set('Authorization', 'Bearer ' . $token);
         }
