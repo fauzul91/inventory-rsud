@@ -37,7 +37,9 @@ class SsoRedirectService
     }
     public function getSsoLogoutUrl(): string
     {
-        $ssoHost = env('PASSPORT_HOST', 'http://localhost:8000');
-        return rtrim($ssoHost, '/') . '/logout';
+        $ssoLogoutBaseUrl = config('services.sso.logout_url'); // Pastikan ini http://localhost:8000/logout
+        $destination = $this->getSafeFrontendUrl();
+
+        return rtrim($ssoLogoutBaseUrl, '/') . '?redirect=' . urlencode($destination);
     }
 }
