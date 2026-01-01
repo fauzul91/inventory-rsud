@@ -20,6 +20,8 @@ return new class extends Migration {
             $table->boolean('is_layak')->nullable();
             $table->boolean('is_paid')->nullable();
             $table->timestamps();
+            $table->index('created_at');
+            $table->index('is_paid');
         });
     }
 

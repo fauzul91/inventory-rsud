@@ -23,6 +23,12 @@ Route::get('/sso/login', [SsoController::class, 'redirectToSso'])->name('sso.log
 Route::get('/sso/callback', [SsoController::class, 'handleCallback'])->name('sso.callback');
 
 Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
+    Route::get('/pegawai/profile', [PegawaiController::class, 'getPegawaiForProfile']);
+    Route::get('/notifikasi', [NotifikasiController::class, 'index']);
+    Route::patch('/notifikasi/{id}/markRead', [NotifikasiController::class, 'markAsRead']);
+    Route::patch('/notifikasi/markAll', [NotifikasiController::class, 'markAllAsRead']);
+    Route::delete('/notifikasi/delete-all', [NotifikasiController::class, 'destroyAll']);
+    Route::delete('/notifikasi/{id}', [NotifikasiController::class, 'destroy']);
     Route::middleware('role:tim-ppk')->group(function () {
         Route::get('/category/select', [CategoryController::class, 'getAllForSelect'])->name('category.selectAll');
         Route::apiResource('category', CategoryController::class);
@@ -78,13 +84,6 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         Route::get('/pemesanan/stok', [PemesananController::class, 'getAllStockPemesanan']);
         Route::apiResource('pemesanan', PemesananController::class)->except('index', 'update', 'destroy');
     });
-
-    Route::get('/pegawai/profile', [PegawaiController::class, 'getPegawaiForProfile']);
-    Route::get('/notifikasi', [NotifikasiController::class, 'index']);
-    Route::patch('/notifikasi/{id}/markRead', [NotifikasiController::class, 'markAsRead']);
-    Route::patch('/notifikasi/markAll', [NotifikasiController::class, 'markAllAsRead']);
-    Route::delete('/notifikasi/delete-all', [NotifikasiController::class, 'destroyAll']);
-    Route::delete('/notifikasi/{id}', [NotifikasiController::class, 'destroy']);
     Route::post('/sso/logout', [SsoController::class, 'logout'])->name('sso.logout');
     Route::get('/me', function (Request $request) {
         $user = $request->user();

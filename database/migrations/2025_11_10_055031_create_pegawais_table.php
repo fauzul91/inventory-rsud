@@ -12,10 +12,10 @@ return new class extends Migration {
     {
         Schema::create('pegawais', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->index();
             $table->string('nip');
             $table->string('phone')->nullable();
-            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->enum('status', ['active', 'inactive'])->default('active')->index();
             $table->foreignId('jabatan_id')->constrained('jabatans')->onDelete('cascade');
             $table->timestamps();
         });

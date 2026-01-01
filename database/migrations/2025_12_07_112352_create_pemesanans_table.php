@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('user_id')->constrained('users');
             $table->string('nama_pj_instalasi');
-            $table->string('ruangan');
+            $table->string('ruangan')->index();
             $table->enum('status', ['pending', 'approved_pj', 'approved_admin_gudang'])->default('pending');
             $table->date('tanggal_pemesanan');
             $table->timestamps();
