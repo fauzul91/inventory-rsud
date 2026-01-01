@@ -20,6 +20,9 @@ use App\Repositories\V1\PegawaiRepository;
 use App\Repositories\V1\PenerimaanRepository;
 use App\Repositories\V1\SatuanRepository;
 use App\Repositories\V1\StokRepository;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Support\ServiceProvider;
 use App\Interfaces\V1\PelaporanRepositoryInterface;
 use App\Repositories\V1\PelaporanRepository;
@@ -32,15 +35,13 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
-        $this->app->bind(SatuanRepositoryInterface::class, SatuanRepository::class);
         $this->app->bind(JabatanRepositoryInterface::class, JabatanRepository::class);
         $this->app->bind(PenerimaanRepositoryInterface::class, PenerimaanRepository::class);
-        $this->app->bind(AccountRepositoryInterface::class, AccountRepository::class);
         $this->app->bind(BastRepositoryInterface::class, BastRepository::class);
         $this->app->bind(MonitoringRepositoryInterface::class, MonitoringRepository::class);
         $this->app->bind(StokRepositoryInterface::class, StokRepository::class);
         $this->app->bind(PegawaiRepositoryInterface::class, PegawaiRepository::class);
-        $this->app->bind(PelaporanRepositoryInterface::class,PelaporanRepository::class);
+        $this->app->bind(PelaporanRepositoryInterface::class, PelaporanRepository::class);
     }
 
     /**
@@ -48,6 +49,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Scramble::configure()
+            ->withDocumentTransformers(function (OpenApi $openApi) {
+                $openApi->secure(
+                    SecurityScheme::http('bearer')
+                );
+            });
     }
 }

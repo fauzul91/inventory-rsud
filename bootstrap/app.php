@@ -18,61 +18,55 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         ]);
+        $middleware->prependToGroup('api', \App\Http\Middleware\AuthenticateFromCookie::class);
+        $middleware->statefulApi();
+        $middleware->encryptCookies(except: [
+            'access_token', // Tambahkan nama cookie Abang di sini
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (Throwable $e, $request) {
-            if (!$request->is('api/*')) {
-                return null;
-            }
 
-            if ($e instanceof ValidationException) {
-                /** @var ValidationException $e */
+            // Kuncinya di sini: pastikan request dianggap API
+            if ($request->is('api/*') || $request->expectsJson()) {
+                if ($e instanceof ValidationException) {
+                    return ResponseHelper::jsonResponse(false, 'Validasi gagal', $e->errors(), 422);
+                }
+
+                if ($e instanceof AuthenticationException) {
+                    return ResponseHelper::jsonResponse(false, 'Sesi berakhir, silakan login kembali', null, 401);
+                }
+
+                if ($e instanceof UnauthorizedException) {
+                    return ResponseHelper::jsonResponse(false, 'Anda tidak memiliki hak akses untuk fitur ini', null, 403);
+                }
+
+                if ($e instanceof HttpExceptionInterface) {
+                    return ResponseHelper::jsonResponse(
+                        false,
+                        $e->getMessage() ?: 'Akses ditolak',
+                        null,
+                        $e->getStatusCode()
+                    );
+                }
+
+                // 5. Handle Model Not Found
+                if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+                    return ResponseHelper::jsonResponse(false, 'Data tidak ditemukan', null, 404);
+                }
+
+                // 6. Handle Error General (Server Error)
+                Log::error($e->getMessage(), [
+                    'url' => $request->fullUrl(),
+                    'exception' => get_class($e)
+                ]);
+
                 return ResponseHelper::jsonResponse(
                     false,
-                    'Validasi gagal',
-                    $e->errors(),
-                    422
-                );
-            }
-
-            if ($e instanceof AuthenticationException) {
-                return ResponseHelper::jsonResponse(
-                    false,
-                    'Unauthenticated',
+                    'Server Error: ' . (config('app.debug') ? $e->getMessage() : 'Internal Server Error'),
                     null,
-                    401
+                    500
                 );
             }
-
-            if ($e instanceof HttpExceptionInterface) {
-                return ResponseHelper::jsonResponse(
-                    false,
-                    $e->getMessage() ?: 'Akses ditolak atau data tidak ditemukan',
-                    null,
-                    $e->getStatusCode()
-                );
-            }
-
-            if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
-                return ResponseHelper::jsonResponse(
-                    false,
-                    'Data tidak ditemukan di database',
-                    null,
-                    404
-                );
-            }
-
-            Log::error($e->getMessage(), [
-                'exception' => get_class($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ]);
-
-            return ResponseHelper::jsonResponse(
-                false,
-                'Terjadi kesalahan pada server: ' . (config('app.debug') ? $e->getMessage() : 'Internal Server Error'),
-                null,
-                500
-            );
         });
     })->create();

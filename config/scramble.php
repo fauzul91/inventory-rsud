@@ -74,6 +74,13 @@ return [
          */
         'layout' => 'responsive',
     ],
+    'security' => [
+        'bearerAuth' => [
+            'type' => 'http',
+            'scheme' => 'bearer',
+        ],
+    ],
+
 
     /*
      * The list of servers of the API. By default, when `null`, server URL will be created from

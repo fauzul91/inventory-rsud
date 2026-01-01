@@ -60,24 +60,28 @@ class SsoController extends Controller
             return response()->json(['error' => 'Kode otorisasi tidak ditemukan'], 400);
         }
 
-        // Proses pertukaran code dengan token dan pengambilan data user
         $accessToken = $this->ssoOAuthService->getAccessToken($request->code);
         $ssoUser = $this->ssoOAuthService->fetchUser($accessToken);
         $result = $this->ssoUserService->syncUser($ssoUser);
 
-        // Logging aktivitas login
         $this->monitoringService->log(
             "{$result['user']['name']} telah login!",
             $result['user']['id']
         );
-
-        // Redirect kembali ke frontend dengan payload token
-        return redirect()->away(
-            $this->ssoRedirectService->frontendCallback([
-                'token' => $token = $result['token'],
-                'user' => json_encode($result['user']),
-            ])
+        $cookie = cookie(
+            'access_token',
+            $result['token'],
+            60 * 24,
+            '/',
+            config('session.domain'),
+            config('session.secure'),
+            true,
+            false,
+            'Lax'
         );
+
+        $targetUrl = $this->ssoRedirectService->getSafeFrontendUrl();
+        return redirect()->away($targetUrl)->withCookie($cookie);
     }
 
     /**
@@ -90,12 +94,12 @@ class SsoController extends Controller
     {
         $targetUrl = $this->ssoLogoutService->logout(
             $request->user(),
-            $this->ssoRedirectService->getSafeFrontendUrl()
+            $this->ssoRedirectService->getSsoLogoutUrl()
         );
-
+        $cookie = cookie()->forget('access_token');
         return response()->json([
             'success' => true,
             'target_url' => $targetUrl,
-        ]);
+        ])->withCookie($cookie);
     }
 }

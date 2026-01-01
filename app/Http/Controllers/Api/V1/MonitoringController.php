@@ -31,7 +31,6 @@ class MonitoringController extends Controller
 
     /**
      * Mengambil daftar log monitoring dengan filtrasi dan paginasi.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse

@@ -35,4 +35,9 @@ class SsoRedirectService
 
         return $url;
     }
+    public function getSsoLogoutUrl(): string
+    {
+        $ssoHost = env('PASSPORT_HOST', 'http://localhost:8000');
+        return rtrim($ssoHost, '/') . '/logout';
+    }
 }

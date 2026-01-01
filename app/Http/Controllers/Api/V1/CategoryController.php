@@ -44,7 +44,6 @@ class CategoryController extends Controller
 
     /**
      * Menampilkan daftar kategori dengan paginasi dan pengurutan.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
