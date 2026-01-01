@@ -40,7 +40,6 @@ class BastController extends Controller
 
     /**
      * Helper untuk mengambil filter dasar dari request.
-     * * @param Request $request
      * @param array $extra Parameter tambahan selain per_page dan search
      * @return array
      */
@@ -51,7 +50,6 @@ class BastController extends Controller
 
     /**
      * Mengambil daftar BAST yang belum ditandatangani.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function getUnsignedBast(Request $request): JsonResponse
@@ -62,7 +60,6 @@ class BastController extends Controller
 
     /**
      * Mengambil daftar BAST yang sudah ditandatangani.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function getSignedBast(Request $request): JsonResponse
@@ -73,7 +70,6 @@ class BastController extends Controller
 
     /**
      * Mengambil daftar pembayaran BAST berdasarkan status (paid/unpaid).
-     * * @param Request $request
      * @return JsonResponse
      */
     public function getAllPaymentBast(Request $request): JsonResponse
@@ -122,7 +118,6 @@ class BastController extends Controller
 
     /**
      * Mengupload file BAST yang sudah ditandatangani oleh user.
-     * * @param Request $request
      * @param mixed $penerimaanId
      * @return JsonResponse
      */
@@ -139,7 +134,6 @@ class BastController extends Controller
 
     /**
      * Mengambil riwayat log penggunaan atau perubahan BAST.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function historyBast(Request $request): JsonResponse

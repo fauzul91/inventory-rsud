@@ -31,7 +31,6 @@ class PenerimaanCheckController extends Controller
 
     /**
      * Mengambil daftar penerimaan barang yang perlu dicek atau sudah dicek.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function getAllCheckedPenerimaan(Request $request): JsonResponse
@@ -45,9 +44,6 @@ class PenerimaanCheckController extends Controller
 
     /**
      * Memperbarui status kelayakan barang per item dalam satu dokumen penerimaan.
-     * * @param Request $request
-     * @param mixed $penerimaanId
-     * @param mixed $detailId
      * @return JsonResponse
      */
     public function updateKelayakanBarang(Request $request, $penerimaanId, $detailId): JsonResponse

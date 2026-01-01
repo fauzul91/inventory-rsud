@@ -48,7 +48,6 @@ class PengeluaranController extends Controller
 
     /**
      * Menampilkan daftar transaksi pengeluaran barang dengan filter tanggal dan pencarian.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -62,8 +61,6 @@ class PengeluaranController extends Controller
 
     /**
      * Memproses alokasi stok gudang untuk memenuhi (fulfillment) permintaan pemesanan.
-     * * @param AlokasiStokGudangRequest $request
-     * @param int $pemesananId
      * @return JsonResponse
      */
     public function alokasiStokGudang(AlokasiStokGudangRequest $request, int $pemesananId): JsonResponse
@@ -78,7 +75,6 @@ class PengeluaranController extends Controller
 
     /**
      * Mengambil daftar BAST yang tersedia dan memiliki sisa stok untuk item tertentu.
-     * * @param int $stokId
      * @return JsonResponse
      */
     public function getAvailableBastStokById(int $stokId): JsonResponse
@@ -90,7 +86,6 @@ class PengeluaranController extends Controller
 
     /**
      * Mengekspor data laporan pengeluaran barang ke dalam format file Excel.
-     * * @param ExportExcelPengeluaran $request
      * @return BinaryFileResponse
      */
     public function exportExcel(ExportExcelPengeluaran $request): BinaryFileResponse

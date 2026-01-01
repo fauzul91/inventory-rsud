@@ -33,7 +33,6 @@ class PenerimaanHistoryController extends Controller
     /**
      * Mengambil daftar riwayat umum penerimaan barang yang telah melewati proses awal.
      * Status mencakup: checked, confirmed, signed, dan paid.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function history(Request $request): JsonResponse
@@ -49,7 +48,6 @@ class PenerimaanHistoryController extends Controller
     /**
      * Mengambil daftar riwayat khusus pemeriksaan/verifikasi kelayakan barang.
      * Status mencakup: confirmed, signed, dan paid.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function checkHistory(Request $request): JsonResponse

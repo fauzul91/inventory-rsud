@@ -44,7 +44,6 @@ class PemesananApprovalController extends Controller
     /**
      * Memperbarui kuantitas barang oleh Penanggung Jawab sebelum proses approval.
      * * @param UpdateQuantityPenanggungJawabRequest $request
-     * @param int $pemesananId
      * @return JsonResponse
      */
     public function updateQuantityPenanggungJawab(UpdateQuantityPenanggungJawabRequest $request, int $pemesananId): JsonResponse
@@ -56,7 +55,6 @@ class PemesananApprovalController extends Controller
 
     /**
      * Mengambil semua daftar pemesanan yang masih berstatus pending.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function getAllPendingPemesanan(Request $request): JsonResponse
@@ -68,7 +66,6 @@ class PemesananApprovalController extends Controller
 
     /**
      * Mengambil riwayat pemesanan yang telah diproses oleh Penanggung Jawab.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function getAllPJRiwayatPemesanan(Request $request): JsonResponse
@@ -84,7 +81,6 @@ class PemesananApprovalController extends Controller
 
     /**
      * Mengambil daftar pemesanan yang sudah disetujui oleh Penanggung Jawab.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function getAllPemesananApprovedPJ(Request $request): JsonResponse

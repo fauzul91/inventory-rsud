@@ -34,7 +34,6 @@ class PenerimaanController extends Controller
 
     /**
      * Menampilkan daftar penerimaan barang dengan filter dan paginasi.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -47,7 +46,6 @@ class PenerimaanController extends Controller
 
     /**
      * Menyimpan data penerimaan barang baru ke database.
-     * * @param PenerimaanStoreRequest $request
      * @return JsonResponse
      */
     public function store(PenerimaanStoreRequest $request): JsonResponse
@@ -59,7 +57,6 @@ class PenerimaanController extends Controller
 
     /**
      * Menampilkan detail data penerimaan barang berdasarkan ID untuk proses edit.
-     * * @param string $id
      * @return JsonResponse
      */
     public function show(string $id): JsonResponse
@@ -71,8 +68,6 @@ class PenerimaanController extends Controller
 
     /**
      * Memperbarui data penerimaan barang yang sudah ada.
-     * * @param PenerimaanUpdateRequest $request
-     * @param string $id
      * @return JsonResponse
      */
     public function update(PenerimaanUpdateRequest $request, string $id): JsonResponse
@@ -84,7 +79,6 @@ class PenerimaanController extends Controller
 
     /**
      * Menghapus data penerimaan barang dari sistem.
-     * * @param string $id
      * @return JsonResponse
      */
     public function destroy(string $id): JsonResponse

@@ -32,9 +32,6 @@ class PemesananController extends Controller
 
     /**
      * Helper internal untuk mengekstrak filter dari request.
-     * * @param Request $request
-     * @param array $extraFields
-     * @return array
      */
     private function getFilters(Request $request, array $extraFields = []): array
     {
@@ -44,7 +41,6 @@ class PemesananController extends Controller
     /**
      * Mengambil daftar status pemesanan untuk unit instalasi.
      * Mencakup status pending, disetujui PJ, hingga disetujui Admin Gudang.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function getAllStatusPemesananInstalasi(Request $request): JsonResponse
@@ -53,43 +49,40 @@ class PemesananController extends Controller
         $statuses = ['pending', 'approved_pj', 'approved_admin_gudang'];
 
         $data = $this->pemesananService->getAllPemesanan($filters, $statuses);
-        
+
         return ResponseHelper::jsonResponse(true, 'Data status pemesanan berhasil diambil', $data);
     }
 
     /**
      * Mengambil ketersediaan stok barang yang siap untuk dipesan.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function getAllStockPemesanan(Request $request): JsonResponse
     {
         $data = $this->pemesananService->getAllStoks($this->getFilters($request, ['category']));
-        
+
         return ResponseHelper::jsonResponse(true, 'Data stok pemesanan berhasil diambil', $data);
     }
 
     /**
      * Membuat pengajuan pemesanan barang baru.
-     * * @param PemesananStoreRequest $request
      * @return JsonResponse
      */
     public function store(PemesananStoreRequest $request): JsonResponse
     {
         $data = $this->pemesananService->create($request->validated());
-        
+
         return ResponseHelper::jsonResponse(true, 'Data pemesanan berhasil ditambahkan', $data, 201);
     }
 
     /**
      * Mengambil informasi detail pemesanan berdasarkan ID dokumen.
-     * * @param string $id
      * @return JsonResponse
      */
     public function show(string $id): JsonResponse
     {
         $data = $this->pemesananService->findById($id);
-        
+
         if (!$data) {
             return ResponseHelper::jsonResponse(false, 'Data tidak ditemukan', null, 404);
         }

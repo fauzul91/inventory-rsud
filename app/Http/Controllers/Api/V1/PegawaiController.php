@@ -34,7 +34,6 @@ class PegawaiController extends Controller
 
     /**
      * Mengambil daftar pegawai dengan filter pencarian, jabatan, dan status.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -76,7 +75,6 @@ class PegawaiController extends Controller
 
     /**
      * Menyimpan data pegawai baru ke sistem.
-     * * @param PegawaiStoreRequest $request
      * @return JsonResponse
      */
     public function store(PegawaiStoreRequest $request): JsonResponse
@@ -91,7 +89,6 @@ class PegawaiController extends Controller
 
     /**
      * Menampilkan detail lengkap seorang pegawai berdasarkan ID.
-     * * @param mixed $id
      * @return JsonResponse
      */
     public function show($id): JsonResponse
@@ -105,8 +102,6 @@ class PegawaiController extends Controller
 
     /**
      * Memperbarui informasi data pegawai yang sudah ada.
-     * * @param PegawaiUpdateRequest $request
-     * @param mixed $id
      * @return JsonResponse
      */
     public function update(PegawaiUpdateRequest $request, $id): JsonResponse
@@ -120,7 +115,6 @@ class PegawaiController extends Controller
 
     /**
      * Mengubah status aktif/non-aktif pegawai.
-     * * @param mixed $id
      * @return JsonResponse
      */
     public function toggleStatus($id): JsonResponse

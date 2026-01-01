@@ -41,7 +41,6 @@ class PelaporanController extends Controller
 
     /**
      * Mengambil tren data penerimaan barang bulanan berdasarkan tahun.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function penerimaanPerBulan(Request $request): JsonResponse
@@ -54,7 +53,6 @@ class PelaporanController extends Controller
 
     /**
      * Mengambil tren data pengeluaran barang bulanan berdasarkan tahun.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function pengeluaranPerBulan(Request $request): JsonResponse

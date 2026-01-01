@@ -32,7 +32,6 @@ class NotifikasiController extends Controller
 
     /**
      * Mengambil daftar notifikasi pengguna beserta jumlah yang belum dibaca.
-     * * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
@@ -49,7 +48,6 @@ class NotifikasiController extends Controller
 
     /**
      * Menandai satu notifikasi spesifik sebagai sudah dibaca.
-     * * @param int $id
      * @return JsonResponse
      */
     public function markAsRead(int $id): JsonResponse
@@ -70,7 +68,6 @@ class NotifikasiController extends Controller
 
     /**
      * Menghapus satu notifikasi berdasarkan ID.
-     * * @param int $id
      * @return JsonResponse
      */
     public function destroy(int $id): JsonResponse

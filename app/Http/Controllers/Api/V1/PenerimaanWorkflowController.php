@@ -40,9 +40,6 @@ class PenerimaanWorkflowController extends Controller
     /**
      * Mengonfirmasi penerimaan barang dan menghasilkan dokumen BAST secara otomatis.
      * Menggunakan pendekatan Exception-based error handling untuk menjaga Cyclomatic Complexity tetap rendah.
-     * * @param string $id ID Penerimaan
-     * @return JsonResponse
-     * @throws \Exception Jika validasi di tingkat Service gagal
      */
     public function confirmPenerimaan(string $id): JsonResponse
     {
@@ -57,8 +54,6 @@ class PenerimaanWorkflowController extends Controller
 
     /**
      * Menandai detail item barang tertentu dalam penerimaan sebagai sudah dibayar (paid).
-     * * @param mixed $penerimaanId
-     * @param mixed $detailId
      * @return JsonResponse
      */
     public function markDetailAsPaid($penerimaanId, $detailId): JsonResponse
