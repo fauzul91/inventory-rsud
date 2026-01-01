@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('stoks', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->index();
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
             $table->decimal('minimum_stok', 10, 2);
             $table->foreignId('satuan_id')->constrained('satuans')->onDelete('cascade');
