@@ -25,7 +25,7 @@ class SsoRedirectService
     }
     public function getSafeFrontendUrl(): string
     {
-        $url = env('FRONTEND_URL', 'http://localhost:3000');
+        $url = env('FRONTEND_URL', 'http://localhost:5173');
         $host = parse_url($url, PHP_URL_HOST);
 
         if (!in_array($host, $this->allowedDomains)) {
