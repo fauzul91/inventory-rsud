@@ -9,7 +9,7 @@ class Pemesanan extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'nama_pj_instalasi', 'ruangan', 'status' ,'tanggal_pemesanan'];
+    protected $fillable = ['user_id', 'nama_pj_instalasi', 'ruangan', 'status', 'tanggal_pemesanan'];
 
     public function detailPemesanan()
     {
@@ -20,6 +20,6 @@ class Pemesanan extends Model
         return $this->belongsTo(User::class);
     }
     protected $casts = [
-        'tanggal_pemesanan' => 'datetime:Y-m-d',
+        'tanggal_pemesanan' => 'datetime',
     ];
 }

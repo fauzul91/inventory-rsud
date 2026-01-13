@@ -3,11 +3,8 @@
 namespace App\Repositories\V1;
 
 use App\Interfaces\V1\StokRepositoryInterface;
-use App\Models\DetailPenerimaanBarang;
-use App\Models\Monitoring;
 use App\Models\Penerimaan;
 use App\Models\Stok;
-use App\Models\StokHistory;
 use DB;
 
 class StokRepository implements StokRepositoryInterface

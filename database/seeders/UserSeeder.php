@@ -83,7 +83,5 @@ class UserSeeder extends Seeder
                 $user->syncRoles($userData['role']);
             }
         }
-
-        echo "UserSeeder: Data SSO User & Spatie Roles berhasil disinkronkan!\n";
     }
 }

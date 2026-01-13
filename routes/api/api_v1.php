@@ -29,21 +29,18 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
     Route::patch('/notifikasi/markAll', [NotifikasiController::class, 'markAllAsRead']);
     Route::delete('/notifikasi/delete-all', [NotifikasiController::class, 'destroyAll']);
     Route::delete('/notifikasi/{id}', [NotifikasiController::class, 'destroy']);
-    Route::middleware('role:tim-ppk')->group(function () {
-        Route::get('/category/select', [CategoryController::class, 'getAllForSelect'])->name('category.selectAll');
-        Route::apiResource('category', CategoryController::class);
-        Route::get('penerimaan/check', [PenerimaanCheckController::class, 'getAllCheckedPenerimaan']);
-        Route::get('penerimaan/history', [PenerimaanHistoryController::class, 'history']);
-        Route::get('penerimaan/checkHistory', [PenerimaanHistoryController::class, 'checkHistory']);
-        Route::apiResource('penerimaan', PenerimaanController::class);
-        Route::get('/pegawai/select', [PegawaiController::class, 'getAllForSelect'])->name('pegawai.selectAll');
-        Route::get('/stok/select', [StokController::class, 'getAllForSelect'])->name('stok.selectAll');
-    });
 
-    Route::middleware('role:tim-teknis')->group(function () {
-        Route::patch('penerimaan/{id}/barang/{detailId}/layak', [PenerimaanCheckController::class, 'updateKelayakanBarang']);
-        Route::patch('penerimaan/{id}/confirm', [PenerimaanWorkflowController::class, 'confirmPenerimaan']);
-    });
+    // Penerimaan
+    Route::get('penerimaan/check', [PenerimaanCheckController::class, 'getAllCheckedPenerimaan']);
+    Route::get('penerimaan/checkHistory', [PenerimaanHistoryController::class, 'checkHistory']);
+    Route::patch('penerimaan/{id}/barang/{detailId}/layak', [PenerimaanCheckController::class, 'updateKelayakanBarang']);
+    Route::patch('penerimaan/{id}/confirm', [PenerimaanWorkflowController::class, 'confirmPenerimaan']);
+    Route::get('/category/select', [CategoryController::class, 'getAllForSelect'])->name('category.selectAll');
+    Route::apiResource('category', CategoryController::class);
+    Route::get('penerimaan/history', [PenerimaanHistoryController::class, 'history']);
+    Route::apiResource('penerimaan', PenerimaanController::class);
+    Route::get('/pegawai/select', [PegawaiController::class, 'getAllForSelect'])->name('pegawai.selectAll');
+    Route::get('/stok/select', [StokController::class, 'getAllForSelect'])->name('stok.selectAll');
 
     Route::middleware('role:super-admin')->group(function () {
         Route::get('/jabatan/select', [JabatanController::class, 'getAllForSelect'])->name('jabatan.selectAll');
@@ -72,17 +69,18 @@ Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
         Route::get('/pelaporan/penerimaan-per-bulan', [PelaporanController::class, 'penerimaanPerBulan']);
         Route::get('pelaporan/pengeluaran-per-bulan', [PelaporanController::class, 'pengeluaranPerBulan']);
     });
-
     Route::middleware('role:penanggung-jawab')->group(function () {
         Route::get('/pemesanan', [PemesananApprovalController::class, 'getAllPendingPemesanan']);
         Route::get('/pemesanan/riwayat-pj', [PemesananApprovalController::class, 'getAllPJRiwayatPemesanan']);
         Route::patch('/pemesanan/{pemesananId}/quantity-pj', [PemesananApprovalController::class, 'updateQuantityPenanggungJawab']);
     });
-
     Route::middleware('role:instalasi')->group(function () {
         Route::get('/pemesanan/status', [PemesananController::class, 'getAllStatusPemesananInstalasi']);
         Route::get('/pemesanan/stok', [PemesananController::class, 'getAllStockPemesanan']);
-        Route::apiResource('pemesanan', PemesananController::class)->except('index', 'update', 'destroy');
+        Route::apiResource('pemesanan', PemesananController::class)->except('index', 'update', 'destroy', 'show');
+    });
+    Route::middleware('role:penanggung-jawab|instalasi')->group(function () {
+        Route::get('/pemesanan/{id}', [PemesananController::class, 'show']);
     });
     Route::post('/sso/logout', [SsoController::class, 'logout'])->name('sso.logout');
     Route::get('/me', function (Request $request) {

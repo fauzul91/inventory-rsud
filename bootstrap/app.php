@@ -21,13 +21,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prependToGroup('api', \App\Http\Middleware\AuthenticateFromCookie::class);
         $middleware->statefulApi();
         $middleware->encryptCookies(except: [
-            'access_token', // Tambahkan nama cookie Abang di sini
+            'access_token',
+        ]);
+        $middleware->validateCsrfTokens(except: [
+            'telescope/*',
+            'telescope-api/*',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (Throwable $e, $request) {
-
-            // Kuncinya di sini: pastikan request dianggap API
             if ($request->is('api/*') || $request->expectsJson()) {
                 if ($e instanceof ValidationException) {
                     return ResponseHelper::jsonResponse(false, 'Validasi gagal', $e->errors(), 422);
@@ -40,27 +42,13 @@ return Application::configure(basePath: dirname(__DIR__))
                 if ($e instanceof UnauthorizedException) {
                     return ResponseHelper::jsonResponse(false, 'Anda tidak memiliki hak akses untuk fitur ini', null, 403);
                 }
-
-                if ($e instanceof HttpExceptionInterface) {
-                    return ResponseHelper::jsonResponse(
-                        false,
-                        $e->getMessage() ?: 'Akses ditolak',
-                        null,
-                        $e->getStatusCode()
-                    );
-                }
-
-                // 5. Handle Model Not Found
                 if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
                     return ResponseHelper::jsonResponse(false, 'Data tidak ditemukan', null, 404);
                 }
-
-                // 6. Handle Error General (Server Error)
                 Log::error($e->getMessage(), [
                     'url' => $request->fullUrl(),
                     'exception' => get_class($e)
                 ]);
-
                 return ResponseHelper::jsonResponse(
                     false,
                     'Server Error: ' . (config('app.debug') ? $e->getMessage() : 'Internal Server Error'),

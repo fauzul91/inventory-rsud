@@ -5,39 +5,73 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Satuan;
 use App\Models\Stok;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class StokSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $satuans = Satuan::all();
         $categoryMap = Category::pluck('id', 'name');
 
         $stokData = [
-            'ATK' => ['Pulpen', 'Pensil', 'Penghapus', 'Spidol', 'Penggaris'],
-            'Cetak' => ['Kertas HVS A4', 'Kertas Foto', 'Label Printer', 'Amplop', 'Buku Nota'],
-            'Alat Listrik' => ['Stop Kontak', 'Lampu LED', 'Extension Cord', 'Saklar', 'Baterai'],
-            'Bahan Komputer' => ['Flashdisk', 'HDD Eksternal', 'Mouse', 'Keyboard', 'Monitor'],
-            'Kertas dan Cover' => ['Cover Plastik', 'Karton', 'Sticker A4', 'Kertas Label', 'Binder'],
-            'Bahan Bangunan' => ['Semen', 'Pasir', 'Cat Tembok', 'Paku', 'Kayu Balok'],
-            'Bahan Pembersih' => ['Sabun Cuci', 'Detergen', 'Disinfektan', 'Sapu', 'Lap Serbaguna'],
+            'ATK' => [
+                'Pulpen' => 'Pcs',
+                'Pensil' => 'Pcs',
+                'Penghapus' => 'Pcs',
+                'Spidol' => 'Pcs',
+                'Penggaris' => 'Pcs'
+            ],
+            'Cetak' => [
+                'Kertas HVS A4' => 'Rim',
+                'Kertas Foto' => 'Pack',
+                'Label Printer' => 'Roll',
+                'Amplop' => 'Box',
+                'Buku Nota' => 'Buku'
+            ],
+            'Alat Listrik' => [
+                'Stop Kontak' => 'Unit',
+                'Lampu LED' => 'Pcs',
+                'Extension Cord' => 'Unit',
+                'Saklar' => 'Pcs',
+                'Baterai' => 'Pack'
+            ],
+            'Bahan Komputer' => [
+                'Flashdisk' => 'Unit',
+                'HDD Eksternal' => 'Unit',
+                'Mouse' => 'Unit',
+                'Keyboard' => 'Unit',
+                'Monitor' => 'Unit'
+            ],
+            'Bahan Bangunan' => [
+                'Semen' => 'Sak',
+                'Pasir' => 'M3',
+                'Cat Tembok' => 'Pail',
+                'Paku' => 'Kg',
+                'Kayu Balok' => 'Batang'
+            ],
+            'Bahan Pembersih' => [
+                'Sabun Cuci' => 'Botol',
+                'Detergen' => 'Bungkus',
+                'Disinfektan' => 'Jerigen',
+                'Sapu' => 'Pcs',
+                'Lap Serbaguna' => 'Lusin'
+            ],
         ];
 
         foreach ($stokData as $categoryName => $items) {
-            $categoryId = $categoryMap[$categoryName];
+            $categoryId = $categoryMap[$categoryName] ?? null;
 
-            foreach ($items as $name) {
-                Stok::create([
-                    'name' => $name,
-                    'category_id' => $categoryId,
-                    'minimum_stok' => rand(5, 8),
-                    'satuan_id' => $satuans->random()->id,
-                ]);
+            if ($categoryId) {
+                foreach ($items as $itemName => $satuanName) {
+                    $satuan = Satuan::firstOrCreate(['name' => $satuanName]);
+
+                    Stok::create([
+                        'name' => $itemName,
+                        'category_id' => $categoryId,
+                        'minimum_stok' => rand(5, 10),
+                        'satuan_id' => $satuan->id,
+                    ]);
+                }
             }
         }
     }
