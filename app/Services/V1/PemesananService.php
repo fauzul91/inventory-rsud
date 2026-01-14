@@ -2,6 +2,7 @@
 
 namespace App\Services\V1;
 
+use App\Enum\V1\NotificationType;
 use App\Models\DetailPemesanan;
 use App\Models\Pemesanan;
 use App\Repositories\V1\PemesananRepository;
@@ -126,6 +127,10 @@ class PemesananService
 
             return Pemesanan::with('detailPemesanan')->find($pemesananId);
         });
+        $this->notifikasiService->completeNotification(
+            NotificationType::PEMESANAN_DIAJUKAN,
+            $pemesananId
+        );
         $this->notifikasiService->konfirmasiPemesananAdmin($pemesanan, Auth::user()->name ?? "Penanggung Jawab");
         $this->monitoringService->log("Konfirmasi kuantitas pemesanan: {$pemesanan->id}", Auth::id());
         return $pemesanan;

@@ -2,6 +2,7 @@
 
 namespace App\Services\V1;
 
+use App\Enum\V1\NotificationType;
 use App\Exceptions\BusinessException;
 use App\Models\Category;
 use App\Repositories\V1\PenerimaanRepository;
@@ -352,7 +353,10 @@ class PenerimaanService
                 "Mengkonfirmasi penerimaan: {$penerimaan->no_surat}",
                 2
             );
-
+            $this->notifikasiService->completeNotification(
+                NotificationType::PENERIMAAN_DIAJUKAN,
+                $id
+            );
             $this->notifikasiService->uploadTTDPenerimaan($penerimaan, Auth::user()->name ?? "Tim Teknis");
             return $penerimaan->fresh();
         });

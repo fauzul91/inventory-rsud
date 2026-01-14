@@ -57,9 +57,18 @@ class PelaporanRepository implements PelaporanRepositoryInterface
     }
     public function getTotalStokBarang()
     {
-        $totalMasuk = DB::table('detail_penerimaan_barangs')->sum('quantity');
-        $totalKeluar = DB::table('detail_pemesanan_penerimaan')->sum('quantity');
-        return $totalMasuk - $totalKeluar;
+        $totalMasuk = DB::table('detail_penerimaan_barangs')
+            ->join('penerimaans', 'detail_penerimaan_barangs.penerimaan_id', '=', 'penerimaans.id')
+            ->whereIn('penerimaans.status', ['confirmed', 'signed', 'paid'])
+            ->sum('detail_penerimaan_barangs.quantity');
+
+        $totalKeluar = DB::table('detail_pemesanan_penerimaan')
+            ->join('detail_pemesanans', 'detail_pemesanan_penerimaan.detail_pemesanan_id', '=', 'detail_pemesanans.id')
+            ->join('pemesanans', 'detail_pemesanans.pemesanan_id', '=', 'pemesanans.id')
+            ->where('pemesanans.status', 'approved_admin_gudang')
+            ->sum('detail_pemesanan_penerimaan.quantity');
+
+        return max(0, (int) ($totalMasuk - $totalKeluar));
     }
 
     public function getTotalBastSigned()
@@ -71,9 +80,11 @@ class PelaporanRepository implements PelaporanRepositoryInterface
     }
     public function getTotalBarangBelumDibayar()
     {
-        return (int) DetailPenerimaanBarang::whereHas('penerimaan', function ($q) {
-            $q->where('status', '!=', 'paid');
-        })->sum('quantity');
+        return (int) DetailPenerimaanBarang::where('is_paid', false)
+            ->whereHas('penerimaan', function ($q) {
+                $q->where('status', 'confirmed');
+            })
+            ->sum('quantity');
     }
 
     public function getDashboardInsight()

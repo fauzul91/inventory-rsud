@@ -40,12 +40,10 @@ class NotifikasiService
             'list' => $notifications
         ];
     }
-
     public function markNotificationAsRead(int $id, int $userId)
     {
         return $this->notifikasiRepository->markAsRead($id, $userId);
     }
-
     public function markAllNotificationsAsRead(int $userId)
     {
         return $this->notifikasiRepository->markAllRead($userId);
@@ -54,12 +52,10 @@ class NotifikasiService
     {
         return $this->notifikasiRepository->delete($id, $userId);
     }
-
     public function deleteAllNotifications(int $userId)
     {
         return $this->notifikasiRepository->deleteAll($userId);
     }
-
     public function penerimaanDiajukan($penerimaan, string $senderName): void
     {
         $this->notifyByRole(
@@ -71,7 +67,6 @@ class NotifikasiService
             ['penerimaan_id' => $penerimaan->id]
         );
     }
-
     public function uploadTTDPenerimaan($penerimaan, string $senderName): void
     {
         $this->notifyByRole(
@@ -83,19 +78,6 @@ class NotifikasiService
             ['penerimaan_id' => $penerimaan->id]
         );
     }
-
-    public function stokMenipis($stok, int $quantity, string $senderName): void
-    {
-        $this->notifyByRole(
-            $senderName,
-            [RoleName::ADMIN_GUDANG],
-            NotificationType::STOK_MENIPIS,
-            'Restock Barang',
-            "Segera lakukan pengadaan untuk [{$stok->nama}]. Stok saat ini adalah ({$quantity}).",
-            ['stok_id' => $stok->id]
-        );
-    }
-
     public function pemesananDiajukan($pemesanan, string $senderName): void
     {
         $this->notifyByRole(
@@ -107,7 +89,6 @@ class NotifikasiService
             ['pemesanan_id' => $pemesanan->id]
         );
     }
-
     public function konfirmasiPemesananAdmin($pemesanan, string $senderName): void
     {
         $this->notifyByRole(
@@ -119,7 +100,6 @@ class NotifikasiService
             ['pemesanan_id' => $pemesanan->id]
         );
     }
-
     private function notifyByRole(
         string $sender,
         RoleName|array $roles,
@@ -138,7 +118,6 @@ class NotifikasiService
             $this->createNotification($sender, $user->id, $type, $title, $message, $data);
         }
     }
-
     private function createNotification(
         string $sender,
         int $userId,
@@ -157,10 +136,18 @@ class NotifikasiService
         ]);
     }
 
-    public function completePenerimaan(int $penerimaanId): void
+    public function completeNotification(NotificationType $type, $dataValue): void
     {
-        Notifikasi::where('type', NotificationType::PENERIMAAN_DIAJUKAN->value)
-            ->whereJsonContains('data->penerimaan_id', $penerimaanId)
+        $dataKey = match ($type) {
+            NotificationType::PENERIMAAN_DIAJUKAN,
+            NotificationType::UPLOAD_TTD_PENERIMAAN => 'penerimaan_id',
+            NotificationType::PEMESANAN_DIAJUKAN,
+            NotificationType::KONFIRMASI_PEMESANAN_ADMIN => 'pemesanan_id',
+            default => 'id',
+        };
+
+        Notifikasi::where('type', $type->value)
+            ->whereJsonContains("data->$dataKey", (int) $dataValue)
             ->whereNull('completed_at')
             ->update(['completed_at' => now()]);
     }
