@@ -63,7 +63,7 @@ class StokRepository implements StokRepositoryInterface
                         ->whereHas(
                             'penerimaan',
                             fn($p) =>
-                            $p->whereIn('status', ['checked', 'confirmed', 'signed', 'paid'])
+                            $p->whereIn('status', ['confirmed', 'signed', 'paid'])
                         )
             ])
             ->orderBy('name');
@@ -75,8 +75,8 @@ class StokRepository implements StokRepositoryInterface
             'satuan:id,name',
         ])->findOrFail($stokId);
 
-        $validStatuses = ['checked', 'confirmed', 'signed', 'paid'];
-
+        $validStatuses = ['confirmed', 'signed', 'paid'];
+        $validStatusesKeluar = ['approved_admin_gudang'];
         $masuk = DB::table('detail_penerimaan_barangs as dpb')
             ->join('penerimaans as p', 'dpb.penerimaan_id', '=', 'p.id')
             ->where('dpb.stok_id', $stokId)
@@ -117,6 +117,7 @@ class StokRepository implements StokRepositoryInterface
                 'pm.id'
             )
             ->where('dpb.stok_id', $stokId)
+            ->where('pm.status', 'approved_admin_gudang')
             ->select([
                 'dpp.created_at as tanggal',
                 DB::raw("'keluar' as tipe"),
@@ -171,7 +172,7 @@ class StokRepository implements StokRepositoryInterface
                     ->whereHas(
                         'penerimaan',
                         fn($p) =>
-                        $p->whereIn('status', ['checked', 'confirmed', 'signed', 'paid'])
+                        $p->whereIn('status', ['confirmed', 'signed', 'paid'])
                     )
         ])->findOrFail($stokId);
 

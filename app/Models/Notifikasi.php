@@ -46,11 +46,25 @@ class Notifikasi extends Model
     public function getUrlAttribute(): string
     {
         $urlFrontEnd = env('FRONTEND_URL', 'http://localhost:5173');
+        $isCompleted = !is_null($this->completed_at);
+
         return match ($this->type) {
-            NotificationType::PENERIMAAN_DIAJUKAN->value => "$urlFrontEnd/penerimaan/inspect/" . ($this->data['penerimaan_id'] ?? ''),
-            NotificationType::UPLOAD_TTD_PENERIMAAN->value => "$urlFrontEnd/penerimaan/unggah/" . ($this->data['penerimaan_id'] ?? ''),
-            NotificationType::PEMESANAN_DIAJUKAN->value => "$urlFrontEnd/pengeluaran/lihat/" . ($this->data['pemesanan_id'] ?? ''),
-            NotificationType::KONFIRMASI_PEMESANAN_ADMIN->value => "$urlFrontEnd/pengeluaran/lihat/" . ($this->data['pemesanan_id'] ?? ''),
+            NotificationType::PENERIMAAN_DIAJUKAN->value => $isCompleted
+            ? "$urlFrontEnd/penerimaan/detail/" . ($this->data['penerimaan_id'] ?? '')
+            : "$urlFrontEnd/penerimaan/inspect/" . ($this->data['penerimaan_id'] ?? ''),
+
+            NotificationType::UPLOAD_TTD_PENERIMAAN->value => $isCompleted
+            ? "$urlFrontEnd/penerimaan/unduhBAST/" . ($this->data['penerimaan_id'] ?? "")
+            : "$urlFrontEnd/penerimaan/unggah/" . ($this->data['penerimaan_id'] ?? ''),
+
+            NotificationType::PEMESANAN_DIAJUKAN->value => $isCompleted
+            ? "$urlFrontEnd/pengeluaran?target=riwayat"
+            : "$urlFrontEnd/pengeluaran/lihat/" . ($this->data['pemesanan_id'] ?? ''),
+
+            NotificationType::KONFIRMASI_PEMESANAN_ADMIN->value => $isCompleted
+            ? "$urlFrontEnd/pengeluaran?target=riwayat"
+            : "$urlFrontEnd/pengeluaran/lihat/" . ($this->data['pemesanan_id'] ?? ''),
+
             NotificationType::STOK_MENIPIS->value => "$urlFrontEnd/stok/lihat/" . ($this->data['stok_id'] ?? ''),
             default => "$urlFrontEnd",
         };

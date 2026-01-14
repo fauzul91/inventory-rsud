@@ -22,7 +22,7 @@ class PengeluaranService
     ) {
         $this->pengeluaranRepository = $pengeluaranRepository;
         $this->stokService = $stokService;
-        $this->$notifikasiService = $$notifikasiService;
+        $this->notifikasiService = $notifikasiService;
     }
     public function getAllPengeluaran($filters)
     {
