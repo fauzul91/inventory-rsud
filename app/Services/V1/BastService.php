@@ -2,6 +2,7 @@
 
 namespace App\Services\V1;
 
+use App\Enum\V1\NotificationType;
 use App\Models\Bast;
 use App\Models\Penerimaan;
 use App\Repositories\V1\BastRepository;
@@ -12,11 +13,13 @@ class BastService
 {
     protected $bastRepository;
     protected $monitoringService;
+    protected $notifikasiService;
 
-    public function __construct(BastRepository $bastRepository, MonitoringService $monitoringService)
+    public function __construct(BastRepository $bastRepository, MonitoringService $monitoringService, NotifikasiService $notifikasiService)
     {
         $this->bastRepository = $bastRepository;
         $this->monitoringService = $monitoringService;
+        $this->notifikasiService = $notifikasiService;
     }
 
     public function getBastList(array $filters, string $type)
@@ -151,7 +154,10 @@ class BastService
         ]);
 
         $this->monitoringService->log("Upload SIGNED BAST", 2);
-
+        $this->notifikasiService->completeNotification(
+            NotificationType::UPLOAD_TTD_PENERIMAAN,
+            $penerimaanId
+        );
         return $bast;
     }
     public function history($filters)

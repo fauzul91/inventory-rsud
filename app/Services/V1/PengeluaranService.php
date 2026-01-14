@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services\V1;
+use App\Enum\V1\NotificationType;
 use App\Models\DetailPemesanan;
 use App\Models\DetailPenerimaanBarang;
 use App\Models\Pemesanan;
@@ -13,12 +14,15 @@ class PengeluaranService
 {
     private $pengeluaranRepository;
     private $stokService;
+    private $notifikasiService;
     public function __construct(
         PengeluaranRepository $pengeluaranRepository,
-        StokService $stokService
+        StokService $stokService,
+        NotifikasiService $notifikasiService
     ) {
         $this->pengeluaranRepository = $pengeluaranRepository;
         $this->stokService = $stokService;
+        $this->$notifikasiService = $$notifikasiService;
     }
     public function getAllPengeluaran($filters)
     {
@@ -95,7 +99,10 @@ class PengeluaranService
             $pemesanan->update([
                 'status' => 'approved_admin_gudang'
             ]);
-
+            $this->notifikasiService->completeNotification(
+                NotificationType::KONFIRMASI_PEMESANAN_ADMIN,
+                $pemesananId
+            );
             return $pemesanan->load('detailPemesanan.penerimaanBarangs');
         });
     }
