@@ -58,11 +58,11 @@ class Notifikasi extends Model
             : "$urlFrontEnd/penerimaan/unggah/" . ($this->data['penerimaan_id'] ?? ''),
 
             NotificationType::PEMESANAN_DIAJUKAN->value => $isCompleted
-            ? "$urlFrontEnd/pengeluaran?target=riwayat"
+            ? "$urlFrontEnd/pengeluaran?tab=riwayat"
             : "$urlFrontEnd/pengeluaran/lihat/" . ($this->data['pemesanan_id'] ?? ''),
 
             NotificationType::KONFIRMASI_PEMESANAN_ADMIN->value => $isCompleted
-            ? "$urlFrontEnd/pengeluaran?target=riwayat"
+            ? "$urlFrontEnd/pengeluaran?tab=riwayat"
             : "$urlFrontEnd/pengeluaran/lihat/" . ($this->data['pemesanan_id'] ?? ''),
 
             NotificationType::STOK_MENIPIS->value => "$urlFrontEnd/stok/lihat/" . ($this->data['stok_id'] ?? ''),

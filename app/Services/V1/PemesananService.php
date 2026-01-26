@@ -51,7 +51,6 @@ class PemesananService
                 'total_stok' => $availableForUser > 0 ? $availableForUser : 0,
             ];
         });
-
         return $stoks;
     }
     public function getAllPemesanan(array $filters, array $statuses, string $context = 'default')
