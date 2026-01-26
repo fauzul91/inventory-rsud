@@ -45,4 +45,14 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
         ];
     }
+    private function getAdminGudangId()
+    {
+        $user = User::where('role', 'admin gudang')->first();
+
+        if (!$user) {
+            throw new \Exception('User dengan role admin gudang tidak ditemukan!');
+        }
+
+        return $user->id;
+    }
 }

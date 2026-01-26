@@ -30,36 +30,39 @@ class PenerimaanSeeder extends Seeder
             'Jl. Letjen Panjaitan No. 88, Sumbersari, Jember',
         ];
 
-        $stokIds = Stok::pluck('id')->toArray();
         $pegawaiIds = Pegawai::pluck('id')->toArray();
 
-        for ($i = 1; $i <= 20; $i++) {
+        for ($i = 25; $i <= 100; $i++) {
+            $currentCategoryId = rand(1, 6);
+
             $penerimaan = Penerimaan::create([
                 'user_id' => 4,
                 'no_surat' => 'BAST-' . strtoupper(Str::random(4)) . '/' . date('m') . '/' . date('Y') . '/' . str_pad($i, 3, '0', STR_PAD_LEFT),
-                'category_id' => rand(1, 6),
+                'category_id' => $currentCategoryId, // Gunakan variabel kategori
                 'deskripsi' => 'Penerimaan barang operasional tahap ke-' . $i,
                 'status' => 'pending',
             ]);
 
-            $barangCount = rand(1, 4);
-            $tempStokIds = $stokIds;
-            shuffle($tempStokIds);
+            $stokSesuaiKategori = Stok::where('category_id', $currentCategoryId)
+                ->pluck('id')
+                ->toArray();
 
-            for ($b = 0; $b < $barangCount; $b++) {
-                if (!isset($tempStokIds[$b]))
-                    break;
+            if (!empty($stokSesuaiKategori)) {
+                $barangCount = rand(1, min(4, count($stokSesuaiKategori)));
+                shuffle($stokSesuaiKategori);
 
-                $qty = rand(5, 50);
-                $harga = rand(5000, 25000);
+                for ($b = 0; $b < $barangCount; $b++) {
+                    $qty = rand(5, 50);
+                    $harga = rand(5000, 25000);
 
-                DetailPenerimaanBarang::create([
-                    'penerimaan_id' => $penerimaan->id,
-                    'stok_id' => $tempStokIds[$b],
-                    'quantity' => $qty,
-                    'harga' => $harga,
-                    'total_harga' => $qty * $harga,
-                ]);
+                    DetailPenerimaanBarang::create([
+                        'penerimaan_id' => $penerimaan->id,
+                        'stok_id' => $stokSesuaiKategori[$b],
+                        'quantity' => $qty,
+                        'harga' => $harga,
+                        'total_harga' => $qty * $harga,
+                    ]);
+                }
             }
 
             $tempPegawaiIds = $pegawaiIds;

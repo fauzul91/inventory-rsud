@@ -26,7 +26,12 @@ class PemesananRepository implements PemesananRepositoryInterface
                 'status',
             ])
             ->with('user:id,name')
-            ->orderBy('created_at', 'desc');
+            ->orderByRaw("CASE 
+                WHEN status = 'pending' THEN 1 
+                WHEN status = 'approved_pj' THEN 2 
+                WHEN status = 'approved_admin_gudang' THEN 3 
+                ELSE 4 END")
+            ->orderBy('tanggal_pemesanan', 'asc');
 
         if (!empty($statuses)) {
             $query->whereIn('status', $statuses);

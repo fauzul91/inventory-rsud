@@ -30,7 +30,14 @@ class PenerimaanRepository implements PenerimaanRepositoryInterface
             ->when($statuses, function ($q, $statuses) {
                 $q->whereIn('status', $statuses);
             })
-            ->latest('created_at')
+            ->orderByRaw("CASE 
+                WHEN status = 'checked' THEN 1 
+                WHEN status = 'pending' THEN 2 
+                WHEN status = 'confirmed' THEN 3 
+                WHEN status = 'signed' THEN 4 
+                WHEN status = 'paid' THEN 5
+                ELSE 6 END")
+            ->oldest('created_at')
             ->paginate($filters['per_page'] ?? 10);
     }
     public function findById($id)

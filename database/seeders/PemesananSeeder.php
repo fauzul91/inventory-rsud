@@ -73,7 +73,7 @@ class PemesananSeeder extends Seeder
                     DetailPemesanan::create([
                         'pemesanan_id' => $pemesanan->id,
                         'stok_id' => $tempStoks[$j],
-                        'quantity' => rand(1, 10),
+                        'quantity' => rand(1, 5),
                     ]);
                 }
             }

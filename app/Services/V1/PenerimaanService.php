@@ -60,7 +60,7 @@ class PenerimaanService
                 'no_surat' => $item->no_surat,
                 'role_user' => $item->user->roles->pluck('name')->first() ?? null,
                 'category_name' => $item->category->name ?? null,
-                'pegawai_name' => optional($item->detailPegawai->first()?->pegawai)->name,
+                'pegawai_name' => optional($item->detailPegawai->first()?->pegawai)->name ?? "-",
                 'status' => $this->mapPenerimaanStatusLabel($item->status, $context),
                 'status_code' => $item->status,
             ];

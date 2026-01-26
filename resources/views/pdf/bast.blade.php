@@ -211,8 +211,8 @@
                     <td>{{ $barang->stok->name }}</td>
                     <td class="text-center">{{ $barang->quantity }}</td>
                     <td class="text-center">{{ $barang->stok->satuan->name }}</td>
-                    <td class="text-right">{{ number_format($barang->harga) }}</td>
-                    <td class="text-right">{{ number_format($barang->total_harga) }}</td>
+                    <td class="text-right">{{ number_format($barang->harga, 0, ',', '.') }}</td>
+                    <td class="text-right">{{ number_format($barang->total_harga, 0, ',', '.') }}</td>
                     <td class="check-col">
                         @if ($barang->is_layak)
                             <img src="{{ $checkPath }}" width="18">
@@ -247,7 +247,7 @@
     </table>
 
     <p>
-        <b>Total:</b> Rp {{ number_format($penerimaan->detailBarang->sum('total_harga')) }} <br>
+        <b>Total:</b> Rp {{ number_format($penerimaan->detailBarang->sum('total_harga'), 0, ',', '.') }} <br>
         <b>Terbilang:</b> ({{ terbilang($penerimaan->detailBarang->sum('total_harga')) }} rupiah)
     </p>
 
