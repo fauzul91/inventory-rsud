@@ -66,7 +66,11 @@ class BastRepository implements BastRepositoryInterface
             'penerimaan.category',
             'penerimaan.detailPegawai.pegawai',
             'penerimaan.detailBarang'
-        ])->orderBy('uploaded_at', 'desc');
+        ])
+            ->whereHas('penerimaan', function ($q) {
+                $q->whereIn('status', ['signed', 'paid']);
+            })
+            ->orderBy('uploaded_at', 'desc');
 
         if (!empty($filters['sort_by'])) {
             $query->orderBy('uploaded_at', $filters['sort_by'] === 'oldest' ? 'asc' : 'desc');
