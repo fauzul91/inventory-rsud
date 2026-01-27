@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\V1\BastUploadRequest;
 use App\Repositories\V1\BastRepository;
 use App\Services\V1\BastService;
 use App\Services\V1\PenerimaanService;
@@ -121,12 +122,9 @@ class BastController extends Controller
      * @param mixed $penerimaanId
      * @return JsonResponse
      */
-    public function upload(Request $request, $penerimaanId): JsonResponse
+    public function upload(BastUploadRequest $request, $penerimaanId): JsonResponse
     {
-        $request->validate([
-            'uploaded_signed_file' => 'required|file|mimes:pdf|max:4096',
-        ]);
-
+        $request->validated();
         $result = $this->bastService->uploadSignedBast($penerimaanId, $request->file('uploaded_signed_file'));
 
         return ResponseHelper::jsonResponse(true, 'BAST bertandatangan berhasil diupload', $result, 200);
