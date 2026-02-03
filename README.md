@@ -1,53 +1,390 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Backend Inventory RSD Balung
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <strong>Sistem Manajemen Inventaris Rumah Sakit Balung</strong><br>
+  Dikembangkan oleh Tim Capstone Fasilkom UNEJ
 </p>
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 📋 Daftar Isi
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- [Overview Proyek](#overview-proyek)
+- [Fitur Utama](#fitur-utama)
+- [Teknologi yang Digunakan](#teknologi-yang-digunakan)
+- [Requirements](#requirements)
+- [Instalasi](#instalasi)
+- [Konfigurasi](#konfigurasi)
+- [Menjalankan Aplikasi](#menjalankan-aplikasi)
+- [Struktur Proyek](#struktur-proyek)
+- [Tim Pengembang](#tim-pengembang)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 📱 Overview Proyek
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+**Backend Inventory RSD Balung** adalah sistem backend API yang dirancang untuk mengelola inventaris di Rumah Sakit Umum Daerah (RSUD) Balung. Aplikasi ini menggunakan framework Laravel 11 dan menyediakan RESTful API untuk manajemen inventaris, pemesanan barang, penerimaan barang, dan monitoring stok secara real-time.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Tujuan Proyek
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- Mengoptimalkan pengelolaan inventaris rumah sakit
+- Meningkatkan efisiensi tracking stok barang
+- Menyediakan sistem pemesanan barang yang terstruktur
+- Memberikan laporan dan analisis stok secara akurat
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## ✨ Fitur Utama
 
-### Premium Partners
+1. **Manajemen Stok**
+    - Monitoring stok barang real-time
+    - Tracking pergerakan barang
+    - Kategori dan satuan barang
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+2. **Pemesanan Barang**
+    - Sistem pemesanan barang terstruktur
+    - Tracking status pemesanan
+    - Detail pemesanan per item
+
+3. **Penerimaan Barang**
+    - Pencatatan penerimaan barang
+    - Verifikasi barang masuk
+    - Penerimaan per pegawai
+    - Berita Acara Serah Terima (BAST)
+
+4. **Pengelolaan Pengguna**
+    - Manajemen user dengan role-based access control
+    - Manajemen jabatan pegawai
+    - Notifikasi sistem
+
+5. **Pelaporan**
+    - Export data pengeluaran ke Excel
+    - Laporan inventory
+    - Dashboard monitoring
+
+6. **Integrasi SSO**
+    - Integrasi dengan sistem Single Sign-On eksternal
+    - Keamanan dengan Laravel Sanctum
+
+---
+
+## 🛠 Teknologi yang Digunakan
+
+| Komponen           | Teknologi                 |
+| ------------------ | ------------------------- |
+| Framework Backend  | Laravel 11.31             |
+| Bahasa Pemrograman | PHP 8.2+                  |
+| Database           | MySQL/PostgreSQL          |
+| Authentication     | Laravel Sanctum           |
+| Package Manager    | Composer                  |
+| Build Tool         | Vite                      |
+| ORM                | Eloquent                  |
+| API Documentation  | Dedoc Scramble            |
+| Export Excel       | Maatwebsite Excel         |
+| PDF Generation     | DomPDF                    |
+| Permission         | Spatie Laravel Permission |
+| Testing            | PHPUnit                   |
+
+---
+
+## 📦 Requirements
+
+Sebelum melakukan instalasi, pastikan sistem Anda memiliki:
+
+- **PHP 8.2** atau lebih tinggi
+- **Composer** (untuk manajemen package PHP)
+- **Node.js 18+** dan **npm** atau **yarn** (untuk asset frontend)
+- **MySQL 8.0+** atau **PostgreSQL 12+**
+- **Git**
+
+### Verifikasi Instalasi
+
+```bash
+php --version      # Cek versi PHP
+composer --version # Cek versi Composer
+node --version     # Cek versi Node.js
+npm --version      # Cek versi npm
+```
+
+---
+
+## 🚀 Instalasi
+
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/fauzul91/inventory-rsud.git
+cd inventory-rsud
+```
+
+### 2. Install PHP Dependencies
+
+```bash
+composer install
+```
+
+### 3. Install JavaScript Dependencies
+
+```bash
+npm install
+# atau
+yarn install
+```
+
+### 4. Setup Environment File
+
+```bash
+# Copy file .env.example menjadi .env
+cp .env.example .env
+
+# atau untuk Windows
+copy .env.example .env
+```
+
+### 5. Generate Application Key
+
+```bash
+php artisan key:generate
+```
+
+### 6. Buat Database
+
+Buat database baru di MySQL/PostgreSQL:
+
+```sql
+CREATE DATABASE inventory_rsud;
+```
+
+### 7. Konfigurasi Database
+
+Edit file `.env` dan sesuaikan konfigurasi database:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=inventory_rsud
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+### 8. Jalankan Database Migrations
+
+```bash
+php artisan migrate
+```
+
+### 9. Jalankan Database Seeding (Opsional)
+
+```bash
+php artisan db:seed
+```
+
+---
+
+## ⚙️ Konfigurasi
+
+### Konfigurasi Environment
+
+File `.env` yang penting untuk diperhatikan:
+
+```env
+# App Configuration
+APP_NAME="Inventory RSUD"
+APP_ENV=local
+APP_DEBUG=true
+APP_TIMEZONE=Asia/Jakarta
+APP_URL=http://localhost:8001
+FRONTEND_URL=http://localhost:5173
+
+# Database Configuration
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=inventory_rsud
+DB_USERNAME=root
+DB_PASSWORD=
+
+# Auth Configuration (SSO)
+PASSPORT_HOST=http://localhost:8000
+PASSPORT_CLIENT_ID=your_client_id
+PASSPORT_CLIENT_SECRET=your_client_secret
+PASSPORT_REDIRECT_URI=http://localhost:8001/api/sso/callback
+SSO_LOGOUT_URL=http://localhost:8000/logout
+
+# Mail Configuration (Opsional)
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=587
+MAIL_USERNAME=your_username
+MAIL_PASSWORD=your_password
+MAIL_FROM_ADDRESS=noreply@inventoryrsud.com
+```
+
+### Konfigurasi Permission
+
+File `config/permission.php` mengatur role dan permission dalam sistem.
+
+---
+
+## ▶️ Menjalankan Aplikasi
+
+### Development Mode
+
+#### 1. Jalankan Server Laravel
+
+```bash
+php artisan serve
+# Server akan berjalan di http://localhost:8000
+```
+
+#### 2. Compile Assets (di terminal baru)
+
+```bash
+npm run dev
+# atau dengan Vite watcher
+npm run dev
+```
+
+#### 3. Optional: Jalankan Telescope (untuk debugging)
+
+```bash
+# Akses di http://localhost:8000/telescope
+```
+
+### Production Mode
+
+```bash
+# Compile assets untuk production
+npm run build
+
+# Jalankan server production
+php artisan serve --env=production
+```
+
+---
+
+## 📁 Struktur Proyek
+
+```
+inventory-rsud/
+├── app/
+│   ├── Console/           # Artisan Commands
+│   ├── Enum/              # Enums (Value Objects)
+│   ├── Exceptions/        # Custom Exceptions
+│   ├── Exports/           # Excel Exports
+│   ├── Helpers/           # Helper Functions
+│   ├── Http/
+│   │   ├── Controllers/   # API Controllers
+│   │   ├── Middleware/    # HTTP Middleware
+│   │   └── Requests/      # Form Requests (Validation)
+│   ├── Imports/           # Excel Imports
+│   ├── Interfaces/        # Contracts/Interfaces
+│   ├── Models/            # Database Models
+│   ├── Repositories/      # Repository Pattern
+│   ├── Services/          # Business Logic Services
+│   └── Providers/         # Service Providers
+├── bootstrap/             # Bootstrap files
+├── config/                # Configuration files
+├── database/
+│   ├── migrations/        # Database Migrations
+│   ├── seeders/           # Database Seeders
+│   └── factories/         # Model Factories
+├── public/                # Public assets
+├── resources/
+│   ├── css/               # Stylesheets
+│   ├── js/                # JavaScript files
+│   └── views/             # Blade templates
+├── routes/                # Route definitions
+│   ├── api/               # API routes
+│   ├── web.php            # Web routes
+│   └── console.php        # Console routes
+├── storage/               # File storage
+├── tests/                 # Unit & Feature tests
+├── vendor/                # Composer dependencies
+├── .env.example           # Example environment file
+├── artisan                # Artisan CLI
+├── composer.json          # PHP dependencies
+├── package.json           # Node dependencies
+├── phpunit.xml            # PHPUnit configuration
+├── tailwind.config.js     # Tailwind CSS configuration
+├── vite.config.js         # Vite configuration
+└── README.md              # Documentation
+```
+
+---
+
+## 🔑 Key Models
+
+- **User**: Pengguna sistem
+- **Pegawai**: Data pegawai rumah sakit
+- **Stok**: Inventaris barang
+- **Pemesanan**: Data pemesanan barang
+- **Penerimaan**: Data penerimaan barang
+- **Category**: Kategori barang
+- **Satuan**: Satuan pengukuran barang
+- **Jabatan**: Posisi/jabatan pegawai
+- **Notifikasi**: Sistem notifikasi
+
+---
+
+## 🧪 Testing
+
+Jalankan unit tests:
+
+```bash
+php artisan test
+```
+
+Jalankan test dengan coverage:
+
+```bash
+php artisan test --coverage
+```
+
+---
+
+## 📚 API Documentation
+
+Dokumentasi API dapat diakses melalui Scramble di:
+
+```
+http://localhost:8001/api/documentation
+```
+
+---
+
+## 📝 Kontribusi
+
+Untuk berkontribusi pada proyek ini:
+
+1. Fork repository
+2. Buat branch fitur (`git checkout -b feature/AmazingFeature`)
+3. Commit perubahan (`git commit -m 'Add some AmazingFeature'`)
+4. Push ke branch (`git push origin feature/AmazingFeature`)
+5. Buka Pull Request
+
+---
+
+## 👥 Tim Pengembang
+
+Proyek ini dikembangkan oleh **Tim Capstone Fasilkom UNEJ** (Fakultas Ilmu Komputer - Universitas Negeri Jember)
+
+---
+
+## 📄 Lisensi
+
+Proyek ini dilisensikan di bawah lisensi MIT. Lihat file `LICENSE` untuk detail lebih lanjut.
+
+---
+
+## 📞 Kontak & Support
+
+Untuk pertanyaan atau masalah, silakan buka issue di repository ini atau hubungi tim pengembang.
+
+---
+
+**Last Updated**: Februari 2026
 
 ## Contributing
 
