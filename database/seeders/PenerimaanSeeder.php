@@ -32,7 +32,7 @@ class PenerimaanSeeder extends Seeder
 
         $pegawaiIds = Pegawai::pluck('id')->toArray();
 
-        for ($i = 25; $i <= 100; $i++) {
+        for ($i = 1; $i <= 26; $i++) {
             $currentCategoryId = rand(1, 6);
 
             $penerimaan = Penerimaan::create([
@@ -47,8 +47,8 @@ class PenerimaanSeeder extends Seeder
                 ->pluck('id')
                 ->toArray();
 
-            if (!empty($stokSesuaiKategori)) {
-                $barangCount = rand(1, min(4, count($stokSesuaiKategori)));
+            if (count($stokSesuaiKategori) >= 3) {
+                $barangCount = rand(3, min(5, count($stokSesuaiKategori)));
                 shuffle($stokSesuaiKategori);
 
                 for ($b = 0; $b < $barangCount; $b++) {
@@ -58,6 +58,16 @@ class PenerimaanSeeder extends Seeder
                     DetailPenerimaanBarang::create([
                         'penerimaan_id' => $penerimaan->id,
                         'stok_id' => $stokSesuaiKategori[$b],
+                        'quantity' => $qty,
+                        'harga' => $harga,
+                        'total_harga' => $qty * $harga,
+                    ]);
+                }
+            } else {
+                foreach ($stokSesuaiKategori as $stokId) {
+                    DetailPenerimaanBarang::create([
+                        'penerimaan_id' => $penerimaan->id,
+                        'stok_id' => $stokId,
                         'quantity' => $qty,
                         'harga' => $harga,
                         'total_harga' => $qty * $harga,

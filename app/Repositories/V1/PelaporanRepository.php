@@ -74,15 +74,13 @@ class PelaporanRepository implements PelaporanRepositoryInterface
     public function getTotalBastSigned()
     {
         return Penerimaan::whereIn('status', ['signed', 'paid'])
-            ->whereYear('created_at', now()->year)
-            ->whereMonth('created_at', now()->month)
             ->count();
     }
     public function getTotalBarangBelumDibayar()
     {
         return (int) DetailPenerimaanBarang::where('is_paid', false)
             ->whereHas('penerimaan', function ($q) {
-                $q->where('status', 'confirmed');
+                $q->whereIn('status', ['confirmed', 'signed']);
             })
             ->sum('quantity');
     }

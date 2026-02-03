@@ -10,6 +10,7 @@ use App\Models\Penerimaan;
 use App\Models\Satuan;
 use App\Models\Stok;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -39,6 +40,10 @@ class StokPerSheetImport implements ToCollection, WithHeadingRow
                 'user_id' => User::role('admin-gudang-umum')->first()->id ?? 1,
             ]
         );
+        $penerimaan->timestamps = false;
+        $penerimaan->created_at = Carbon::create(2025, 12, 31, 23, 59, 59);
+        $penerimaan->updated_at = Carbon::create(2025, 12, 31, 23, 59, 59);
+        $penerimaan->save();
 
         foreach ($rows as $row) {
 
@@ -57,19 +62,24 @@ class StokPerSheetImport implements ToCollection, WithHeadingRow
                 ]
             );
 
-            DetailPenerimaanBarang::firstOrCreate(
-                [
-                    'penerimaan_id' => $penerimaan->id,
-                    'stok_id' => $stok->id,
-                ],
-                [
-                    'quantity' => (int) $row['stok'],
-                    'harga' => 0,
-                    'total_harga' => 0,
-                    'is_layak' => true,
-                    'is_paid' => true
-                ]
-            );
+            $detailBarang = DetailPenerimaanBarang::firstOrNew([
+                'penerimaan_id' => $penerimaan->id,
+                'stok_id' => $stok->id,
+            ]);
+
+            if (!$detailBarang->exists) {
+                $detailBarang->quantity = (int) $row['stok'];
+                $detailBarang->harga = 0;
+                $detailBarang->total_harga = 0;
+                $detailBarang->is_layak = true;
+                $detailBarang->is_paid = true;
+
+                $detailBarang->timestamps = false;
+                $detailBarang->created_at = Carbon::create(2025, 12, 31, 23, 59, 59);
+                $detailBarang->updated_at = Carbon::create(2025, 12, 31, 23, 59, 59);
+
+                $detailBarang->save();
+            }
 
             $alamatJember = [
                 'Jl. Kalimantan No. 37, Sumbersari, Jember',
@@ -91,12 +101,17 @@ class StokPerSheetImport implements ToCollection, WithHeadingRow
                 if (!isset($tempPegawaiIds[$p]))
                     break;
 
-                DetailPenerimaanPegawai::create([
-                    'penerimaan_id' => $penerimaan->id,
-                    'pegawai_id' => $tempPegawaiIds[$p],
-                    'alamat_staker' => $alamatJember[array_rand($alamatJember)],
-                    'urutan' => $p + 1,
-                ]);
+                $detailPegawai = new DetailPenerimaanPegawai();
+                $detailPegawai->penerimaan_id = $penerimaan->id;
+                $detailPegawai->pegawai_id = $tempPegawaiIds[$p];
+                $detailPegawai->alamat_staker = $alamatJember[array_rand($alamatJember)];
+                $detailPegawai->urutan = $p + 1;
+
+                $detailPegawai->timestamps = false;
+                $detailPegawai->created_at = Carbon::create(2025, 12, 31, 23, 59, 59);
+                $detailPegawai->updated_at = Carbon::create(2025, 12, 31, 23, 59, 59);
+
+                $detailPegawai->save();
             }
         }
     }
